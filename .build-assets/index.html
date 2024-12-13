@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html class="sl-theme-dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GUL INFO - DRIVER</title>
+  <style>
+    :root {
+      /*
+      These are custom props that may exist on client
+      */
+      --gifo-color-primary: #ffe74c;
+      --gifo-color-on-primary: #424242;
+      --gifo-color-accent: #807211;
+
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Driver</h1>
+  <gul-info title="Gul Info"></gul-info>
+  <script src="/dist/app.js"></script>
+  <script>
+    /*
+    Since this is just a driver for the app as a custom-element, we can safely
+    Add dev-only stuff here
+    */
+    new EventSource('/esbuild').addEventListener('change', () => location.reload())
+  </script>
+</body>
+
+</html>

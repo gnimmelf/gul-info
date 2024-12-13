@@ -1,0 +1,28 @@
+{
+  "name": "gul-info",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node .build.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@shoelace-style/shoelace": "^2.19.0",
+    "postcss": "^8.4.49",
+    "postcss-js": "^4.0.1",
+    "postcss-nested": "^7.0.2",
+    "solid-js": "^1.9.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/postcss-js": "^4.0.4",
+    "esbuild": "^0.24.0",
+    "esbuild-plugin-solid": "^0.6.0",
+    "mime-types": "^2.1.35",
+    "solid-element": "^1.9.1",
+    "typescript": "^5.7.2"
+  }
+}
