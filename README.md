@@ -1,16 +1,18 @@
 # Gul Info
 
-A very lean SolidJs app compiled to a custom-element using `esbuild` and `postcss-js`.
+A very lean SolidJs app compiled to a custom-element using `esbuild`, `postcss-js` and `shoelace-style`.
 
-Postcss is used *runtime* to
+Postcss is used *runtime* to:
 
-1. render css in a style-tag in the shadow-dom to minimize external dependencies.
+1. Render css in a style-tag in the shadow-dom to minimize external dependencies.
 
 2. Have nested-rules expanded.
 
 # Dev & build
 
-Buildt using a custom `esbuild` script. Outputs to `dist` folder.
+Built using custom `esbuild` script `.build`. Outputs to `dist` folder.
+
+- Always watch mode!
 
 ## Build assets
 
@@ -23,3 +25,19 @@ openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -sub
 ```
 
 Move files to `.build-assets/`-folder.
+
+# TODO
+
+## Build
+
+- [ ] Build without watch-mode
+
+- [ ] Minify Css
+
+- [ ] Minify Js
+
+## App
+
+- [ ] Admin backend w/ login
+
+- [ ] SMS / Payment option to verify clients

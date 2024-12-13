@@ -1,11 +1,12 @@
 
-dist
+# Dev
 .solid
 .output
 .vercel
 .netlify
 .vinxi
 app.config.timestamp_*.js
+#dist
 
 # Environment
 .env
