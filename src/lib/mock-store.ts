@@ -8,7 +8,7 @@ export default createStore([
       description: "IT-tjenester og web-utvikling",
       links: [
         {
-          href: "https://integate.io",
+          href: "https://intergate.io",
         },
         {
           href: "https://linkedin.com/in/gnimmelf",

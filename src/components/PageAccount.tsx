@@ -7,7 +7,7 @@ import { Tag } from "./parts/Tag";
 import { Phone } from "./parts/Phone";
 import { Address } from "./parts/Address";
 
-import listingsStore from "~/lib/store-listings";
+import listingsStore from "~/lib/mock-store";
 
 const css = styler.css({
     

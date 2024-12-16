@@ -23,6 +23,9 @@ importers:
       solid-js:
         specifier: ^1.9.3
         version: 1.9.3
+      surrealdb:
+        specifier: ^1.1.0
+        version: 1.1.0(tslib@2.8.1)(typescript@5.7.2)(ws@8.18.0)
     devDependencies:
       '@types/node':
         specifier: ^22.10.1
@@ -475,6 +478,11 @@ packages:
   html-entities@2.3.3:
     resolution: {integrity: sha512-DV5Ln36z34NNTDgnz0EWGBLZENelNAtkiFA4kyNOG2tDI6Mz1uSWiq1wAKdyjnJwyDiDO7Fa2SO1CTxPXL8VxA==}
 
+  isows@1.0.6:
+    resolution: {integrity: sha512-lPHCayd40oW98/I0uvgaHKWCSvkzY27LjWLbtzOm64yQ+G3Q5npjjbdppU65iZXkK1Zt+kH9pfegli0AYfwYYw==}
+    peerDependencies:
+      ws: '*'
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -574,6 +582,16 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+  surrealdb@1.1.0:
+    resolution: {integrity: sha512-EAopFKeIo1lVCR+XEE/oMuh8LCPAIa2xC9MyVs5nw+BJyHc0Fr6F/UWVF9399LRtTBCoqe5G1W0hgxqLqkWaYA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      tslib: ^2.6.3
+      typescript: ^5.0.0
+
+  tslib@2.8.1:
+    resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
   typescript@5.7.2:
     resolution: {integrity: sha512-i5t66RHxDvVN40HfDd1PsEThGNnlMCMT3jMUuoh9/0TaqWevNontacunWyN02LA9/fIbEWlcHZcgTKb9QoaLfg==}
     engines: {node: '>=14.17'}
@@ -591,8 +609,24 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuidv7@1.0.2:
+    resolution: {integrity: sha512-8JQkH4ooXnm1JCIhqTMbtmdnYEn6oKukBxHn1Ic9878jMkL7daTI7anTExfY18VRCX7tcdn5quzvCb6EWrR8PA==}
+    hasBin: true
+
   validate-html-nesting@1.2.2:
     resolution: {integrity: sha512-hGdgQozCsQJMyfK5urgFcWEqsSSrK63Awe0t/IMR0bZ0QMtnuaiHzThW81guu3qx9abLi99NEuiaN6P9gVYsNg==}
+
+  ws@8.18.0:
+    resolution: {integrity: sha512-8VbfWfHLbbwu3+N6OKsOMpBdT4kXPDDB9cJk2bJ6mh9ucxdlnNvH1e+roYkKmN9Nxw2yjz7VzeO9oOz2zJ04Pw==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -1030,6 +1064,10 @@ snapshots:
 
   html-entities@2.3.3: {}
 
+  isows@1.0.6(ws@8.18.0):
+    dependencies:
+      ws: 8.18.0
+
   js-tokens@4.0.0: {}
 
   jsesc@3.0.2: {}
@@ -1118,6 +1156,17 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
+  surrealdb@1.1.0(tslib@2.8.1)(typescript@5.7.2)(ws@8.18.0):
+    dependencies:
+      isows: 1.0.6(ws@8.18.0)
+      tslib: 2.8.1
+      typescript: 5.7.2
+      uuidv7: 1.0.2
+    transitivePeerDependencies:
+      - ws
+
+  tslib@2.8.1: {}
+
   typescript@5.7.2: {}
 
   undici-types@6.20.0: {}
@@ -1130,6 +1179,10 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  uuidv7@1.0.2: {}
+
   validate-html-nesting@1.2.2: {}
+
+  ws@8.18.0: {}
 
   yallist@3.1.1: {}
