@@ -8,19 +8,14 @@ import { Phone } from "./parts/Phone";
 import { Address } from "./parts/Address";
 
 import listingsStore from "~/lib/store-listings";
-import { IconLabel } from "./parts/IconLabel";
 
 const css = styler.css({
-    title: ({ theme }) => ({
-        fontSize: theme.fontSizeMd,
-        fontWeight: "400",
-    }),
     card: {
         "--border-radius": "15px",
         width: "100%",
         marginBottom: "1rem",
-        "& .flex-middle": {
-            margin: "0 auto",
+        "& .flex-middle > *": {
+            justifySelf: "center",
         },
     },
     cardHeader: {
@@ -29,14 +24,14 @@ const css = styler.css({
         justifyContent: "space-between",
         position: "relative",
         alignItems: "center",
+        rowGap: "1rem",
         "> * ": {
             flex: "1 1 33.33%",
             minWidth: "200px",
             textAlign: "center",
-            "@media (min-width: 600px)": {
+            "@media (min-width: 700px)": {
                 "&:first-child": {
                     textAlign: "left",
-                    background: "red",
                 },
                 "&:last-child": {
                     textAlign: "right",
@@ -51,7 +46,7 @@ const css = styler.css({
 });
 
 export const PageListings: Component<{
-    title: string;
+    title?: string;
 }> = (props) => {
     const [listings] = listingsStore;
     return (
@@ -61,15 +56,15 @@ export const PageListings: Component<{
             ) => (
                 <sl-card class={css.card}>
                     <div slot="header" class={css.cardHeader}>
-                        <div class={css.title}>{title}</div>
-                        <div class="flex-middle">
-                            <IconLabel label="beskrivelse" icon="info-circle">
-                                {description}
-                            </IconLabel>
-                        </div>
-                        <div>
-                            <Phone phoneNumber={contact.phone} />
-                        </div>
+                        
+                            <div class={css.title}>{title}</div>
+                            <div>
+                                {tags.map((tag) => <Tag {...tag} />)}
+                            </div>
+                            <div>
+                                <Phone phoneNumber={contact.phone} />
+                            </div>
+                        
                     </div>
                     <div>
                         <div slot="header" class={css.cardBody}>
@@ -78,20 +73,15 @@ export const PageListings: Component<{
                             </div>
                             <div>
                                 {links.map((link) => (
-                                    <span>
+                                    <div>
                                         <WebLink link={link} />
-                                        <br />
-                                    </span>
+                                    </div>
                                 ))}
                             </div>
-                        </div>
-                        <div>
-                            {tags.map((tag) => <Tag {...tag} />)}
                         </div>
                     </div>
                 </sl-card>
             ))}
-            <div></div>
         </section>
     );
 };

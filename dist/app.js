@@ -90,7 +90,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css5 = this.source;
+          let css6 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -103,7 +103,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css5.split(/\r?\n/);
+          let lines = css6.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1372,9 +1372,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css5, opts) {
+        constructor(css6, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css5);
+          this.loadAnnotation(css6);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1413,13 +1413,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css5) {
-          let comments = css5.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css6) {
+          let comments = css6.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css5.lastIndexOf(comments.pop());
-          let end = css5.indexOf("*/", start);
+          let start = css6.lastIndexOf(comments.pop());
+          let end = css6.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css5.substring(start, end));
+            this.annotation = this.getAnnotationURL(css6.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1492,11 +1492,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css5, opts = {}) {
-          if (css5 === null || typeof css5 === "undefined" || typeof css5 === "object" && !css5.toString) {
-            throw new Error(`PostCSS received ${css5} instead of CSS string`);
+        constructor(css6, opts = {}) {
+          if (css6 === null || typeof css6 === "undefined" || typeof css6 === "object" && !css6.toString) {
+            throw new Error(`PostCSS received ${css6} instead of CSS string`);
           }
-          this.css = css5.toString();
+          this.css = css6.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2223,11 +2223,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css5 = input.css.valueOf();
+        let css6 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n8, prev;
-        let length = css5.length;
+        let length = css6.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2244,7 +2244,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css5.charCodeAt(pos);
+          code = css6.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2254,9 +2254,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css5.charCodeAt(next);
+                code = css6.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css5.slice(pos, next)];
+              currentToken = ["space", css6.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2273,12 +2273,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n8 = css5.charCodeAt(pos + 1);
+              n8 = css6.charCodeAt(pos + 1);
               if (prev === "url" && n8 !== SINGLE_QUOTE && n8 !== DOUBLE_QUOTE && n8 !== SPACE && n8 !== NEWLINE && n8 !== TAB && n8 !== FEED && n8 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css5.indexOf(")", next + 1);
+                  next = css6.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2288,16 +2288,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css5.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css6.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css5.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css6.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css5.indexOf(")", pos + 1);
-                content = css5.slice(pos, next + 1);
+                next = css6.indexOf(")", pos + 1);
+                content = css6.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2313,7 +2313,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css5.indexOf(quote, next + 1);
+                next = css6.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2323,71 +2323,71 @@
                   }
                 }
                 escapePos = next;
-                while (css5.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css6.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css5.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css6.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css5);
+              RE_AT_END.test(css6);
               if (RE_AT_END.lastIndex === 0) {
-                next = css5.length - 1;
+                next = css6.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css5.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css6.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css5.charCodeAt(next + 1) === BACKSLASH) {
+              while (css6.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css5.charCodeAt(next + 1);
+              code = css6.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css5.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css5.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css6.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css6.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css5.charCodeAt(next + 1) === SPACE) {
+                  if (css6.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css5.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css6.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css5.charCodeAt(pos + 1) === ASTERISK) {
-                next = css5.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css6.charCodeAt(pos + 1) === ASTERISK) {
+                next = css6.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css5.length;
+                    next = css6.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css5.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css6.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css5);
+                RE_WORD_END.test(css6);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css5.length - 1;
+                  next = css6.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css5.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css6.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2949,8 +2949,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css5, opts) {
-        let input = new Input2(css5, opts);
+      function parse3(css6, opts) {
+        let input = new Input2(css6, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3163,18 +3163,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css5, opts) {
+        constructor(processor, css6, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css5 === "object" && css5 !== null && (css5.type === "root" || css5.type === "document")) {
-            root2 = cleanMarks(css5);
-          } else if (css5 instanceof _LazyResult || css5 instanceof Result2) {
-            root2 = cleanMarks(css5.root);
-            if (css5.map) {
+          if (typeof css6 === "object" && css6 !== null && (css6.type === "root" || css6.type === "document")) {
+            root2 = cleanMarks(css6);
+          } else if (css6 instanceof _LazyResult || css6 instanceof Result2) {
+            root2 = cleanMarks(css6.root);
+            if (css6.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css5.map;
+              opts.map.prev = css6.map;
             }
           } else {
             let parser2 = parse3;
@@ -3182,7 +3182,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css5, opts);
+              root2 = parser2(css6, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3550,24 +3550,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css5, opts) {
-          css5 = css5.toString();
+        constructor(processor, css6, opts) {
+          css6 = css6.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css5;
+          this._css = css6;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css5;
+          this.result.css = css6;
           let self = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css5);
+          let map = new MapGenerator(str, root2, this._opts, css6);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3695,11 +3695,11 @@
           }
           return normalized;
         }
-        process(css5, opts = {}) {
+        process(css6, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css5, opts);
+            return new NoWorkResult(this, css6, opts);
           } else {
-            return new LazyResult(this, css5, opts);
+            return new LazyResult(this, css6, opts);
           }
         }
         use(plugin2) {
@@ -3768,8 +3768,8 @@
             return cache;
           }
         });
-        creator.process = function(css5, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css5, processOpts);
+        creator.process = function(css6, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css6, processOpts);
         };
         return creator;
       };
@@ -6101,31 +6101,31 @@
         hex[hexChars.charCodeAt(i8)] = true;
       }
       var i8;
-      function consumeWord(css5, start) {
+      function consumeWord(css6, start) {
         var next = start;
         var code;
         do {
-          code = css5.charCodeAt(next);
+          code = css6.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t6.backslash) {
-            next = consumeEscape(css5, next) + 1;
+            next = consumeEscape(css6, next) + 1;
           } else {
             next++;
           }
-        } while (next < css5.length);
+        } while (next < css6.length);
         return next - 1;
       }
-      function consumeEscape(css5, start) {
+      function consumeEscape(css6, start) {
         var next = start;
-        var code = css5.charCodeAt(next + 1);
+        var code = css6.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css5.charCodeAt(next + 1);
+            code = css6.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t6.space) {
             next++;
@@ -6147,8 +6147,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css5 = input.css.valueOf();
-        var _css = css5, length = _css.length;
+        var css6 = input.css.valueOf();
+        var _css = css6, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6156,14 +6156,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css5 += fix;
-            next = css5.length - 1;
+            css6 += fix;
+            next = css6.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css5.charCodeAt(start);
+          code = css6.charCodeAt(start);
           if (code === t6.newline) {
             offset3 = start;
             line += 1;
@@ -6177,7 +6177,7 @@
               next = start;
               do {
                 next += 1;
-                code = css5.charCodeAt(next);
+                code = css6.charCodeAt(next);
                 if (code === t6.newline) {
                   offset3 = next;
                   line += 1;
@@ -6195,7 +6195,7 @@
               next = start;
               do {
                 next += 1;
-                code = css5.charCodeAt(next);
+                code = css6.charCodeAt(next);
               } while (code === t6.plus || code === t6.greaterThan || code === t6.tilde || code === t6.pipe);
               tokenType = t6.combinator;
               endLine = line;
@@ -6228,12 +6228,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css5.indexOf(quote, next + 1);
+                next = css6.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css5.charCodeAt(escapePos - 1) === t6.backslash) {
+                while (css6.charCodeAt(escapePos - 1) === t6.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6244,12 +6244,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t6.slash && css5.charCodeAt(start + 1) === t6.asterisk) {
-                next = css5.indexOf("*/", start + 2) + 1;
+              if (code === t6.slash && css6.charCodeAt(start + 1) === t6.asterisk) {
+                next = css6.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css5.slice(start, next + 1);
+                content = css6.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6270,7 +6270,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css5, start);
+                next = consumeWord(css6, start);
                 tokenType = t6.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -8712,6 +8712,33 @@
     }
     return untrack(() => Comp(props || {}));
   }
+  var narrowedError = (name) => `Stale read from <${name}>.`;
+  function Show(props) {
+    const keyed = props.keyed;
+    const condition = createMemo(() => props.when, void 0, {
+      equals: (a4, b3) => keyed ? a4 === b3 : !a4 === !b3
+    });
+    return createMemo(
+      () => {
+        const c6 = condition();
+        if (c6) {
+          const child = props.children;
+          const fn = typeof child === "function" && child.length > 0;
+          return fn ? untrack(
+            () => child(
+              keyed ? c6 : () => {
+                if (!untrack(condition)) throw narrowedError("Show");
+                return props.when;
+              }
+            )
+          ) : child;
+        }
+        return props.fallback;
+      },
+      void 0,
+      void 0
+    );
+  }
 
   // node_modules/.pnpm/solid-js@1.9.3/node_modules/solid-js/web/dist/web.js
   var booleans = [
@@ -9154,7 +9181,7 @@
   var _tmpl$ = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
   var css = styler.css({
     wrapper: {
-      // display: "flex",
+      display: "flex"
     },
     label: {
       paddingInlineStart: "var(--sl-spacing-2x-small)"
@@ -9571,22 +9598,16 @@
   ]);
 
   // src/components/PageListings.tsx
-  var _tmpl$6 = /* @__PURE__ */ template(`<section><div>`);
-  var _tmpl$22 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
-  var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
+  var _tmpl$6 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$22 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div></div><div></div></div><div><div slot=header><div></div><div>`, true, false);
+  var _tmpl$32 = /* @__PURE__ */ template(`<div>`);
   var css3 = styler.css({
-    title: ({
-      theme
-    }) => ({
-      fontSize: theme.fontSizeMd,
-      fontWeight: "400"
-    }),
     card: {
       "--border-radius": "15px",
       width: "100%",
       marginBottom: "1rem",
-      "& .flex-middle": {
-        margin: "0 auto"
+      "& .flex-middle > *": {
+        justifySelf: "center"
       }
     },
     cardHeader: {
@@ -9595,14 +9616,14 @@
       justifyContent: "space-between",
       position: "relative",
       alignItems: "center",
+      rowGap: "1rem",
       "> * ": {
         flex: "1 1 33.33%",
         minWidth: "200px",
         textAlign: "center",
-        "@media (min-width: 600px)": {
+        "@media (min-width: 700px)": {
           "&:first-child": {
-            textAlign: "left",
-            background: "red"
+            textAlign: "left"
           },
           "&:last-child": {
             textAlign: "right"
@@ -9618,7 +9639,7 @@
   var PageListings = (props) => {
     const [listings] = store_listings_default;
     return (() => {
-      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild;
+      var _el$ = _tmpl$6();
       insert(_el$, () => listings.map(({
         title,
         description,
@@ -9626,34 +9647,29 @@
         tags,
         ...contact
       }) => (() => {
-        var _el$3 = _tmpl$22(), _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$5.nextSibling, _el$7 = _el$6.nextSibling, _el$8 = _el$4.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild, _el$11 = _el$10.nextSibling, _el$12 = _el$9.nextSibling;
-        _el$3._$owner = getOwner();
-        insert(_el$5, title);
-        insert(_el$6, createComponent(IconLabel, {
-          label: "beskrivelse",
-          icon: "info-circle",
-          children: description
-        }));
-        insert(_el$7, createComponent(Phone, {
+        var _el$2 = _tmpl$22(), _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.nextSibling, _el$6 = _el$5.nextSibling, _el$7 = _el$3.nextSibling, _el$8 = _el$7.firstChild, _el$9 = _el$8.firstChild, _el$10 = _el$9.nextSibling;
+        _el$2._$owner = getOwner();
+        insert(_el$4, title);
+        insert(_el$5, () => tags.map((tag) => createComponent(Tag, tag)));
+        insert(_el$6, createComponent(Phone, {
           get phoneNumber() {
             return contact.phone;
           }
         }));
-        insert(_el$10, createComponent(Address, contact));
-        insert(_el$11, () => links.map((link) => (() => {
-          var _el$13 = _tmpl$32(), _el$14 = _el$13.firstChild;
-          insert(_el$13, createComponent(WebLink, {
+        insert(_el$9, createComponent(Address, contact));
+        insert(_el$10, () => links.map((link) => (() => {
+          var _el$11 = _tmpl$32();
+          insert(_el$11, createComponent(WebLink, {
             link
-          }), _el$14);
-          return _el$13;
+          }));
+          return _el$11;
         })()));
-        insert(_el$12, () => tags.map((tag) => createComponent(Tag, tag)));
         createRenderEffect((_p$) => {
           var _v$ = css3.card, _v$2 = css3.cardHeader, _v$3 = css3.title, _v$4 = css3.cardBody;
-          _v$ !== _p$.e && className(_el$3, _p$.e = _v$);
-          _v$2 !== _p$.t && className(_el$4, _p$.t = _v$2);
-          _v$3 !== _p$.a && className(_el$5, _p$.a = _v$3);
-          _v$4 !== _p$.o && className(_el$9, _p$.o = _v$4);
+          _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
+          _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
+          _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
+          _v$4 !== _p$.o && className(_el$8, _p$.o = _v$4);
           return _p$;
         }, {
           e: void 0,
@@ -9661,16 +9677,25 @@
           a: void 0,
           o: void 0
         });
-        return _el$3;
-      })()), _el$2);
+        return _el$2;
+      })()));
       return _el$;
     })();
   };
 
+  // src/components/PageAccount.tsx
+  var _tmpl$7 = /* @__PURE__ */ template(`<section><h2>PageAccount`);
+  var css4 = styler.css({});
+  var PageAccount = (props) => {
+    const [listings] = store_listings_default;
+    return _tmpl$7();
+  };
+
   // src/App.tsx
-  var _tmpl$7 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$8 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
   var _tmpl$23 = /* @__PURE__ */ template(`<style id=styler>`);
-  var _tmpl$33 = /* @__PURE__ */ template(`<div><h1>`);
+  var _tmpl$33 = /* @__PURE__ */ template(`<sl-icon-button>`, true, false);
+  var _tmpl$42 = /* @__PURE__ */ template(`<div><section><h1>`);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
     "font-optical-sizing": "auto",
     "font-weight": "400",
@@ -9699,7 +9724,7 @@
       color: theme.colorOnPrimary
     })
   });
-  var css4 = styler.css({
+  var css5 = styler.css({
     app: ({
       theme
     }) => ({
@@ -9716,6 +9741,11 @@
       border: "5px solid",
       borderColor: theme.colorAccent
     }),
+    header: {
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "space-between"
+    },
     title: ({
       theme
     }) => ({
@@ -9723,24 +9753,72 @@
       fontSize: theme.fontSizeLg
     })
   });
+  var PAGES = {
+    LISTINGS: "LISTINGS",
+    ACCOUNT: "ACCOUNT"
+  };
   var App = (props) => {
-    return [_tmpl$7(), (() => {
+    const [activePage, setActivePage] = createSignal(PAGES.LISTINGS);
+    return [_tmpl$8(), (() => {
       var _el$2 = _tmpl$23();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);
       return _el$2;
     })(), (() => {
-      var _el$3 = _tmpl$33(), _el$4 = _el$3.firstChild;
-      insert(_el$4, () => props.title);
-      insert(_el$3, createComponent(PageListings, {}), null);
+      var _el$3 = _tmpl$42(), _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild;
+      insert(_el$5, () => props.title);
+      insert(_el$4, createComponent(Show, {
+        get when() {
+          return activePage() === PAGES.LISTINGS;
+        },
+        get children() {
+          var _el$6 = _tmpl$33();
+          addEventListener(_el$6, "click", () => setActivePage(PAGES.ACCOUNT));
+          _el$6.name = "gear";
+          _el$6.label = "Settings";
+          _el$6._$owner = getOwner();
+          return _el$6;
+        }
+      }), null);
+      insert(_el$4, createComponent(Show, {
+        get when() {
+          return activePage() === PAGES.ACCOUNT;
+        },
+        get children() {
+          var _el$7 = _tmpl$33();
+          addEventListener(_el$7, "click", () => setActivePage(PAGES.LISTINGS));
+          _el$7.name = "shop-window";
+          _el$7.label = "Settings";
+          _el$7._$owner = getOwner();
+          return _el$7;
+        }
+      }), null);
+      insert(_el$3, createComponent(Show, {
+        get when() {
+          return activePage() === PAGES.LISTINGS;
+        },
+        get children() {
+          return createComponent(PageListings, {});
+        }
+      }), null);
+      insert(_el$3, createComponent(Show, {
+        get when() {
+          return activePage() === PAGES.ACCOUNT;
+        },
+        get children() {
+          return createComponent(PageAccount, {});
+        }
+      }), null);
       createRenderEffect((_p$) => {
-        var _v$ = join(css4.app, css4.border), _v$2 = join(css4.title, css4.large);
+        var _v$ = join(css5.app, css5.border), _v$2 = css5.header, _v$3 = join(css5.title, css5.large);
         _v$ !== _p$.e && className(_el$3, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$4, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$5, _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0
       });
       return _el$3;
     })()];
@@ -15602,8 +15680,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css5 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css5.transform !== "none" || css5.perspective !== "none" || (css5.containerType ? css5.containerType !== "normal" : false) || !webkit && (css5.backdropFilter ? css5.backdropFilter !== "none" : false) || !webkit && (css5.filter ? css5.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css5.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css5.contain || "").includes(value));
+    const css6 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css6.transform !== "none" || css6.perspective !== "none" || (css6.containerType ? css6.containerType !== "normal" : false) || !webkit && (css6.backdropFilter ? css6.backdropFilter !== "none" : false) || !webkit && (css6.filter ? css6.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css6.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css6.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -15685,9 +15763,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css5 = getComputedStyle2(element);
-    let width = parseFloat(css5.width) || 0;
-    let height = parseFloat(css5.height) || 0;
+    const css6 = getComputedStyle2(element);
+    let width = parseFloat(css6.width) || 0;
+    let height = parseFloat(css6.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -15781,9 +15859,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css5 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css5.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css5.paddingTop)) * iframeScale.y;
+        const css6 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css6.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css6.paddingTop)) * iframeScale.y;
         x2 *= iframeScale.x;
         y3 *= iframeScale.y;
         width *= iframeScale.x;

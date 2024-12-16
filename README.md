@@ -16,7 +16,7 @@ Built using custom `esbuild` script `.build`. Outputs to `dist` folder.
 
 ## Build assets
 
-*`.build-assets/index.html`* - Must reference the `/dist/main.js`
+*`.build-assets/index.html`* - Must reference `/dist/main.js`
 
 Pem files one-liner:
 

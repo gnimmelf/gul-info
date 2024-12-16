@@ -1,10 +1,12 @@
-import { Component } from "solid-js";
+import { Component, createSignal, Show } from "solid-js";
 
 import { join, loadFontFace, styler } from "~/lib/styler";
 
 
 
 import { PageListings } from './components/PageListings'
+import { SlIcon } from "@shoelace-style/shoelace";
+import { PageAccount } from "./components/PageAccount";
 
 
 loadFontFace(
@@ -51,15 +53,30 @@ const css = styler.css({
         border: "5px solid",
         borderColor: theme.colorAccent,
     }),
+    header: {
+        display: "flex",
+        flexWrap: "wrap",
+        justifyContent: "space-between",
+    },
     title: ({ theme }) => ({
         fontFamily: "'Playwrite HU', sans-serif",
         fontSize: theme.fontSizeLg,
     }),
 });
 
+const PAGES = {
+    LISTINGS: "LISTINGS",
+    ACCOUNT: "ACCOUNT"
+} as const;
+
+type PageType = typeof PAGES[keyof typeof PAGES];
+
 const App: Component<{
     title: string;
 }> = (props) => {
+
+    const [activePage, setActivePage] = createSignal<PageType>(PAGES.LISTINGS)
+
     return (
         <>
             <link
@@ -71,8 +88,21 @@ const App: Component<{
                 {styler.resolveStyles()}
             </style>
             <div class={join(css.app, css.border)}>
-                <h1 class={join(css.title, css.large)}>{props.title}</h1>
-                <PageListings />
+                <section class={css.header}>
+                    <h1 class={join(css.title, css.large)}>{props.title}</h1>
+                    <Show when={activePage() === PAGES.LISTINGS}>
+                        <sl-icon-button prop:name="gear" prop:label="Settings" on:click={() => setActivePage(PAGES.ACCOUNT)}></sl-icon-button>
+                    </Show>
+                    <Show when={activePage() === PAGES.ACCOUNT}>
+                        <sl-icon-button prop:name="shop-window" prop:label="Settings" on:click={() => setActivePage(PAGES.LISTINGS)}></sl-icon-button>
+                    </Show>
+                </section>
+                <Show when={activePage() === PAGES.LISTINGS}>
+                    <PageListings />
+                </Show>
+                <Show when={activePage() === PAGES.ACCOUNT}>
+                    <PageAccount />
+                </Show>
             </div>
         </>
     );
