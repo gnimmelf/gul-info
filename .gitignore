@@ -5,6 +5,7 @@
 .vercel
 .netlify
 .vinxi
+.dev-data
 app.config.timestamp_*.js
 #dist
 

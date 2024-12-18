@@ -8,33 +8,54 @@ Postcss is used *runtime* to:
 
 2. Have nested-rules expanded.
 
+# Build assets
+
+## Index.html
+
+`.build-assets/index.html`* - Must reference the `/dist/main.js`
+
+## TLS (Transport Layer Security) files
+
+`openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"`
+
+Move files `server.key`, `server.cert` to `.build-assets/`-folder.
+
 # Dev & build
 
 Built using custom `esbuild` script `.build`. Outputs to `dist` folder.
 
 - Always watch mode!
 
-## Build assets
+**SurrealDB** - Start local dev-server using TLS files:
 
-*`.build-assets/index.html`* - Must reference the `/dist/main.js`
+`package.json`:`scripts`:`start-db`
 
-Pem files one-liner:
+OR
 
-```
-openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"
-```
+`surreal start --user r00t --pass r00t surrealkv://.dev-data -A --bind 127.0.0.1:8001 --web-crt .build-assets/server.cert --web-key .build-assets/server.key`
 
-Move files to `.build-assets/`-folder.
+**Web-server** - Start local dev-server using TLS files:
+
+`package.json`:`scripts`:`dev`
+
+OR
+
+`node .build.mjs`
+
+
+
 
 # TODO
 
 ## Build
 
-- [ ] Build without watch-mode
+- [ ] Production build script
 
-- [ ] Minify Css
+    - [ ] Minify Css
 
-- [ ] Minify Js
+        - Why? - Since this is an extra runtime-step performed at the client
+
+    - [ ] Minify Js - Buildtime, so OK
 
 ## App
 
