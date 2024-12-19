@@ -12,16 +12,12 @@ import { useService } from "./ServiceProvider";
 import { Loading } from "./partials/Loading";
 
 const css = styler.css({
-    title: ({ theme }) => ({
-        fontSize: theme.fontSizeMd,
-        fontWeight: "400",
-    }),
     card: {
         "--border-radius": "15px",
         width: "100%",
         marginBottom: "1rem",
-        "& .flex-middle": {
-            margin: "0 auto",
+        "& .flex-middle > *": {
+            justifySelf: "center",
         },
     },
     cardHeader: {
@@ -30,11 +26,12 @@ const css = styler.css({
         justifyContent: "space-between",
         position: "relative",
         alignItems: "center",
+        rowGap: "1rem",
         "> * ": {
             flex: "1 1 33.33%",
             minWidth: "200px",
             textAlign: "center",
-            "@media (min-width: 600px)": {
+            "@media (min-width: 700px)": {
                 "&:first-child": {
                     textAlign: "left",
                 },

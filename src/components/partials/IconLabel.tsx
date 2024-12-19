@@ -4,7 +4,7 @@ import { join, styler } from "~/lib/styler";
 
 const css = styler.css({
     wrapper: ({
-        // display: "flex",
+        display: "flex",
 
     }),
     label: {

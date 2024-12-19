@@ -9,9 +9,9 @@ import { lookup as mimeLookup } from 'mime-types';
 import { isPortFree } from './.build-assets/is-port-free.mjs'
 
 const assetPaths = {
-    pemKey: '.build-assets/server.key',
-    pemCert: '.build-assets/server.cert',
     indexPage: '.build-assets/index.html',
+    pemKey: '.dev-certs/server.key',
+    pemCert: '.dev-certs/server.cert',
 }
 
 const checkAssetPaths = () => {

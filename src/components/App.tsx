@@ -1,10 +1,9 @@
-import { Component } from "solid-js";
+import { Component, createSignal, Show } from "solid-js";
 
 import { loadFontFace, styler } from "~/lib/styler";
 
 import { ServiceProvider } from "./ServiceProvider";
 import { Layout } from "./Layout";
-
 
 loadFontFace(
     "Playwrite HU",
@@ -53,6 +52,7 @@ const App: Component<{
                 {styler.resolveGlobals()}
                 {styler.resolveStyles()}
             </style>
+
             <ServiceProvider
                 namespace={props.namespace}
                 database={props.database}

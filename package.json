@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "node .build.mjs",
-    "start-db": "surreal start --user r00t --pass r00t surrealkv://.dev-data -A --bind 127.0.0.1:8001 --web-crt .build-assets/server.cert --web-key .build-assets/server.key"
+    "create-keys": "bash ./scripts/create-tls-keys.sh",
+    "start-db": "bash ./scripts/start-surrealdb-tls.sh"
   },
   "keywords": [],
   "author": "",

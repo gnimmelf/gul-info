@@ -130,7 +130,7 @@ class StyleReg {
     }
 }
 
-// Instantiate global instance and export it
+// Instantiate an instance and export it
 export const styler = new StyleReg()
 
 export const loadFontFace = (name: string, source: string, descriptors: Record<string, string> = {}) => {
