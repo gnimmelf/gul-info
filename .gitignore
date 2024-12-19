@@ -6,15 +6,13 @@
 .netlify
 .vinxi
 app.config.timestamp_*.js
+.dev-certs
+.dev-data
 #dist
 
 # Environment
 .env
 .env*.local
-
-# Secrets
-.build-assets/server.cert
-.build-assets/server.key
 
 # dependencies
 /node_modules

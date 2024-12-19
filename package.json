@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node .build.mjs"
+    "dev": "node .build.mjs",
+    "create-keys": "bash ./scripts/create-tls-keys.sh",
+    "start-db": "bash ./scripts/start-surrealdb-tls.sh"
   },
   "keywords": [],
   "author": "",
