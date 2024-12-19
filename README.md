@@ -8,6 +8,7 @@ Postcss is used *runtime* to:
 
 2. Have nested-rules expanded.
 
+
 # Build assets
 
 ## Index.html
@@ -16,9 +17,20 @@ Postcss is used *runtime* to:
 
 ## TLS (Transport Layer Security) files
 
-`openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 365 -subj "/CN=localhost"`
+1. Create the CA's private key and self-signed certificate:
+
+    - `openssl req -nodes -new -x509 -keyout ca.key -out ca.pem -days 365 -subj "/CN=MyCA"`
+
+2. Create the server's private key and a Certificate Signing Request (CSR):
+
+    - `openssl req -nodes -new -keyout server.key -out server.csr -subj "/CN=localhost"`
+
+3. Use the CA to sign the server's CSR and generate the server certificate:
+
+    - `openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.cert -days 365`
 
 Move files `server.key`, `server.cert` to `.build-assets/`-folder.
+
 
 # Dev & build
 
@@ -41,8 +53,6 @@ OR
 OR
 
 `node .build.mjs`
-
-
 
 
 # TODO

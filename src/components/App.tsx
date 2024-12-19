@@ -1,10 +1,9 @@
 import { Component } from "solid-js";
 
-import { join, loadFontFace, styler } from "~/lib/styler";
+import { loadFontFace, styler } from "~/lib/styler";
 
-
-
-import { PageListings } from './components/PageListings'
+import { ServiceProvider } from "./ServiceProvider";
+import { Layout } from "./Layout";
 
 
 loadFontFace(
@@ -30,35 +29,19 @@ styler
         },
     }).globals({
         ":root": ({ theme }) => ({
-            '--breakpoint-sm': theme.breakPointSmall
+            "--breakpoint-sm": theme.breakPointSmall,
         }),
-        'a, a:hover, a:visited': ({ theme }) => ({
-            textDecoration: 'none',
-            color: theme.colorOnPrimary
-        })
+        "a, a:hover, a:visited": ({ theme }) => ({
+            textDecoration: "none",
+            color: theme.colorOnPrimary,
+        }),
     });
 
-const css = styler.css({
-    app: ({ theme }) => ({
-        padding: "10px 15px",
-        color: theme.colorOnPrimary,
-        backgroundColor: theme.colorPrimary,
-        font: "16px var(--sl-font-sans)",
-        fontWeight: "var(--sl-font-weight-normal)",
-    }),
-    border: ({ theme }) => ({
-        borderRadius: "10px",
-        border: "5px solid",
-        borderColor: theme.colorAccent,
-    }),
-    title: ({ theme }) => ({
-        fontFamily: "'Playwrite HU', sans-serif",
-        fontSize: theme.fontSizeLg,
-    }),
-});
-
 const App: Component<{
-    title: string;
+    title: string
+    namespace: string
+    database: string
+    datapoint: string
 }> = (props) => {
     return (
         <>
@@ -70,10 +53,13 @@ const App: Component<{
                 {styler.resolveGlobals()}
                 {styler.resolveStyles()}
             </style>
-            <div class={join(css.app, css.border)}>
-                <h1 class={join(css.title, css.large)}>{props.title}</h1>
-                <PageListings />
-            </div>
+            <ServiceProvider
+                namespace={props.namespace}
+                database={props.database}
+                datapoint={props.datapoint}
+            >
+                <Layout title={props.title} />
+            </ServiceProvider>
         </>
     );
 };

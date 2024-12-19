@@ -1,5 +1,5 @@
 import { customElement, hot } from 'solid-element';
-import App from '~/App'
+import App from '~/components/App'
 
 import '~/lib/shoelace-setup'
 
@@ -19,6 +19,9 @@ declare module 'solid-js' {
 
 // https://blog.jim-nielsen.com/2023/validity-of-custom-element-tag-names/
 customElement("gul-info", {
-    // Attrs => props, hyphenated (kebab-case), lowercase
-    title: 'Title'
+    // Attrs, hyphenated (kebab-case) and lowercase, => props
+    title: '<title>',
+    namespace: '<namespace>',
+    database: '<database>',
+    datapoint: '<datapoint>',
 }, App)

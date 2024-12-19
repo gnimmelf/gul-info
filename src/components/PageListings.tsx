@@ -1,14 +1,15 @@
-import { Component } from "solid-js";
+import { Component, createEffect, createResource, Suspense } from "solid-js";
 
 import { join, styler } from "~/lib/styler";
 
-import { WebLink } from "./parts/WebLink";
-import { Tag } from "./parts/Tag";
-import { Phone } from "./parts/Phone";
-import { Address } from "./parts/Address";
+import { WebLink } from "./partials/WebLink";
+import { Tag } from "./partials/Tag";
+import { Phone } from "./partials/Phone";
+import { Address } from "./partials/Address";
 
-import listingsStore from "~/lib/store-listings";
-import { IconLabel } from "./parts/IconLabel";
+import { IconLabel } from "./partials/IconLabel";
+import { useService } from "./ServiceProvider";
+import { Loading } from "./partials/Loading";
 
 const css = styler.css({
     title: ({ theme }) => ({
@@ -36,7 +37,6 @@ const css = styler.css({
             "@media (min-width: 600px)": {
                 "&:first-child": {
                     textAlign: "left",
-                    background: "red",
                 },
                 "&:last-child": {
                     textAlign: "right",
@@ -51,47 +51,61 @@ const css = styler.css({
 });
 
 export const PageListings: Component<{
-    title: string;
+    title?: string;
 }> = (props) => {
-    const [listings] = listingsStore;
+    const { getDb } = useService();
+
+    const fetchListings = async () => {
+        return (await getDb()).queryRaw("SELECT * FROM listings;")
+            .then((resp) => resp[0].result);
+    };
+
+    const [listings] = createResource<any[]>(fetchListings);
+
+    createEffect(() => console.log(listings.state, listings()));
+
     return (
         <section>
-            {listings.map((
-                { title, description, links, tags, ...contact },
-            ) => (
-                <sl-card class={css.card}>
-                    <div slot="header" class={css.cardHeader}>
-                        <div class={css.title}>{title}</div>
-                        <div class="flex-middle">
-                            <IconLabel label="beskrivelse" icon="info-circle">
-                                {description}
-                            </IconLabel>
-                        </div>
-                        <div>
-                            <Phone phoneNumber={contact.phone} />
-                        </div>
-                    </div>
-                    <div>
-                        <div slot="header" class={css.cardBody}>
-                            <div>
-                                <Address {...contact} />
+            <Suspense fallback={<Loading />}>
+                {listings() && listings().map((
+                    { title, description, links, tags, ...contact },
+                ) => (
+                    <sl-card class={css.card}>
+                        <div slot="header" class={css.cardHeader}>
+                            <div class={css.title}>{title}</div>
+                            <div class="flex-middle">
+                                <IconLabel
+                                    label="beskrivelse"
+                                    icon="info-circle"
+                                >
+                                    {description}
+                                </IconLabel>
                             </div>
                             <div>
-                                {links.map((link) => (
-                                    <span>
-                                        <WebLink link={link} />
-                                        <br />
-                                    </span>
-                                ))}
+                                <Phone phoneNumber={contact.phone} />
                             </div>
                         </div>
                         <div>
-                            {tags.map((tag) => <Tag {...tag} />)}
+                            <div slot="header" class={css.cardBody}>
+                                <div>
+                                    <Address {...contact} />
+                                </div>
+                                <div>
+                                    {links.map((link) => (
+                                        <span>
+                                            <WebLink link={link} />
+                                            <br />
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            <div>
+                                {tags.map((tag) => <Tag {...tag} />)}
+                            </div>
                         </div>
-                    </div>
-                </sl-card>
-            ))}
-            <div></div>
+                    </sl-card>
+                ))}
+            </Suspense>
         </section>
     );
 };
