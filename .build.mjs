@@ -33,6 +33,7 @@ const startEsbuild = async () => {
     let ctx = await esbuild.context({
         entryPoints: ['src/main.ts'],
         bundle: true,
+        sourcemap: true,
         outfile: 'dist/app.js',
         plugins: [solidPlugin()],
     })

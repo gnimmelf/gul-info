@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createSignal } from 'solid-js';
+import { createSignal, runWithOwner, Owner } from 'solid-js';
 
 export const unWrapQueryData: any = (data: object[][]) => {
   let tmp: any = data;
@@ -12,7 +12,7 @@ export const unWrapQueryData: any = (data: object[][]) => {
  * @param func function to track
  * @returns undefined
  */
-export const noop = (arg: any): any => undefined
+export const noop = (func: any): any => undefined
 
 export const createVoidSignal = createSignal<void>(undefined, {
   equals: false,
@@ -79,4 +79,16 @@ export function zodSchemaDefaults<T extends z.ZodTypeAny>( schema: z.AnyZodObjec
           return [key, getDefaultValue(value)];
       } )
   )
+}
+
+/**
+ * Rethrows an error inside a SolidJs tracked scope.
+ * @param ownerScope SolidJs owner-scope from `getOwner()`
+ * @returns undefined
+ */
+export const throwToOwner = (ownerScope: Owner): any => (err: any) => {
+  console.warn('throwToOwner:', err)
+  runWithOwner(ownerScope!, () => {
+    throw err;
+  });
 }

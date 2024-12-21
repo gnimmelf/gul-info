@@ -18,7 +18,7 @@ export type DbState = z.infer<typeof DbSchema>;
 /**
  * Class
  */
-class DbService {
+class ApiService {
   #db: Surreal;
   #url: string
   #namespace: string
@@ -40,7 +40,7 @@ class DbService {
     this.state = state
   }
 
-  async connect(): Promise<DbService> {
+  async connect(): Promise<ApiService> {
     try {
       console.info("Connecting Surrealdb...")
       await this.#db.connect(this.#url)
@@ -56,7 +56,7 @@ class DbService {
       ...prev,
       isConnected: true
     }))
-    console.info(`DbService connected: ${this.#database}@${this.#namespace}:${this.#url}`)
+    console.info(`ApiService connected: ${this.#database}@${this.#namespace}:${this.#url}`)
     console.log(this.#db)
     return this
   }
@@ -158,4 +158,4 @@ class DbService {
 
 }
 
-export default DbService
+export default ApiService

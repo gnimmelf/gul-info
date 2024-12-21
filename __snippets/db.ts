@@ -1,5 +1,5 @@
 import Surreal, { surql } from "surrealdb";
-import { awaitCondition } from "./utils";
+import { awaitCondition } from "../src/lib/utils";
 
 interface DbConfig {
   namespace: string
@@ -7,8 +7,8 @@ interface DbConfig {
   url: string
 }
 
-export class Db {
-  private static instance: Db;
+export class ApiService {
+  private static instance: ApiService;
 
   private db = new Surreal()
   private config: DbConfig
@@ -18,14 +18,14 @@ export class Db {
       url: "https://127.0.0.1:7999/rpc",
       namespace: "intergate",
       database: "gul-info",
-    }, config)    
+    }, config)
   }
 
-  public static getInstance(): Db {
-    if (!Db.instance) {
-      Db.instance = new Db();
+  public static getInstance(): ApiService {
+    if (!ApiService.instance) {
+      ApiService.instance = new ApiService();
     }
-    return Db.instance;
+    return ApiService.instance;
   }
 
   async connect() {
@@ -33,13 +33,13 @@ export class Db {
       try {
         const { namespace, database } = this.config
         await this.db.connect(this.config.url, { namespace, database });
-        await this.db.ready        
+        await this.db.ready
       } catch (err) {
         console.error("Failed to connect to SurrealDB:", err instanceof Error ? err.message : String(err));
         await this.db.close();
         throw err;
       }
-    }    
+    }
     return 'connected'
   }
 

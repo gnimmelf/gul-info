@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import DbService from './DbService';
+import ApiService from './ApiService';
 import { logError, zodSchemaDefaults } from '../lib/utils';
 import { StateCreator, StateGetter, StateSetter } from '../types';
-import { email, pass } from '../lib/fields';
+import { email, pass } from '../lib/form-utils';
 
 export const AuthSchema = z.object({
   isAuthenticated: z.boolean().default(false),
 });
+
 export const CredentialsSchema = z.object({
   email: email.default(''),
   pass: pass.default(''),
@@ -28,19 +29,16 @@ export type AuthState = z.infer<typeof AuthSchema>;
  * Class
  */
 class AuthService {
-  #dbService: DbService
-  #authParams: AuthParams
+  #apiService: ApiService
   #accessToken: string
   #setState: StateSetter<AuthState>
   state: StateGetter<AuthState>
 
   constructor(
-    dbService: DbService,
-    authParams: AuthParams,
-    useState:StateCreator<AuthState>
+    apiService: ApiService,
+    useState: StateCreator<AuthState>
   ) {
-    this.#dbService = dbService
-    this.#authParams = authParams
+    this.#apiService = apiService
     this.#accessToken = ''
 
     const [state, setState] = useState(zodSchemaDefaults(AuthSchema))
@@ -52,17 +50,16 @@ class AuthService {
     localStorage.accessToken = this.#accessToken
   }
 
-  get #isAuthenticated() {
-    return !!this.#accessToken && this.#dbService.state().isConnected
+  get #isAuthenticated(): boolean {
+    return !!this.#accessToken && this.#apiService.isConnected
   }
 
   async authenticate() {
     if (localStorage.accessToken) {
-      const db = await this.#dbService.getDb()
       this.#accessToken = localStorage.accessToken
       try {
         console.info('Authenticating token from localStorage...')
-        await db.authenticate(this.#accessToken)
+        await this.#apiService.authenticate(this.#accessToken)
       } catch (error) {
         logError(error as Error)
         return this.signout();
@@ -75,11 +72,8 @@ class AuthService {
   }
 
   async signup(credentials: Credentials) {
-    const db = await this.#dbService.getDb()
     try {
-      this.#accessToken = await db.signup({
-        namespace: this.#authParams.namespace,
-        database: this.#authParams.database,
+      this.#accessToken = await this.#apiService.signup({
         email: credentials.email,
         pass: credentials.pass,
       })
@@ -94,12 +88,8 @@ class AuthService {
   }
 
   async signin(credentials: Credentials) {
-    const db = await this.#dbService.getDb()
     try {
-      this.#accessToken = await db.signin({
-        namespace: this.#authParams.namespace,
-        database: this.#authParams.database,
-        scope: this.#authParams.scope,
+      this.#accessToken = await this.#apiService.signin({
         email: credentials.email,
         pass: credentials.pass,
       })
@@ -116,8 +106,7 @@ class AuthService {
   async signout() {
     this.#accessToken = ''
     this.#storeAccessToken()
-    const db = await this.#dbService.getDb()
-    await db.invalidate()
+    await this.#apiService.invalidate()
     this.#setState((prev) => ({
       ...prev,
       isAuthenticated: this.#isAuthenticated

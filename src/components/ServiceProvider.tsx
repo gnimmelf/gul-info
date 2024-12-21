@@ -1,28 +1,26 @@
 import {
   Component,
   createContext,
-  JSXElement,
-  Suspense,
-  useContext,
-  createResource,
   createSignal,
-} from 'solid-js';
+  JSXElement,
+  useContext,
+} from "solid-js";
 
-import DbService from '../services/DbService';
-import AuthService from '../services/AuthService';
-import AccountService from '../services/AccountService';
-import ProfileService from '../services/ProfileService';
-import { Loading } from './partials/Loading';
-import { noop } from '../lib/utils';
-import Surreal from 'surrealdb';
+import ApiService from "~/services/ApiService";
+import AuthService from "~/services/AuthService";
+import AccountService from "~/services/AccountService";
+import ProfileService from "~/services/ProfileService";
+import { Loading } from "./partials/Loading";
+import { noop } from "~/lib/utils";
+import DirectoryService from "~/services/DirectoryService";
 
 type TServiceProvider = {
-  auth: AuthService
-  account: AccountService
-  profile: ProfileService
-  // TODO! Make into a `DataService` based on `ProfileService`
-  getDb: () => Promise<Surreal>
-}
+  api: ApiService;
+  auth: AuthService;
+  account: AccountService;
+  profile: ProfileService;
+  directory: DirectoryService;
+};
 
 const ServiceContext = createContext<TServiceProvider>();
 
@@ -35,48 +33,44 @@ export const ServiceProvider: Component<{
   datapoint: string;
   children: JSXElement;
 }> = (props) => {
-  const dbService = new DbService({
+  const apiService = new ApiService({
     datapoint: props.datapoint,
     namespace: props.namespace,
-    database: props.database
-  }, createSignal)
-
-  const authService = new AuthService(dbService, {
-    namespace: props.namespace,
     database: props.database,
-  }, createSignal)
+  }, createSignal);
+
+  const directoryService = new DirectoryService(
+    apiService,
+    createSignal,
+  );
+
+  const authService = new AuthService(
+    apiService,
+    createSignal,
+  );
 
   const accountService = new AccountService(
-    dbService,
-    createSignal
+    apiService,
+    createSignal,
   );
 
   const profileService = new ProfileService(
-    dbService,
-    createSignal
+    apiService,
+    createSignal,
   );
 
   const services = {
+    api: apiService,
     auth: authService,
     account: accountService,
     profile: profileService,
-    getDb: dbService.getDb.bind(dbService)
+    directory: directoryService,
   };
 
-  const [connectDb] = createResource(
-    () => !(dbService.state().isConnected),
-    async () => {
-      await dbService.connect()
-    }
-  );
-
   return (
-    <Suspense fallback={<Loading />}>
-      {noop(connectDb)}
-      <ServiceContext.Provider value={services}>
-        {props.children}
-      </ServiceContext.Provider>
-    </Suspense>
+    <ServiceContext.Provider value={services}>
+      {props.children}
+    </ServiceContext.Provider>
   );
 };
 

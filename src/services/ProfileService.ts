@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-import { name, address, phone, checkLoadedData } from '../lib/fields';
-import DbService from './DbService';
+import { name, address, phone, checkLoadedData } from '../lib/form-utils';
+import ApiService from './ApiService';
 import { zodSchemaDefaults } from '../lib/utils';
 import { StateCreator, StateGetter, StateSetter } from '../types';
 
@@ -19,15 +19,15 @@ export type ProfileState = z.infer<typeof ProfileSchema>;
  * Class
  */
 class ProfileService {
-  #dbService: DbService
+  #apiService: ApiService
   #setState: StateSetter<ProfileState>
   state: StateGetter<ProfileState>
 
   constructor(
-    dbService: DbService,
+    ApiService: ApiService,
     useState: StateCreator<ProfileState>
   ) {
-    this.#dbService = dbService
+    this.#apiService = ApiService
 
     const [state, setState] = useState(zodSchemaDefaults(ProfileSchema))
     this.#setState = setState
@@ -35,13 +35,13 @@ class ProfileService {
   }
 
   async loadData(): Promise<void> {
-    const details = await  this.#dbService.getProfileDetails() as ProfileState
+    const details = await  this.#apiService.getProfileDetails() as ProfileState
     checkLoadedData(ProfileSchema, details)
     this.#setState(details)
   }
 
   async saveData(details: ProfileState): Promise<void> {
-    await this.#dbService.setProfileDetails(details)
+    await this.#apiService.setProfileDetails(details)
     this.#setState(details)
   }
 }
