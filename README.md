@@ -13,9 +13,14 @@ Postcss is used *runtime* to:
 
 ## Index.html
 
-`.build-assets/index.html`* - Must reference the `/dist/main.js`
+- indexPage: `.build-assets/index.html` * - Must reference the `/dist/main.js`
 
-## TLS (Transport Layer Security) files
+## TLS files
+
+- pemKey: `.dev-certs/server.key`
+- pemCert: `.dev-certs/server.cert`
+
+**How-to:**
 
 1. Create the CA's private key and self-signed certificate:
 
@@ -29,8 +34,7 @@ Postcss is used *runtime* to:
 
     - `openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.cert -days 365`
 
-Move files `server.key`, `server.cert` to `.build-assets/`-folder.
-
+4. Move files to folder `.dev-certs`.
 
 # Dev & build
 
