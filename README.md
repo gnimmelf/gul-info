@@ -1,6 +1,9 @@
 # Gul Info
 
-A very lean SolidJs app compiled to a custom-element using `esbuild`, `postcss-js` and `shoelace-style`.
+A very lean `SolidJs` app compiled to a custom-element using
+- `esbuild`
+- `postcss-js`
+- `shoelace-style`.
 
 Postcss is used *runtime* to:
 

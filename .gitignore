@@ -9,6 +9,7 @@
 app.config.timestamp_*.js
 .dev-certs
 .dev-data
+__snippets
 #dist
 
 # Environment
