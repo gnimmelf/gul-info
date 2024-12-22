@@ -23,6 +23,10 @@ const css = styler.css({
     border: "5px solid",
     borderColor: theme.colorAccent,
   }),
+  header: ({theme}) => ({
+    display: "flex",
+    justifyContent: "space-between"
+  }),
   title: ({ theme }) => ({
     fontFamily: "'Playwrite HU', sans-serif",
     fontSize: theme.fontSizeLg,
@@ -35,7 +39,14 @@ export const Layout: Component<{
 }> = (props) => {
   return (
     <div class={join(css.app, css.border)}>
-      <h1 class={join(css.title)}>{props.title}</h1>
+      <section class={css.header}>
+        <div>
+          <h1 class={css.title}>{props.title}</h1>
+        </div>
+        <div>
+          <sl-icon-button prop:name="gear" on:click={() => console.log("cog")} />
+        </div>
+      </section>
       <ErrorBoundary fallback={(error) => <div>Error: {error.message}</div>}>
         <Suspense fallback={<Loading />}>
           {props.children}

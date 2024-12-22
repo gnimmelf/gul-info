@@ -42,30 +42,17 @@ interface Filters { }
  */
 class DirectoryService {
   #apiService: ApiService
-  #setState: StateSetter<DirectoryState>
-  state: StateGetter<DirectoryState>
-
 
   constructor(
     apiService: ApiService,
-    useState: StateCreator<any>
   ) {
     this.#apiService = apiService
-
-    const [state, setState] = useState(DirectorySchema.parse(undefined))
-    this.#setState = setState
-    this.state = state
-
   }
 
-  clearState() {
-    this.#setState(DirectorySchema.parse(undefined))
-  }
-
-  async loadData(filters?: Filters): Promise<void> {
+  async loadData(filters?: Filters): Promise<DirectoryState> {
     const details = await this.#apiService.fetchListings(filters) as DirectoryState
     checkLoadedData(DirectorySchema, details)
-    this.#setState(details)
+    return details
   }
 }
 

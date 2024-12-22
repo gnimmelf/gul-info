@@ -1,11 +1,6 @@
-import {
-  Component,
-  createSignal,
-} from "solid-js";
+import { Component, createResource, createSignal, Suspense } from "solid-js";
 
 import { styler } from "~/lib/styler";
-
-import { Track } from "./tools/Track";
 
 import { WebLink } from "./partials/WebLink";
 import { Tag } from "./partials/Tag";
@@ -14,6 +9,7 @@ import { Address } from "./partials/Address";
 
 import { IconLabel } from "./partials/IconLabel";
 import { useService } from "./ServiceProvider";
+import { Loading } from "./partials/Loading";
 
 const css = styler.css({
   card: {
@@ -54,60 +50,66 @@ const css = styler.css({
 export const PageListings: Component = () => {
   const { directory } = useService();
 
-  const [filters, setFilters] = createSignal(0)
+  const [filters, setFilters] = createSignal(0);
+
+  const [listings, { refetch }] = createResource(
+    () => directory.loadData(filters())
+  )
 
   const reload = () => {
-    setFilters(prev => prev +1)
-    directory.clearState()
-  }
+    setFilters((prev) => prev + 1);
+    refetch(filters())
+  };
 
   return (
     <section>
-      <Track
-        trigger={() => !directory.state()}
-        action={() => directory.loadData(filters())}
-      />
+      <div>
+        <sl-button
+          on:click={reload}
+          prop:disabled={listings.loading}
+        >Reload {filters() + 1}</sl-button>
+      </div>
 
-      <button on:click={() => reload()}>Reload {filters()+1}</button>
-
-      {directory.state()?.map((
-        { title, description, links, tags, ...contact },
-      ) => (
-        <sl-card class={css.card}>
-          <div slot="header" class={css.cardHeader}>
-            <div class={css.title}>{title}</div>
-            <div class="flex-middle">
-              <IconLabel
-                label="beskrivelse"
-                icon="info-circle"
-              >
-                {description}
-              </IconLabel>
-            </div>
-            <div>
-              <Phone phoneNumber={contact.phone} />
-            </div>
-          </div>
-          <div>
-            <div slot="header" class={css.cardBody}>
-              <div>
-                <Address {...contact} />
+      <Suspense fallback={<Loading />}>
+        {listings()?.map((
+          { title, description, links, tags, ...contact },
+        ) => (
+          <sl-card class={css.card}>
+            <div slot="header" class={css.cardHeader}>
+              <div class={css.title}>{title}</div>
+              <div class="flex-middle">
+                <IconLabel
+                  label="beskrivelse"
+                  icon="info-circle"
+                >
+                  {description}
+                </IconLabel>
               </div>
               <div>
-                {links.map((link) => (
-                  <span>
-                    <WebLink link={link} />
-                    <br />
-                  </span>
-                ))}
+                <Phone phoneNumber={contact.phone} />
               </div>
             </div>
             <div>
-              {tags.map((tag) => <Tag {...tag} />)}
+              <div slot="header" class={css.cardBody}>
+                <div>
+                  <Address {...contact} />
+                </div>
+                <div>
+                  {links.map((link) => (
+                    <span>
+                      <WebLink link={link} />
+                      <br />
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                {tags.map((tag) => <Tag {...tag} />)}
+              </div>
             </div>
-          </div>
-        </sl-card>
-      ))}
+          </sl-card>
+        ))}
+      </Suspense>
     </section>
   );
 };

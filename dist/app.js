@@ -8275,13 +8275,6 @@
     if (Scheduler && Transition && Transition.running) Updates.push(c6);
     else updateComputation(c6);
   }
-  function createEffect(fn, value, options) {
-    runEffects = runUserEffects;
-    const c6 = createComputation(fn, value, false, STALE), s4 = SuspenseContext && useContext(SuspenseContext);
-    if (s4) c6.suspense = s4;
-    if (!options || !options.render) c6.user = true;
-    Effects ? Effects.push(c6) : updateComputation(c6);
-  }
   function createMemo(fn, value, options) {
     options = options ? Object.assign({}, signalOptions, options) : signalOptions;
     const c6 = createComputation(fn, value, true, 0);
@@ -8471,20 +8464,6 @@
   }
   function getOwner() {
     return Owner;
-  }
-  function runWithOwner(o10, fn) {
-    const prev = Owner;
-    const prevListener = Listener;
-    Owner = o10;
-    Listener = null;
-    try {
-      return runUpdates(fn, true);
-    } catch (err) {
-      handleError(err);
-    } finally {
-      Owner = prev;
-      Listener = prevListener;
-    }
   }
   function startTransition(fn) {
     if (Transition && Transition.running) {
@@ -8817,28 +8796,6 @@
         });
       }
     }
-  }
-  function runUserEffects(queue) {
-    let i8, userLength = 0;
-    for (i8 = 0; i8 < queue.length; i8++) {
-      const e12 = queue[i8];
-      if (!e12.user) runTop(e12);
-      else queue[userLength++] = e12;
-    }
-    if (sharedConfig.context) {
-      if (sharedConfig.count) {
-        sharedConfig.effects || (sharedConfig.effects = []);
-        sharedConfig.effects.push(...queue.slice(0, userLength));
-        return;
-      }
-      setHydrateContext();
-    }
-    if (sharedConfig.effects && (sharedConfig.done || !sharedConfig.count)) {
-      queue = [...sharedConfig.effects, ...queue];
-      userLength += sharedConfig.effects.length;
-      delete sharedConfig.effects;
-    }
-    for (i8 = 0; i8 < userLength; i8++) runTop(queue[i8]);
   }
   function lookUpstream(node, ignore) {
     const runningTransition = Transition && Transition.running;
@@ -15677,12 +15634,6 @@
       })
     );
   }
-  var throwToOwner = (ownerScope) => (err) => {
-    console.warn("throwToOwner:", err);
-    runWithOwner(ownerScope, () => {
-      throw err;
-    });
-  };
 
   // src/lib/form-utils.ts
   var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
@@ -15891,21 +15842,13 @@
   var DirectorySchema = z.array(CompanySchema).optional();
   var DirectoryService = class {
     #apiService;
-    #setState;
-    state;
-    constructor(apiService, useState) {
+    constructor(apiService) {
       this.#apiService = apiService;
-      const [state, setState] = useState(DirectorySchema.parse(void 0));
-      this.#setState = setState;
-      this.state = state;
-    }
-    clearState() {
-      this.#setState(DirectorySchema.parse(void 0));
     }
     async loadData(filters) {
       const details = await this.#apiService.fetchListings(filters);
       checkLoadedData(DirectorySchema, details);
-      this.#setState(details);
+      return details;
     }
   };
   var DirectoryService_default = DirectoryService;
@@ -15918,7 +15861,7 @@
       namespace: props.namespace,
       database: props.database
     }, createSignal);
-    const directoryService = new DirectoryService_default(apiService, createSignal);
+    const directoryService = new DirectoryService_default(apiService);
     const authService = new AuthService_default(apiService, createSignal);
     const accountService = new AccountService_default(apiService, createSignal);
     const profileService = new ProfileService_default(apiService, createSignal);
@@ -15958,7 +15901,7 @@
   })();
 
   // src/components/Layout.tsx
-  var _tmpl$2 = /* @__PURE__ */ template(`<div><h1>`);
+  var _tmpl$2 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div><sl-icon-button>`, true, false);
   var _tmpl$22 = /* @__PURE__ */ template(`<div>Error: `);
   var css2 = styler.css({
     app: ({
@@ -15977,6 +15920,12 @@
       border: "5px solid",
       borderColor: theme.colorAccent
     }),
+    header: ({
+      theme
+    }) => ({
+      display: "flex",
+      justifyContent: "space-between"
+    }),
     title: ({
       theme
     }) => ({
@@ -15986,13 +15935,16 @@
   });
   var Layout = (props) => {
     return (() => {
-      var _el$ = _tmpl$2(), _el$2 = _el$.firstChild;
-      insert(_el$2, () => props.title);
+      var _el$ = _tmpl$2(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling, _el$6 = _el$5.firstChild;
+      insert(_el$4, () => props.title);
+      addEventListener(_el$6, "click", () => console.log("cog"));
+      _el$6.name = "gear";
+      _el$6._$owner = getOwner();
       insert(_el$, createComponent(ErrorBoundary, {
         fallback: (error) => (() => {
-          var _el$3 = _tmpl$22(), _el$4 = _el$3.firstChild;
-          insert(_el$3, () => error.message, null);
-          return _el$3;
+          var _el$7 = _tmpl$22(), _el$8 = _el$7.firstChild;
+          insert(_el$7, () => error.message, null);
+          return _el$7;
         })(),
         get children() {
           return createComponent(Suspense, {
@@ -16006,75 +15958,18 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = join(css2.app, css2.border), _v$2 = join(css2.title);
+        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0
       });
       return _el$;
     })();
-  };
-
-  // src/components/tools/Track.tsx
-  function createDeferredPromise() {
-    let resolve;
-    let reject;
-    let isResolved = false;
-    let isRejected = false;
-    const promise = new Promise((res, rej) => {
-      resolve = (value) => {
-        if (!isResolved && !isRejected) {
-          isResolved = true;
-          res(value);
-        }
-      };
-      reject = (reason) => {
-        if (!isResolved && !isRejected) {
-          isRejected = true;
-          rej(reason);
-        }
-      };
-    });
-    return {
-      promise,
-      resolve,
-      reject,
-      get isResolved() {
-        return isResolved;
-      },
-      get isRejected() {
-        return isRejected;
-      },
-      get isPending() {
-        return !isResolved && !isRejected;
-      }
-    };
-  }
-  var Track = (props) => {
-    const owner = getOwner();
-    const [deferred, setDeferred] = createSignal(createDeferredPromise());
-    const [resource] = createResource(() => {
-      if (!props.trigger()) {
-        deferred().resolve(null);
-      }
-      return deferred().isResolved ? true : deferred().promise;
-    }, async () => {
-      return await deferred().promise;
-    });
-    const runAction = () => {
-      props.action().catch(throwToOwner(owner));
-    };
-    createEffect(() => {
-      if (props.trigger() && resource.state === "ready") {
-        setDeferred(createDeferredPromise());
-        runAction();
-      }
-    });
-    runAction();
-    return createMemo(resource);
   };
 
   // src/components/partials/IconLabel.tsx
@@ -16210,7 +16105,7 @@
   };
 
   // src/components/PageListings.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<section><button>Reload `);
+  var _tmpl$8 = /* @__PURE__ */ template(`<section><div><sl-button>Reload `, true, false);
   var _tmpl$23 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
   var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
   var css5 = styler.css({
@@ -16253,62 +16148,70 @@
       directory
     } = useService();
     const [filters, setFilters] = createSignal(0);
+    const [listings, {
+      refetch
+    }] = createResource(() => directory.loadData(filters()));
     const reload = () => {
       setFilters((prev) => prev + 1);
-      directory.clearState();
+      refetch(filters());
     };
     return (() => {
-      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild;
-      insert(_el$, createComponent(Track, {
-        trigger: () => !directory.state(),
-        action: () => directory.loadData(filters())
-      }), _el$2);
-      addEventListener(_el$2, "click", () => reload());
-      insert(_el$2, () => filters() + 1, null);
-      insert(_el$, () => directory.state()?.map(({
-        title,
-        description,
-        links,
-        tags,
-        ...contact
-      }) => (() => {
-        var _el$4 = _tmpl$23(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
-        _el$4._$owner = getOwner();
-        insert(_el$6, title);
-        insert(_el$7, createComponent(IconLabel, {
-          label: "beskrivelse",
-          icon: "info-circle",
-          children: description
-        }));
-        insert(_el$8, createComponent(Phone, {
-          get phoneNumber() {
-            return contact.phone;
-          }
-        }));
-        insert(_el$11, createComponent(Address, contact));
-        insert(_el$12, () => links.map((link) => (() => {
-          var _el$14 = _tmpl$32(), _el$15 = _el$14.firstChild;
-          insert(_el$14, createComponent(WebLink, {
-            link
-          }), _el$15);
-          return _el$14;
-        })()));
-        insert(_el$13, () => tags.map((tag) => createComponent(Tag, tag)));
-        createRenderEffect((_p$) => {
-          var _v$ = css5.card, _v$2 = css5.cardHeader, _v$3 = css5.title, _v$4 = css5.cardBody;
-          _v$ !== _p$.e && className(_el$4, _p$.e = _v$);
-          _v$2 !== _p$.t && className(_el$5, _p$.t = _v$2);
-          _v$3 !== _p$.a && className(_el$6, _p$.a = _v$3);
-          _v$4 !== _p$.o && className(_el$10, _p$.o = _v$4);
-          return _p$;
-        }, {
-          e: void 0,
-          t: void 0,
-          a: void 0,
-          o: void 0
-        });
-        return _el$4;
-      })()), null);
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild;
+      addEventListener(_el$3, "click", reload);
+      _el$3._$owner = getOwner();
+      insert(_el$3, () => filters() + 1, null);
+      insert(_el$, createComponent(Suspense, {
+        get fallback() {
+          return createComponent(Loading, {});
+        },
+        get children() {
+          return listings()?.map(({
+            title,
+            description,
+            links,
+            tags,
+            ...contact
+          }) => (() => {
+            var _el$5 = _tmpl$23(), _el$6 = _el$5.firstChild, _el$7 = _el$6.firstChild, _el$8 = _el$7.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$6.nextSibling, _el$11 = _el$10.firstChild, _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$11.nextSibling;
+            _el$5._$owner = getOwner();
+            insert(_el$7, title);
+            insert(_el$8, createComponent(IconLabel, {
+              label: "beskrivelse",
+              icon: "info-circle",
+              children: description
+            }));
+            insert(_el$9, createComponent(Phone, {
+              get phoneNumber() {
+                return contact.phone;
+              }
+            }));
+            insert(_el$12, createComponent(Address, contact));
+            insert(_el$13, () => links.map((link) => (() => {
+              var _el$15 = _tmpl$32(), _el$16 = _el$15.firstChild;
+              insert(_el$15, createComponent(WebLink, {
+                link
+              }), _el$16);
+              return _el$15;
+            })()));
+            insert(_el$14, () => tags.map((tag) => createComponent(Tag, tag)));
+            createRenderEffect((_p$) => {
+              var _v$ = css5.card, _v$2 = css5.cardHeader, _v$3 = css5.title, _v$4 = css5.cardBody;
+              _v$ !== _p$.e && className(_el$5, _p$.e = _v$);
+              _v$2 !== _p$.t && className(_el$6, _p$.t = _v$2);
+              _v$3 !== _p$.a && className(_el$7, _p$.a = _v$3);
+              _v$4 !== _p$.o && className(_el$11, _p$.o = _v$4);
+              return _p$;
+            }, {
+              e: void 0,
+              t: void 0,
+              a: void 0,
+              o: void 0
+            });
+            return _el$5;
+          })());
+        }
+      }), null);
+      createRenderEffect(() => _el$3.disabled = listings.loading);
       return _el$;
     })();
   };

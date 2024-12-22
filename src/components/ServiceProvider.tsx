@@ -39,7 +39,6 @@ export const ServiceProvider: Component<{
 
   const directoryService = new DirectoryService(
     apiService,
-    createSignal,
   );
 
   const authService = new AuthService(

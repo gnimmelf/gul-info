@@ -80,15 +80,3 @@ export function zodSchemaDefaults<T extends z.ZodTypeAny>( schema: z.AnyZodObjec
       } )
   )
 }
-
-/**
- * Rethrows an error inside a SolidJs tracked scope.
- * @param ownerScope SolidJs owner-scope from `getOwner()`
- * @returns undefined
- */
-export const throwToOwner = (ownerScope: Owner): any => (err: any) => {
-  console.warn('throwToOwner:', err)
-  runWithOwner(ownerScope!, () => {
-    throw err;
-  });
-}
