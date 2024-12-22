@@ -93,7 +93,8 @@ export class ApiService {
   async invalidate() {}
 
   @Connect
-  async fetchListings() {
+  async fetchListings(filters) {
+    console.log("api.loadData", filters)
     const query = surql`SELECT * FROM listings;`
     const res = (await this.db.query(query)).pop()
     return new Promise((resolve) => setTimeout(() => resolve(res), 800))

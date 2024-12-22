@@ -1,10 +1,11 @@
 import {
   Component,
+  createSignal,
 } from "solid-js";
 
 import { styler } from "~/lib/styler";
 
-import { LoadTracker } from "./tools/LoadTracker";
+import { Track } from "./tools/Track";
 
 import { WebLink } from "./partials/WebLink";
 import { Tag } from "./partials/Tag";
@@ -53,12 +54,22 @@ const css = styler.css({
 export const PageListings: Component = () => {
   const { directory } = useService();
 
+  const [filters, setFilters] = createSignal(0)
+
+  const reload = () => {
+    setFilters(prev => prev +1)
+    directory.clearState()
+  }
+
   return (
     <section>
-      <LoadTracker
-        load={() => directory.loadData()}
-        done={() => directory.state() !== undefined }
+      <Track
+        trigger={() => !directory.state()}
+        action={() => directory.loadData(filters())}
       />
+
+      <button on:click={() => reload()}>Reload {filters()+1}</button>
+
       {directory.state()?.map((
         { title, description, links, tags, ...contact },
       ) => (

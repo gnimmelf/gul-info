@@ -10,8 +10,6 @@ import ApiService from "~/services/ApiService";
 import AuthService from "~/services/AuthService";
 import AccountService from "~/services/AccountService";
 import ProfileService from "~/services/ProfileService";
-import { Loading } from "./partials/Loading";
-import { noop } from "~/lib/utils";
 import DirectoryService from "~/services/DirectoryService";
 
 type TServiceProvider = {
