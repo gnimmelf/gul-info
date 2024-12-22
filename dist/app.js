@@ -25,6 +25,14 @@
     isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
     mod
   ));
+  var __decorateClass = (decorators, target, key, kind) => {
+    var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key) : target;
+    for (var i8 = decorators.length - 1, decorator; i8 >= 0; i8--)
+      if (decorator = decorators[i8])
+        result = (kind ? decorator(target, key, result) : decorator(result)) || result;
+    if (kind && result) __defProp(target, key, result);
+    return result;
+  };
 
   // node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.browser.js
   var require_picocolors_browser = __commonJS({
@@ -90,7 +98,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css3 = this.source;
+          let css6 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -103,7 +111,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css3.split(/\r?\n/);
+          let lines = css6.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1372,9 +1380,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css3, opts) {
+        constructor(css6, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css3);
+          this.loadAnnotation(css6);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1413,13 +1421,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css3) {
-          let comments = css3.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css6) {
+          let comments = css6.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css3.lastIndexOf(comments.pop());
-          let end = css3.indexOf("*/", start);
+          let start = css6.lastIndexOf(comments.pop());
+          let end = css6.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css3.substring(start, end));
+            this.annotation = this.getAnnotationURL(css6.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1492,11 +1500,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css3, opts = {}) {
-          if (css3 === null || typeof css3 === "undefined" || typeof css3 === "object" && !css3.toString) {
-            throw new Error(`PostCSS received ${css3} instead of CSS string`);
+        constructor(css6, opts = {}) {
+          if (css6 === null || typeof css6 === "undefined" || typeof css6 === "object" && !css6.toString) {
+            throw new Error(`PostCSS received ${css6} instead of CSS string`);
           }
-          this.css = css3.toString();
+          this.css = css6.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2223,11 +2231,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css3 = input.css.valueOf();
+        let css6 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n8, prev;
-        let length = css3.length;
+        let length = css6.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2244,7 +2252,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css3.charCodeAt(pos);
+          code = css6.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2254,9 +2262,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css3.charCodeAt(next);
+                code = css6.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css3.slice(pos, next)];
+              currentToken = ["space", css6.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2273,12 +2281,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n8 = css3.charCodeAt(pos + 1);
+              n8 = css6.charCodeAt(pos + 1);
               if (prev === "url" && n8 !== SINGLE_QUOTE && n8 !== DOUBLE_QUOTE && n8 !== SPACE && n8 !== NEWLINE && n8 !== TAB && n8 !== FEED && n8 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css3.indexOf(")", next + 1);
+                  next = css6.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2288,16 +2296,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css3.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css6.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css3.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css6.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css3.indexOf(")", pos + 1);
-                content = css3.slice(pos, next + 1);
+                next = css6.indexOf(")", pos + 1);
+                content = css6.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2313,7 +2321,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css3.indexOf(quote, next + 1);
+                next = css6.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2323,71 +2331,71 @@
                   }
                 }
                 escapePos = next;
-                while (css3.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css6.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css3.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css6.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css3);
+              RE_AT_END.test(css6);
               if (RE_AT_END.lastIndex === 0) {
-                next = css3.length - 1;
+                next = css6.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css3.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css6.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css3.charCodeAt(next + 1) === BACKSLASH) {
+              while (css6.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css3.charCodeAt(next + 1);
+              code = css6.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css3.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css3.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css6.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css6.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css3.charCodeAt(next + 1) === SPACE) {
+                  if (css6.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css3.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css6.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css3.charCodeAt(pos + 1) === ASTERISK) {
-                next = css3.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css6.charCodeAt(pos + 1) === ASTERISK) {
+                next = css6.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css3.length;
+                    next = css6.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css3.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css6.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css3);
+                RE_WORD_END.test(css6);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css3.length - 1;
+                  next = css6.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css3.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css6.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2949,8 +2957,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css3, opts) {
-        let input = new Input2(css3, opts);
+      function parse3(css6, opts) {
+        let input = new Input2(css6, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3111,7 +3119,7 @@
         prepare: true
       };
       var CHILDREN = 0;
-      function isPromise(obj) {
+      function isPromise2(obj) {
         return typeof obj === "object" && typeof obj.then === "function";
       }
       function getEvents(node) {
@@ -3163,18 +3171,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css3, opts) {
+        constructor(processor, css6, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css3 === "object" && css3 !== null && (css3.type === "root" || css3.type === "document")) {
-            root2 = cleanMarks(css3);
-          } else if (css3 instanceof _LazyResult || css3 instanceof Result2) {
-            root2 = cleanMarks(css3.root);
-            if (css3.map) {
+          if (typeof css6 === "object" && css6 !== null && (css6.type === "root" || css6.type === "document")) {
+            root2 = cleanMarks(css6);
+          } else if (css6 instanceof _LazyResult || css6 instanceof Result2) {
+            root2 = cleanMarks(css6.root);
+            if (css6.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css3.map;
+              opts.map.prev = css6.map;
             }
           } else {
             let parser2 = parse3;
@@ -3182,7 +3190,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css3, opts);
+              root2 = parser2(css6, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3286,7 +3294,7 @@
           for (let i8 = 0; i8 < this.plugins.length; i8++) {
             let plugin2 = this.plugins[i8];
             let promise = this.runOnRoot(plugin2);
-            if (isPromise(promise)) {
+            if (isPromise2(promise)) {
               try {
                 await promise;
               } catch (error) {
@@ -3302,7 +3310,7 @@
               let stack = [toStack(root2)];
               while (stack.length > 0) {
                 let promise = this.visitTick(stack);
-                if (isPromise(promise)) {
+                if (isPromise2(promise)) {
                   try {
                     await promise;
                   } catch (e12) {
@@ -3341,7 +3349,7 @@
                 let roots = this.result.root.nodes.map(
                   (root2) => plugin2.Once(root2, this.helpers)
                 );
-                if (isPromise(roots[0])) {
+                if (isPromise2(roots[0])) {
                   return Promise.all(roots);
                 }
                 return roots;
@@ -3379,7 +3387,7 @@
           }
           for (let plugin2 of this.plugins) {
             let promise = this.runOnRoot(plugin2);
-            if (isPromise(promise)) {
+            if (isPromise2(promise)) {
               throw this.getAsyncError();
             }
           }
@@ -3427,7 +3435,7 @@
             if (node.type !== "root" && node.type !== "document" && !node.parent) {
               return true;
             }
-            if (isPromise(promise)) {
+            if (isPromise2(promise)) {
               throw this.getAsyncError();
             }
           }
@@ -3550,24 +3558,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css3, opts) {
-          css3 = css3.toString();
+        constructor(processor, css6, opts) {
+          css6 = css6.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css3;
+          this._css = css6;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css3;
+          this.result.css = css6;
           let self2 = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self2.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css3);
+          let map = new MapGenerator(str, root2, this._opts, css6);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3695,11 +3703,11 @@
           }
           return normalized;
         }
-        process(css3, opts = {}) {
+        process(css6, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css3, opts);
+            return new NoWorkResult(this, css6, opts);
           } else {
-            return new LazyResult(this, css3, opts);
+            return new LazyResult(this, css6, opts);
           }
         }
         use(plugin2) {
@@ -3768,8 +3776,8 @@
             return cache;
           }
         });
-        creator.process = function(css3, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css3, processOpts);
+        creator.process = function(css6, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css6, processOpts);
         };
         return creator;
       };
@@ -5317,17 +5325,17 @@
         };
         return _setPrototypeOf(o10, p3);
       }
-      var Tag = /* @__PURE__ */ function(_Namespace) {
-        _inheritsLoose(Tag2, _Namespace);
-        function Tag2(opts) {
+      var Tag2 = /* @__PURE__ */ function(_Namespace) {
+        _inheritsLoose(Tag3, _Namespace);
+        function Tag3(opts) {
           var _this;
           _this = _Namespace.call(this, opts) || this;
           _this.type = _types.TAG;
           return _this;
         }
-        return Tag2;
+        return Tag3;
       }(_namespace["default"]);
-      exports["default"] = Tag;
+      exports["default"] = Tag2;
       module.exports = exports.default;
     }
   });
@@ -6101,31 +6109,31 @@
         hex[hexChars.charCodeAt(i8)] = true;
       }
       var i8;
-      function consumeWord(css3, start) {
+      function consumeWord(css6, start) {
         var next = start;
         var code;
         do {
-          code = css3.charCodeAt(next);
+          code = css6.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t6.backslash) {
-            next = consumeEscape(css3, next) + 1;
+            next = consumeEscape(css6, next) + 1;
           } else {
             next++;
           }
-        } while (next < css3.length);
+        } while (next < css6.length);
         return next - 1;
       }
-      function consumeEscape(css3, start) {
+      function consumeEscape(css6, start) {
         var next = start;
-        var code = css3.charCodeAt(next + 1);
+        var code = css6.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css3.charCodeAt(next + 1);
+            code = css6.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t6.space) {
             next++;
@@ -6147,8 +6155,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css3 = input.css.valueOf();
-        var _css = css3, length = _css.length;
+        var css6 = input.css.valueOf();
+        var _css = css6, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6156,14 +6164,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css3 += fix;
-            next = css3.length - 1;
+            css6 += fix;
+            next = css6.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css3.charCodeAt(start);
+          code = css6.charCodeAt(start);
           if (code === t6.newline) {
             offset3 = start;
             line += 1;
@@ -6177,7 +6185,7 @@
               next = start;
               do {
                 next += 1;
-                code = css3.charCodeAt(next);
+                code = css6.charCodeAt(next);
                 if (code === t6.newline) {
                   offset3 = next;
                   line += 1;
@@ -6195,7 +6203,7 @@
               next = start;
               do {
                 next += 1;
-                code = css3.charCodeAt(next);
+                code = css6.charCodeAt(next);
               } while (code === t6.plus || code === t6.greaterThan || code === t6.tilde || code === t6.pipe);
               tokenType = t6.combinator;
               endLine = line;
@@ -6228,12 +6236,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css3.indexOf(quote, next + 1);
+                next = css6.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css3.charCodeAt(escapePos - 1) === t6.backslash) {
+                while (css6.charCodeAt(escapePos - 1) === t6.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6244,12 +6252,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t6.slash && css3.charCodeAt(start + 1) === t6.asterisk) {
-                next = css3.indexOf("*/", start + 2) + 1;
+              if (code === t6.slash && css6.charCodeAt(start + 1) === t6.asterisk) {
+                next = css6.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css3.slice(start, next + 1);
+                content = css6.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6270,7 +6278,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css3, start);
+                next = consumeWord(css6, start);
                 tokenType = t6.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -8215,6 +8223,7 @@
     context: null,
     owner: null
   };
+  var NO_INIT = {};
   var Owner = null;
   var Transition = null;
   var Scheduler = null;
@@ -8256,6 +8265,11 @@
     };
     return [readSignal.bind(s4), setter];
   }
+  function createComputed(fn, value, options) {
+    const c6 = createComputation(fn, value, true, STALE);
+    if (Scheduler && Transition && Transition.running) Updates.push(c6);
+    else updateComputation(c6);
+  }
   function createRenderEffect(fn, value, options) {
     const c6 = createComputation(fn, value, false, STALE);
     if (Scheduler && Transition && Transition.running) Updates.push(c6);
@@ -8272,6 +8286,148 @@
       Updates.push(c6);
     } else updateComputation(c6);
     return readSignal.bind(c6);
+  }
+  function isPromise(v2) {
+    return v2 && typeof v2 === "object" && "then" in v2;
+  }
+  function createResource(pSource, pFetcher, pOptions) {
+    let source;
+    let fetcher;
+    let options;
+    if (arguments.length === 2 && typeof pFetcher === "object" || arguments.length === 1) {
+      source = true;
+      fetcher = pSource;
+      options = pFetcher || {};
+    } else {
+      source = pSource;
+      fetcher = pFetcher;
+      options = pOptions || {};
+    }
+    let pr = null, initP = NO_INIT, id4 = null, loadedUnderTransition = false, scheduled = false, resolved = "initialValue" in options, dynamic = typeof source === "function" && createMemo(source);
+    const contexts = /* @__PURE__ */ new Set(), [value, setValue] = (options.storage || createSignal)(options.initialValue), [error, setError] = createSignal(void 0), [track, trigger] = createSignal(void 0, {
+      equals: false
+    }), [state, setState] = createSignal(resolved ? "ready" : "unresolved");
+    if (sharedConfig.context) {
+      id4 = sharedConfig.getNextContextId();
+      if (options.ssrLoadFrom === "initial") initP = options.initialValue;
+      else if (sharedConfig.load && sharedConfig.has(id4)) initP = sharedConfig.load(id4);
+    }
+    function loadEnd(p3, v2, error2, key) {
+      if (pr === p3) {
+        pr = null;
+        key !== void 0 && (resolved = true);
+        if ((p3 === initP || v2 === initP) && options.onHydrated)
+          queueMicrotask(
+            () => options.onHydrated(key, {
+              value: v2
+            })
+          );
+        initP = NO_INIT;
+        if (Transition && p3 && loadedUnderTransition) {
+          Transition.promises.delete(p3);
+          loadedUnderTransition = false;
+          runUpdates(() => {
+            Transition.running = true;
+            completeLoad(v2, error2);
+          }, false);
+        } else completeLoad(v2, error2);
+      }
+      return v2;
+    }
+    function completeLoad(v2, err) {
+      runUpdates(() => {
+        if (err === void 0) setValue(() => v2);
+        setState(err !== void 0 ? "errored" : resolved ? "ready" : "unresolved");
+        setError(err);
+        for (const c6 of contexts.keys()) c6.decrement();
+        contexts.clear();
+      }, false);
+    }
+    function read() {
+      const c6 = SuspenseContext && useContext(SuspenseContext), v2 = value(), err = error();
+      if (err !== void 0 && !pr) throw err;
+      if (Listener && !Listener.user && c6) {
+        createComputed(() => {
+          track();
+          if (pr) {
+            if (c6.resolved && Transition && loadedUnderTransition) Transition.promises.add(pr);
+            else if (!contexts.has(c6)) {
+              c6.increment();
+              contexts.add(c6);
+            }
+          }
+        });
+      }
+      return v2;
+    }
+    function load(refetching = true) {
+      if (refetching !== false && scheduled) return;
+      scheduled = false;
+      const lookup = dynamic ? dynamic() : source;
+      loadedUnderTransition = Transition && Transition.running;
+      if (lookup == null || lookup === false) {
+        loadEnd(pr, untrack(value));
+        return;
+      }
+      if (Transition && pr) Transition.promises.delete(pr);
+      const p3 = initP !== NO_INIT ? initP : untrack(
+        () => fetcher(lookup, {
+          value: value(),
+          refetching
+        })
+      );
+      if (!isPromise(p3)) {
+        loadEnd(pr, p3, void 0, lookup);
+        return p3;
+      }
+      pr = p3;
+      if ("value" in p3) {
+        if (p3.status === "success") loadEnd(pr, p3.value, void 0, lookup);
+        else loadEnd(pr, void 0, castError(p3.value), lookup);
+        return p3;
+      }
+      scheduled = true;
+      queueMicrotask(() => scheduled = false);
+      runUpdates(() => {
+        setState(resolved ? "refreshing" : "pending");
+        trigger();
+      }, false);
+      return p3.then(
+        (v2) => loadEnd(p3, v2, void 0, lookup),
+        (e12) => loadEnd(p3, void 0, castError(e12), lookup)
+      );
+    }
+    Object.defineProperties(read, {
+      state: {
+        get: () => state()
+      },
+      error: {
+        get: () => error()
+      },
+      loading: {
+        get() {
+          const s4 = state();
+          return s4 === "pending" || s4 === "refreshing";
+        }
+      },
+      latest: {
+        get() {
+          if (!resolved) return read();
+          const err = error();
+          if (err && !pr) throw err;
+          return value();
+        }
+      }
+    });
+    if (dynamic) createComputed(() => load(false));
+    else load(false);
+    return [
+      read,
+      {
+        refetch: load,
+        mutate: setValue
+      }
+    ];
   }
   function untrack(fn) {
     if (!ExternalSourceConfig && Listener === null) return fn();
@@ -8996,10 +9152,26 @@
     fn.cloneNode = fn;
     return fn;
   }
+  function setAttribute(node, name2, value) {
+    if (isHydrating(node)) return;
+    if (value == null) node.removeAttribute(name2);
+    else node.setAttribute(name2, value);
+  }
   function className(node, value) {
     if (isHydrating(node)) return;
     if (value == null) node.removeAttribute("class");
     else node.className = value;
+  }
+  function addEventListener(node, name2, handler, delegate) {
+    if (delegate) {
+      if (Array.isArray(handler)) {
+        node[`$$${name2}`] = handler[0];
+        node[`$$${name2}Data`] = handler[1];
+      } else node[`$$${name2}`] = handler;
+    } else if (Array.isArray(handler)) {
+      const handlerFn = handler[0];
+      node.addEventListener(name2, handler[0] = (e12) => handlerFn.call(node, handler[1], e12));
+    } else node.addEventListener(name2, handler, typeof handler !== "function" && handler);
   }
   function insert(parent, accessor, marker, initial) {
     if (marker !== void 0 && !initial) initial = [];
@@ -11332,6 +11504,14 @@
   }
 
   // src/services/ApiService.ts
+  function Connect(target, propertyKey, descriptor) {
+    const originalMethod = descriptor.value;
+    descriptor.value = async function(...args) {
+      const self2 = this;
+      await self2.connect();
+      return originalMethod.apply(this, args);
+    };
+  }
   var ApiService = class {
     db = new Surreal();
     setState;
@@ -11380,12 +11560,15 @@
     }
     async invalidate() {
     }
-    async getListings() {
-      await this.connect();
-      const query = surrealql`SELECT * FROM Listings;`;
-      return (await this.db.query(query)).pop();
+    async fetchListings() {
+      const query = surrealql`SELECT * FROM listings;`;
+      const res = (await this.db.query(query)).pop();
+      return new Promise((resolve) => setTimeout(() => resolve(res), 800));
     }
   };
+  __decorateClass([
+    Connect
+  ], ApiService.prototype, "fetchListings", 1);
   var ApiService_default = ApiService;
 
   // node_modules/.pnpm/zod@3.24.1/node_modules/zod/lib/index.mjs
@@ -15687,7 +15870,7 @@
       this.state = state;
     }
     async loadData(filters) {
-      const details = await this.#apiService.getListings();
+      const details = await this.#apiService.fetchListings();
       checkLoadedData(DirectorySchema, details);
       this.#setState(details);
     }
@@ -15722,13 +15905,6 @@
   };
   var useService = () => {
     return useContext(ServiceContext);
-  };
-
-  // src/components/partials/Track.tsx
-  var Track = (props) => {
-    const owner = getOwner();
-    props.func().catch(throwToOwner(owner));
-    return null;
   };
 
   // src/components/partials/Loading.tsx
@@ -15776,18 +15952,13 @@
     })
   });
   var Layout = (props) => {
-    const {
-      api
-    } = useService();
     return (() => {
       var _el$ = _tmpl$2(), _el$2 = _el$.firstChild;
       insert(_el$2, () => props.title);
       insert(_el$, createComponent(ErrorBoundary, {
-        fallback: ({
-          message
-        }) => (() => {
+        fallback: (error) => (() => {
           var _el$3 = _tmpl$22(), _el$4 = _el$3.firstChild;
-          insert(_el$3, message, null);
+          insert(_el$3, () => error.message, null);
           return _el$3;
         })(),
         get children() {
@@ -15796,9 +15967,7 @@
               return createComponent(Loading, {});
             },
             get children() {
-              return [createComponent(Track, {
-                func: () => api.connect()
-              }), createMemo(() => props.children)];
+              return props.children;
             }
           });
         }
@@ -15816,9 +15985,258 @@
     })();
   };
 
+  // src/components/tools/LoadTracker.tsx
+  var LoadTracker = (props) => {
+    const owner = getOwner();
+    const [suspend, setSuspend] = createSignal();
+    const [resource] = createResource(() => {
+      setSuspend(props.done() ? Promise.resolve("") : new Promise(() => {
+      }));
+      return suspend();
+    }, async (state) => {
+      return await suspend();
+    });
+    props.load().catch(throwToOwner(owner));
+    return createMemo(resource);
+  };
+
+  // src/components/partials/IconLabel.tsx
+  var _tmpl$3 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
+  var css3 = styler.css({
+    wrapper: {
+      display: "flex"
+    },
+    label: {
+      paddingInlineStart: "var(--sl-spacing-2x-small)"
+    }
+  });
+  var IconLabel = (props) => {
+    return (() => {
+      var _el$ = _tmpl$3(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      _el$2._$owner = getOwner();
+      insert(_el$3, () => props.children);
+      createRenderEffect((_p$) => {
+        var _v$ = css3.wrapper, _v$2 = props.icon, _v$3 = props.label, _v$4 = css3.label;
+        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
+        _v$2 !== _p$.t && (_el$2.name = _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$2.label = _p$.a = _v$3);
+        _v$4 !== _p$.o && className(_el$3, _p$.o = _v$4);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // src/components/partials/WebLink.tsx
+  var _tmpl$4 = /* @__PURE__ */ template(`<a target=_blank>`);
+  var WebLink = (props) => {
+    const {
+      pathname,
+      hostname
+    } = new URL(props.link.href);
+    const link = {
+      icon: "globe",
+      title: "Website"
+    };
+    if (hostname.match(/facebook\.(no|com)/)) {
+      link.icon = "facebook";
+      link.title = "Facebook";
+    } else if (hostname.match(/instagram\.(no|com)/)) {
+      link.icon = "instagram";
+      link.title = `@${pathname.split("/").pop()}`;
+    } else if (hostname.match(/linkedin\.(no|com)/)) {
+      link.icon = "linkedin";
+      link.title = "LinkedIn";
+    }
+    return createComponent(IconLabel, {
+      get icon() {
+        return link.icon;
+      },
+      label: hostname,
+      get children() {
+        var _el$ = _tmpl$4();
+        insert(_el$, () => link.title);
+        createRenderEffect(() => setAttribute(_el$, "href", props.link.href));
+        return _el$;
+      }
+    });
+  };
+
+  // src/components/partials/Tag.tsx
+  var _tmpl$5 = /* @__PURE__ */ template(`<span><sl-tag>`, true, false);
+  var css4 = styler.css({
+    wrapper: {
+      paddingRight: "2px"
+    }
+  });
+  var Tag = (props) => {
+    return (() => {
+      var _el$ = _tmpl$5(), _el$2 = _el$.firstChild;
+      _el$2.variant = "primary";
+      _el$2.size = "small";
+      _el$2.pill = false;
+      _el$2._$owner = getOwner();
+      insert(_el$2, () => props.name);
+      createRenderEffect((_p$) => {
+        var _v$ = props.key, _v$2 = css4.wrapper;
+        _v$ !== _p$.e && setAttribute(_el$, "data-key", _p$.e = _v$);
+        _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // src/components/partials/Phone.tsx
+  var _tmpl$6 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
+  var Phone = (props) => {
+    const copyToClipboard = () => {
+      navigator.clipboard.writeText(props.phoneNumber);
+    };
+    const triggerCall = () => {
+      window.location.href = `tel:${props.phoneNumber}`;
+    };
+    return (() => {
+      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
+      _el$._$owner = getOwner();
+      _el$2.slot = "trigger";
+      _el$2.caret = true;
+      _el$2._$owner = getOwner();
+      _el$3.name = "telephone";
+      _el$3._$owner = getOwner();
+      insert(_el$2, () => props.phoneNumber, null);
+      _el$4._$owner = getOwner();
+      addEventListener(_el$5, "click", copyToClipboard);
+      _el$5._$owner = getOwner();
+      _el$6.name = "copy";
+      _el$6._$owner = getOwner();
+      addEventListener(_el$7, "click", triggerCall);
+      _el$7._$owner = getOwner();
+      _el$8.name = "telephone";
+      _el$8._$owner = getOwner();
+      return _el$;
+    })();
+  };
+
+  // src/components/partials/Address.tsx
+  var _tmpl$7 = /* @__PURE__ */ template(`<br>`);
+  var Address = (props) => {
+    return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
+  };
+
+  // src/components/PageListings.tsx
+  var _tmpl$8 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$23 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
+  var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
+  var css5 = styler.css({
+    card: {
+      "--border-radius": "15px",
+      width: "100%",
+      marginBottom: "1rem",
+      "& .flex-middle > *": {
+        justifySelf: "center"
+      }
+    },
+    cardHeader: {
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      position: "relative",
+      alignItems: "center",
+      rowGap: "1rem",
+      "> * ": {
+        flex: "1 1 33.33%",
+        minWidth: "200px",
+        textAlign: "center",
+        "@media (min-width: 700px)": {
+          "&:first-child": {
+            textAlign: "left"
+          },
+          "&:last-child": {
+            textAlign: "right"
+          }
+        }
+      }
+    },
+    cardBody: {
+      display: "flex",
+      justifyContent: "space-between"
+    }
+  });
+  var PageListings = (props) => {
+    const {
+      directory
+    } = useService();
+    return (() => {
+      var _el$ = _tmpl$8();
+      insert(_el$, createComponent(LoadTracker, {
+        load: () => directory.loadData(),
+        done: () => directory.state() !== void 0
+      }), null);
+      insert(_el$, () => directory.state()?.map(({
+        title,
+        description,
+        links,
+        tags,
+        ...contact
+      }) => (() => {
+        var _el$2 = _tmpl$23(), _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.nextSibling, _el$6 = _el$5.nextSibling, _el$7 = _el$3.nextSibling, _el$8 = _el$7.firstChild, _el$9 = _el$8.firstChild, _el$10 = _el$9.nextSibling, _el$11 = _el$8.nextSibling;
+        _el$2._$owner = getOwner();
+        insert(_el$4, title);
+        insert(_el$5, createComponent(IconLabel, {
+          label: "beskrivelse",
+          icon: "info-circle",
+          children: description
+        }));
+        insert(_el$6, createComponent(Phone, {
+          get phoneNumber() {
+            return contact.phone;
+          }
+        }));
+        insert(_el$9, createComponent(Address, contact));
+        insert(_el$10, () => links.map((link) => (() => {
+          var _el$12 = _tmpl$32(), _el$13 = _el$12.firstChild;
+          insert(_el$12, createComponent(WebLink, {
+            link
+          }), _el$13);
+          return _el$12;
+        })()));
+        insert(_el$11, () => tags.map((tag) => createComponent(Tag, tag)));
+        createRenderEffect((_p$) => {
+          var _v$ = css5.card, _v$2 = css5.cardHeader, _v$3 = css5.title, _v$4 = css5.cardBody;
+          _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
+          _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
+          _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
+          _v$4 !== _p$.o && className(_el$8, _p$.o = _v$4);
+          return _p$;
+        }, {
+          e: void 0,
+          t: void 0,
+          a: void 0,
+          o: void 0
+        });
+        return _el$2;
+      })()), null);
+      return _el$;
+    })();
+  };
+
+  // src/components/Routes.tsx
+  var Routes = (props) => {
+    return createComponent(PageListings, {});
+  };
+
   // src/components/App.tsx
-  var _tmpl$3 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
-  var _tmpl$23 = /* @__PURE__ */ template(`<style id=styler>`);
+  var _tmpl$9 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$24 = /* @__PURE__ */ template(`<style id=styler>`);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
     "font-optical-sizing": "auto",
     "font-weight": "400",
@@ -15848,8 +16266,8 @@
     })
   });
   var App = (props) => {
-    return [_tmpl$3(), (() => {
-      var _el$2 = _tmpl$23();
+    return [_tmpl$9(), (() => {
+      var _el$2 = _tmpl$24();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);
       return _el$2;
@@ -16631,7 +17049,7 @@
     return a4;
   };
   var __spreadProps = (a4, b3) => __defProps(a4, __getOwnPropDescs(b3));
-  var __decorateClass = (decorators, target, key, kind) => {
+  var __decorateClass2 = (decorators, target, key, kind) => {
     var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc2(target, key) : target;
     for (var i8 = decorators.length - 1, decorator; i8 >= 0; i8--)
       if (decorator = decorators[i8])
@@ -16830,10 +17248,10 @@
   _hasRecordedInitialProperties = /* @__PURE__ */ new WeakMap();
   ShoelaceElement.version = "2.19.0";
   ShoelaceElement.dependencies = {};
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], ShoelaceElement.prototype, "dir", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], ShoelaceElement.prototype, "lang", 2);
 
@@ -16976,25 +17394,25 @@
     }
   };
   SlIcon.styles = [component_styles_default, icon_styles_default];
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlIcon.prototype, "svg", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlIcon.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIcon.prototype, "src", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIcon.prototype, "label", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlIcon.prototype, "library", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("label")
   ], SlIcon.prototype, "handleLabelChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch(["name", "src", "library"])
   ], SlIcon.prototype, "setIcon", 1);
 
@@ -17200,34 +17618,34 @@
   };
   SlIconButton.styles = [component_styles_default, icon_button_styles_default];
   SlIconButton.dependencies = { "sl-icon": SlIcon };
-  __decorateClass([
+  __decorateClass2([
     e5(".icon-button")
   ], SlIconButton.prototype, "button", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlIconButton.prototype, "hasFocus", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "library", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "src", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "href", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "target", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "download", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlIconButton.prototype, "label", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlIconButton.prototype, "disabled", 2);
 
@@ -17844,34 +18262,34 @@
   };
   SlAlert.styles = [component_styles_default, alert_styles_default];
   SlAlert.dependencies = { "sl-icon-button": SlIconButton };
-  __decorateClass([
+  __decorateClass2([
     e5('[part~="base"]')
   ], SlAlert.prototype, "base", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".alert__countdown-elapsed")
   ], SlAlert.prototype, "countdownElement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlAlert.prototype, "open", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlAlert.prototype, "closable", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlAlert.prototype, "variant", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlAlert.prototype, "duration", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: String, reflect: true })
   ], SlAlert.prototype, "countdown", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlAlert.prototype, "remainingTime", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("open", { waitUntilFirstUpdate: true })
   ], SlAlert.prototype, "handleOpenChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("duration")
   ], SlAlert.prototype, "handleDurationChange", 1);
   setDefaultAnimation("alert.show", {
@@ -19030,82 +19448,82 @@
     "sl-icon": SlIcon,
     "sl-spinner": SlSpinner
   };
-  __decorateClass([
+  __decorateClass2([
     e5(".button")
   ], SlButton.prototype, "button", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlButton.prototype, "hasFocus", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlButton.prototype, "invalid", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "title", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlButton.prototype, "variant", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlButton.prototype, "size", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlButton.prototype, "caret", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlButton.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlButton.prototype, "loading", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlButton.prototype, "outline", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlButton.prototype, "pill", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlButton.prototype, "circle", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "type", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "value", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "href", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "target", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "rel", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "download", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButton.prototype, "form", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "formaction" })
   ], SlButton.prototype, "formAction", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "formenctype" })
   ], SlButton.prototype, "formEnctype", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "formmethod" })
   ], SlButton.prototype, "formMethod", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "formnovalidate", type: Boolean })
   ], SlButton.prototype, "formNoValidate", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "formtarget" })
   ], SlButton.prototype, "formTarget", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlButton.prototype, "handleDisabledChange", 1);
 
@@ -19830,103 +20248,103 @@
   };
   SlInput.styles = [component_styles_default, form_control_styles_default, input_styles_default];
   SlInput.dependencies = { "sl-icon": SlIcon };
-  __decorateClass([
+  __decorateClass2([
     e5(".input__control")
   ], SlInput.prototype, "input", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlInput.prototype, "hasFocus", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "title", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlInput.prototype, "type", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "value", 2);
-  __decorateClass([
+  __decorateClass2([
     defaultValue()
   ], SlInput.prototype, "defaultValue", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlInput.prototype, "size", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlInput.prototype, "filled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlInput.prototype, "pill", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "label", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "help-text" })
   ], SlInput.prototype, "helpText", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlInput.prototype, "clearable", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlInput.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "placeholder", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlInput.prototype, "readonly", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "password-toggle", type: Boolean })
   ], SlInput.prototype, "passwordToggle", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "password-visible", type: Boolean })
   ], SlInput.prototype, "passwordVisible", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "no-spin-buttons", type: Boolean })
   ], SlInput.prototype, "noSpinButtons", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlInput.prototype, "form", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlInput.prototype, "required", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "pattern", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlInput.prototype, "minlength", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlInput.prototype, "maxlength", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "min", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "max", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "step", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "autocapitalize", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "autocorrect", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "autocomplete", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlInput.prototype, "autofocus", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "enterkeyhint", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({
       type: Boolean,
       converter: {
@@ -19936,16 +20354,16 @@
       }
     })
   ], SlInput.prototype, "spellcheck", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlInput.prototype, "inputmode", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlInput.prototype, "handleDisabledChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("step", { waitUntilFirstUpdate: true })
   ], SlInput.prototype, "handleStepChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("value", { waitUntilFirstUpdate: true })
   ], SlInput.prototype, "handleValueChange", 1);
 
@@ -20080,25 +20498,25 @@
   SlAvatar.dependencies = {
     "sl-icon": SlIcon
   };
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlAvatar.prototype, "hasError", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlAvatar.prototype, "image", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlAvatar.prototype, "label", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlAvatar.prototype, "initials", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlAvatar.prototype, "loading", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlAvatar.prototype, "shape", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("image")
   ], SlAvatar.prototype, "handleImageChange", 1);
 
@@ -20443,28 +20861,28 @@
   SlDetails.dependencies = {
     "sl-icon": SlIcon
   };
-  __decorateClass([
+  __decorateClass2([
     e5(".details")
   ], SlDetails.prototype, "details", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".details__header")
   ], SlDetails.prototype, "header", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".details__body")
   ], SlDetails.prototype, "body", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".details__expand-icon-slot")
   ], SlDetails.prototype, "expandIconSlot", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlDetails.prototype, "open", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlDetails.prototype, "summary", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlDetails.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("open", { waitUntilFirstUpdate: true })
   ], SlDetails.prototype, "handleOpenChange", 1);
   setDefaultAnimation("details.show", {
@@ -20522,10 +20940,10 @@
     }
   };
   SlDivider.styles = [component_styles_default, divider_styles_default];
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlDivider.prototype, "vertical", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("vertical")
   ], SlDivider.prototype, "handleVerticalChange", 1);
 
@@ -20703,16 +21121,16 @@
   };
   SlTag.styles = [component_styles_default, tag_styles_default];
   SlTag.dependencies = { "sl-icon-button": SlIconButton };
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlTag.prototype, "variant", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlTag.prototype, "size", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlTag.prototype, "pill", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlTag.prototype, "removable", 2);
 
@@ -21732,8 +22150,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css3 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css3.transform !== "none" || css3.perspective !== "none" || (css3.containerType ? css3.containerType !== "normal" : false) || !webkit && (css3.backdropFilter ? css3.backdropFilter !== "none" : false) || !webkit && (css3.filter ? css3.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css3.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css3.contain || "").includes(value));
+    const css6 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css6.transform !== "none" || css6.perspective !== "none" || (css6.containerType ? css6.containerType !== "normal" : false) || !webkit && (css6.backdropFilter ? css6.backdropFilter !== "none" : false) || !webkit && (css6.filter ? css6.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css6.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css6.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -21815,9 +22233,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css3 = getComputedStyle2(element);
-    let width = parseFloat(css3.width) || 0;
-    let height = parseFloat(css3.height) || 0;
+    const css6 = getComputedStyle2(element);
+    let width = parseFloat(css6.width) || 0;
+    let height = parseFloat(css6.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -21911,9 +22329,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css3 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css3.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css3.paddingTop)) * iframeScale.y;
+        const css6 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css6.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css6.paddingTop)) * iframeScale.y;
         x2 *= iframeScale.x;
         y3 *= iframeScale.y;
         width *= iframeScale.x;
@@ -22728,43 +23146,43 @@
     }
   };
   SlPopup.styles = [component_styles_default, popup_styles_default];
-  __decorateClass([
+  __decorateClass2([
     e5(".popup")
   ], SlPopup.prototype, "popup", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".popup__arrow")
   ], SlPopup.prototype, "arrowEl", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlPopup.prototype, "anchor", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlPopup.prototype, "active", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlPopup.prototype, "placement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlPopup.prototype, "strategy", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlPopup.prototype, "distance", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlPopup.prototype, "skidding", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlPopup.prototype, "arrow", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "arrow-placement" })
   ], SlPopup.prototype, "arrowPlacement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "arrow-padding", type: Number })
   ], SlPopup.prototype, "arrowPadding", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlPopup.prototype, "flip", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({
       attribute: "flip-fallback-placements",
       converter: {
@@ -22777,37 +23195,37 @@
       }
     })
   ], SlPopup.prototype, "flipFallbackPlacements", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "flip-fallback-strategy" })
   ], SlPopup.prototype, "flipFallbackStrategy", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Object })
   ], SlPopup.prototype, "flipBoundary", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "flip-padding", type: Number })
   ], SlPopup.prototype, "flipPadding", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlPopup.prototype, "shift", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Object })
   ], SlPopup.prototype, "shiftBoundary", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "shift-padding", type: Number })
   ], SlPopup.prototype, "shiftPadding", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "auto-size" })
   ], SlPopup.prototype, "autoSize", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlPopup.prototype, "sync", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Object })
   ], SlPopup.prototype, "autoSizeBoundary", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "auto-size-padding", type: Number })
   ], SlPopup.prototype, "autoSizePadding", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "hover-bridge", type: Boolean })
   ], SlPopup.prototype, "hoverBridge", 2);
 
@@ -23087,43 +23505,43 @@
   };
   SlDropdown.styles = [component_styles_default, dropdown_styles_default];
   SlDropdown.dependencies = { "sl-popup": SlPopup };
-  __decorateClass([
+  __decorateClass2([
     e5(".dropdown")
   ], SlDropdown.prototype, "popup", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".dropdown__trigger")
   ], SlDropdown.prototype, "trigger", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".dropdown__panel")
   ], SlDropdown.prototype, "panel", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlDropdown.prototype, "open", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlDropdown.prototype, "placement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlDropdown.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "stay-open-on-select", type: Boolean, reflect: true })
   ], SlDropdown.prototype, "stayOpenOnSelect", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: false })
   ], SlDropdown.prototype, "containingElement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlDropdown.prototype, "distance", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number })
   ], SlDropdown.prototype, "skidding", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlDropdown.prototype, "hoist", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlDropdown.prototype, "sync", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("open", { waitUntilFirstUpdate: true })
   ], SlDropdown.prototype, "handleOpenChange", 1);
   setDefaultAnimation("dropdown.show", {
@@ -23737,34 +24155,34 @@
     "sl-popup": SlPopup,
     "sl-spinner": SlSpinner
   };
-  __decorateClass([
+  __decorateClass2([
     e5("slot:not([name])")
   ], SlMenuItem.prototype, "defaultSlot", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".menu-item")
   ], SlMenuItem.prototype, "menuItem", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlMenuItem.prototype, "type", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlMenuItem.prototype, "checked", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlMenuItem.prototype, "value", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlMenuItem.prototype, "loading", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlMenuItem.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("checked")
   ], SlMenuItem.prototype, "handleCheckedChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled")
   ], SlMenuItem.prototype, "handleDisabledChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("type")
   ], SlMenuItem.prototype, "handleTypeChange", 1);
 
@@ -23902,7 +24320,7 @@
     }
   };
   SlMenu.styles = [component_styles_default, menu_styles_default];
-  __decorateClass([
+  __decorateClass2([
     e5("slot")
   ], SlMenu.prototype, "defaultSlot", 2);
 
@@ -23982,13 +24400,13 @@
     }
   };
   SlButtonGroup.styles = [component_styles_default, button_group_styles_default];
-  __decorateClass([
+  __decorateClass2([
     e5("slot")
   ], SlButtonGroup.prototype, "defaultSlot", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlButtonGroup.prototype, "disableRole", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlButtonGroup.prototype, "label", 2);
   function findButton(el) {
@@ -25038,100 +25456,100 @@
     "sl-popup": SlPopup,
     "sl-tag": SlTag
   };
-  __decorateClass([
+  __decorateClass2([
     e5(".select")
   ], SlSelect.prototype, "popup", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".select__combobox")
   ], SlSelect.prototype, "combobox", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".select__display-input")
   ], SlSelect.prototype, "displayInput", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".select__value-input")
   ], SlSelect.prototype, "valueInput", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".select__listbox")
   ], SlSelect.prototype, "listbox", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlSelect.prototype, "hasFocus", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlSelect.prototype, "displayLabel", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlSelect.prototype, "currentOption", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlSelect.prototype, "selectedOptions", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlSelect.prototype, "valueHasChanged", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlSelect.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlSelect.prototype, "value", 1);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "value" })
   ], SlSelect.prototype, "defaultValue", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlSelect.prototype, "size", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlSelect.prototype, "placeholder", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlSelect.prototype, "multiple", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "max-options-visible", type: Number })
   ], SlSelect.prototype, "maxOptionsVisible", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlSelect.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlSelect.prototype, "clearable", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlSelect.prototype, "open", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean })
   ], SlSelect.prototype, "hoist", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlSelect.prototype, "filled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlSelect.prototype, "pill", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlSelect.prototype, "label", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlSelect.prototype, "placement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "help-text" })
   ], SlSelect.prototype, "helpText", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlSelect.prototype, "form", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlSelect.prototype, "required", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlSelect.prototype, "getTag", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlSelect.prototype, "handleDisabledChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch(["defaultValue", "value"], { waitUntilFirstUpdate: true })
   ], SlSelect.prototype, "handleValueChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("open", { waitUntilFirstUpdate: true })
   ], SlSelect.prototype, "handleOpenChange", 1);
   setDefaultAnimation("select.show", {
@@ -25324,31 +25742,31 @@
   };
   SlOption.styles = [component_styles_default, option_styles_default];
   SlOption.dependencies = { "sl-icon": SlIcon };
-  __decorateClass([
+  __decorateClass2([
     e5(".option__label")
   ], SlOption.prototype, "defaultSlot", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlOption.prototype, "current", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlOption.prototype, "selected", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlOption.prototype, "hasHover", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlOption.prototype, "value", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlOption.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled")
   ], SlOption.prototype, "handleDisabledChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("selected")
   ], SlOption.prototype, "handleSelectedChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("value")
   ], SlOption.prototype, "handleValueChange", 1);
 
@@ -25651,10 +26069,10 @@
     }
   };
   SlResizeObserver.styles = [component_styles_default, resize_observer_styles_default];
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlResizeObserver.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlResizeObserver.prototype, "handleDisabledChange", 1);
 
@@ -26004,46 +26422,46 @@
   };
   SlTabGroup.styles = [component_styles_default, tab_group_styles_default];
   SlTabGroup.dependencies = { "sl-icon-button": SlIconButton, "sl-resize-observer": SlResizeObserver };
-  __decorateClass([
+  __decorateClass2([
     e5(".tab-group")
   ], SlTabGroup.prototype, "tabGroup", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".tab-group__body")
   ], SlTabGroup.prototype, "body", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".tab-group__nav")
   ], SlTabGroup.prototype, "nav", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".tab-group__indicator")
   ], SlTabGroup.prototype, "indicator", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlTabGroup.prototype, "hasScrollControls", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlTabGroup.prototype, "shouldHideScrollStartButton", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlTabGroup.prototype, "shouldHideScrollEndButton", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlTabGroup.prototype, "placement", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlTabGroup.prototype, "activation", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "no-scroll-controls", type: Boolean })
   ], SlTabGroup.prototype, "noScrollControls", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "fixed-scroll-controls", type: Boolean })
   ], SlTabGroup.prototype, "fixedScrollControls", 2);
-  __decorateClass([
+  __decorateClass2([
     t3({ passive: true })
   ], SlTabGroup.prototype, "updateScrollButtons", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("noScrollControls", { waitUntilFirstUpdate: true })
   ], SlTabGroup.prototype, "updateScrollControls", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("placement", { waitUntilFirstUpdate: true })
   ], SlTabGroup.prototype, "syncIndicator", 1);
 
@@ -26084,7 +26502,7 @@
     document.addEventListener("touchstart", handlePointerDown, true);
     document.addEventListener("touchend", handlePointerUp, true);
     document.addEventListener("touchcancel", handlePointerUp, true);
-    decorate(EventTarget.prototype, "addEventListener", function(addEventListener, type) {
+    decorate(EventTarget.prototype, "addEventListener", function(addEventListener2, type) {
       if (type !== "scrollend") return;
       const handleScrollEnd = debounce(() => {
         if (!pointers.size) {
@@ -26093,7 +26511,7 @@
           handleScrollEnd();
         }
       }, 100);
-      addEventListener.call(this, "scroll", handleScrollEnd, { passive: true });
+      addEventListener2.call(this, "scroll", handleScrollEnd, { passive: true });
       scrollHandlers.set(this, handleScrollEnd);
     });
     decorate(EventTarget.prototype, "removeEventListener", function(removeEventListener, type) {
@@ -26237,28 +26655,28 @@
   };
   SlTab.styles = [component_styles_default, tab_styles_default];
   SlTab.dependencies = { "sl-icon-button": SlIconButton };
-  __decorateClass([
+  __decorateClass2([
     e5(".tab")
   ], SlTab.prototype, "tab", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlTab.prototype, "panel", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlTab.prototype, "active", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlTab.prototype, "closable", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlTab.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Number, reflect: true })
   ], SlTab.prototype, "tabIndex", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("active")
   ], SlTab.prototype, "handleActiveChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled")
   ], SlTab.prototype, "handleDisabledChange", 1);
 
@@ -26314,13 +26732,13 @@
     }
   };
   SlTabPanel.styles = [component_styles_default, tab_panel_styles_default];
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlTabPanel.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlTabPanel.prototype, "active", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("active")
   ], SlTabPanel.prototype, "handleActiveChange", 1);
 
@@ -26643,46 +27061,46 @@
   };
   SlRadioGroup.styles = [component_styles_default, form_control_styles_default, radio_group_styles_default];
   SlRadioGroup.dependencies = { "sl-button-group": SlButtonGroup };
-  __decorateClass([
+  __decorateClass2([
     e5("slot:not([name])")
   ], SlRadioGroup.prototype, "defaultSlot", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".radio-group__validation-input")
   ], SlRadioGroup.prototype, "validationInput", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlRadioGroup.prototype, "hasButtonGroup", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlRadioGroup.prototype, "errorMessage", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlRadioGroup.prototype, "defaultValue", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlRadioGroup.prototype, "label", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ attribute: "help-text" })
   ], SlRadioGroup.prototype, "helpText", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlRadioGroup.prototype, "name", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlRadioGroup.prototype, "value", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlRadioGroup.prototype, "size", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlRadioGroup.prototype, "form", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlRadioGroup.prototype, "required", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("size", { waitUntilFirstUpdate: true })
   ], SlRadioGroup.prototype, "handleSizeChange", 1);
-  __decorateClass([
+  __decorateClass2([
     watch("value")
   ], SlRadioGroup.prototype, "handleValueChange", 1);
 
@@ -26796,31 +27214,31 @@
     }
   };
   SlRadioButton.styles = [component_styles_default, radio_button_styles_default];
-  __decorateClass([
+  __decorateClass2([
     e5(".button")
   ], SlRadioButton.prototype, "input", 2);
-  __decorateClass([
+  __decorateClass2([
     e5(".hidden-input")
   ], SlRadioButton.prototype, "hiddenInput", 2);
-  __decorateClass([
+  __decorateClass2([
     r6()
   ], SlRadioButton.prototype, "hasFocus", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlRadioButton.prototype, "checked", 2);
-  __decorateClass([
+  __decorateClass2([
     n4()
   ], SlRadioButton.prototype, "value", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlRadioButton.prototype, "disabled", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ reflect: true })
   ], SlRadioButton.prototype, "size", 2);
-  __decorateClass([
+  __decorateClass2([
     n4({ type: Boolean, reflect: true })
   ], SlRadioButton.prototype, "pill", 2);
-  __decorateClass([
+  __decorateClass2([
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlRadioButton.prototype, "handleDisabledChange", 1);
 

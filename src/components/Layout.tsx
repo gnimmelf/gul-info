@@ -1,5 +1,6 @@
 import {
   Component,
+  createResource,
   ErrorBoundary,
   JSXElement,
   Suspense,
@@ -7,8 +8,6 @@ import {
 
 import { join, styler } from "~/lib/styler";
 
-import { useService } from "./ServiceProvider";
-import { Track } from "./partials/Track";
 import { Loading } from "./partials/Loading";
 
 const css = styler.css({
@@ -34,13 +33,11 @@ export const Layout: Component<{
   title: string;
   children: JSXElement;
 }> = (props) => {
-  const { api } = useService();
   return (
     <div class={join(css.app, css.border)}>
       <h1 class={join(css.title)}>{props.title}</h1>
-      <ErrorBoundary fallback={({ message }) => <div>Error: {message}</div>}>
+      <ErrorBoundary fallback={(error) => <div>Error: {error.message}</div>}>
         <Suspense fallback={<Loading />}>
-          <Track func={() => api.connect()} />
           {props.children}
         </Suspense>
       </ErrorBoundary>

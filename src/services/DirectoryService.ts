@@ -57,7 +57,7 @@ class DirectoryService {
   }
 
   async loadData(filters?: Filters): Promise<void> {
-    const details = await this.#apiService.getListings() as DirectoryState
+    const details = await this.#apiService.fetchListings() as DirectoryState
     checkLoadedData(DirectorySchema, details)
     this.#setState(details)
   }

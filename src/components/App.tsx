@@ -4,7 +4,7 @@ import { loadFontFace, styler } from "~/lib/styler";
 
 import { ServiceProvider } from "./ServiceProvider";
 import { Layout } from "./Layout";
-import { Router } from "./Routes";
+import { Routes } from "./Routes";
 
 loadFontFace(
   "Playwrite HU",

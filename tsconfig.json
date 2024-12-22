@@ -6,6 +6,7 @@
         "jsxImportSource": "solid-js", // SolidJS JSX transformation
         "moduleResolution": "Node", // Resolve modules like Node.js
         "strict": true, // Enable all strict type checks
+        "experimentalDecorators": true,
         "esModuleInterop": true, // Support CommonJS modules
         "skipLibCheck": true, // Skip type checks for libraries
         "allowSyntheticDefaultImports": true, // Default import for CommonJS

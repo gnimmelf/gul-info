@@ -16,6 +16,29 @@ type DbConfigType = {
 
 export type ApiState = boolean | undefined
 
+/**
+ * Method decorator to Ensure connection
+ * @param target
+ * @param propertyKey
+ * @param descriptor
+ */
+function Connect(
+  target: any,
+  propertyKey: string | symbol,
+  descriptor: TypedPropertyDescriptor<any>
+): void {
+  const originalMethod = descriptor.value;
+
+  descriptor.value = async function (...args: any[]) {
+    // Ensure `this` is properly typed
+    const self = this as any;
+    await self.connect();
+
+    // Proceed with the original method
+    return originalMethod.apply(this, args);
+  };
+}
+
 export class ApiService {
   private db = new Surreal()
   private setState: StateSetter<ApiState>
@@ -42,7 +65,7 @@ export class ApiService {
     Object.freeze(this.config)
   }
 
-  async connect(options = { resetError: false }) {
+  private async connect(options = { resetError: false }) {
     if ('connecting' === this.db.status) {
       await this.db.ready
     }
@@ -69,10 +92,11 @@ export class ApiService {
   async signin() {}
   async invalidate() {}
 
-  async getListings() {
-    await this.connect() // Make this into a decorator, use for all apis
-    const query = surql`SELECT * FROM Listings;`
-    return (await this.db.query(query)).pop()
+  @Connect
+  async fetchListings() {
+    const query = surql`SELECT * FROM listings;`
+    const res = (await this.db.query(query)).pop()
+    return new Promise((resolve) => setTimeout(() => resolve(res), 800))
   }
 }
 
