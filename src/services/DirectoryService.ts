@@ -40,15 +40,15 @@ export const FilterSchema = z.object({
   text: z.string().optional(),
 })
 
-export const LetterSchema = z.object({
-  letter: z.string().length(1).optional(),
+export const FirstLetterSchema = z.object({
+  letter: z.string().length(1),
   count: z.number()
 })
 
-export const LettersSchema = z.array(LetterSchema)
+export const FirstLettersSchema = z.array(FirstLetterSchema)
 
 export type ListingsState = z.infer<typeof ListingsSchema>;
-export type LettersState = z.infer<typeof LettersSchema>;
+export type FirstLettersState = z.infer<typeof FirstLettersSchema>;
 export type FilterState = z.infer<typeof FilterSchema>;
 
 
@@ -60,6 +60,7 @@ class DirectoryService {
   filters: StateGetter<FilterState>
   setFilters: StateSetter<FilterState>
   listings: Resource<ListingsState>
+  listingLetters: Resource<FirstLettersState>
 
   constructor(
     apiService: ApiService,
@@ -70,11 +71,13 @@ class DirectoryService {
         () => this.filters(),
         (filterValue) => this.loadListings(filterValue)
       )
+      ;[this.listingLetters] = createResource(() => this.loadFirstLetters())
+
   }
 
-  async loadListingLetters() {
-    const details = await this.#apiService.fetchListingLetters() as LettersState
-    checkLoadedData(LettersSchema, details)
+  async loadFirstLetters() {
+    const details = await this.#apiService.fetchListingFirstLetters() as FirstLettersState
+    checkLoadedData(FirstLettersSchema, details)
     return details
   }
 

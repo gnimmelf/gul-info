@@ -47,7 +47,10 @@ export const Layout: Component<{
           <sl-icon-button prop:name="gear" on:click={() => console.log("cog")} />
         </div>
       </section>
-      <ErrorBoundary fallback={(error) => <div>Error: {error.message}</div>}>
+      <ErrorBoundary fallback={(error) => {
+        console.error(error)
+        return (<div>Error: {error.message}</div>)
+      }}>
         <Suspense fallback={<Loading />}>
           {props.children}
         </Suspense>

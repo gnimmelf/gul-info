@@ -93,19 +93,19 @@ export class ApiService {
   async invalidate() {}
 
   @Connect
-  async fetchListings(whereClause?: string) {
+  async fetchListings(whereClause: string) {
     console.log("api.fetchListings", whereClause)
-    const query = surql`SELECT * FROM listings ;`
+    const query = surql`SELECT * FROM listings;`
     const res = (await this.db.query(query)).pop()
-    return new Promise((resolve) => setTimeout(() => resolve(res), 800))
+    return new Promise((resolve) => setTimeout(() => resolve(res), 0))
   }
 
   @Connect
-  async fetchListingLetters() {
+  async fetchListingFirstLetters() {
     console.log("api.fetchLetterListings")
-    const query = surql`SELECT * FROM listings ;`
+    const query = surql`SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM listings GROUP BY letter;`
     const res = (await this.db.query(query)).pop()
-    return new Promise((resolve) => setTimeout(() => resolve(res), 800))
+    return new Promise((resolve) => setTimeout(() => resolve(res), 200))
   }
 }
 

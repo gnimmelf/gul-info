@@ -1,39 +1,59 @@
-import { Component, Setter } from "solid-js";
+import { Component, Match, Setter, Show, Switch } from "solid-js";
 
 import { styler } from "~/lib/styler";
 
 import { FilterState } from "~/services/DirectoryService";
+import { useService } from "../ServiceProvider";
+import { BadgeButton } from "./BadgeButton";
 
 const css = styler.css({
-    letters: ({theme}) => ({
+    section: ({ theme }) => ({
+        "> *": {
+            marginBottom: theme.spaceY,
+        },
+    }),
+    letters: ({ theme }) => ({
         display: "flex",
         overflowY: "hidden",
         overflowX: "scroll",
-        marginBottom: theme.spaceY
-    })
-})
+    }),
+});
 
 export const ListingsFilters: Component<{
     loading: boolean;
-    filterState: FilterState
+    filterState: FilterState;
     onFilterChange: (filters: FilterState) => void;
 }> = (props) => {
-
+    const { directory } = useService();
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ".split("");
 
+    const getLetterCount = (letter: string) =>
+        directory.listingLetters()
+            ?.find((x) => x.letter === letter)
+            ?.count;
+
     return (
-        <section>
+        <section class={css.section}>
+            <div class={css.letters}>
+                {letters.map((letter) => (
+                    <Show when={getLetterCount(letter)}>
+                        <BadgeButton
+                            buttonLabel={letter}
+                            badgeLabel={getLetterCount(letter)}
+                            isActive={props.filterState.letter === letter}
+                            disabled={props.loading ||
+                                !getLetterCount(letter)}
+                            onClick={() => props.onFilterChange({ letter })}
+                        />
+                    </Show>
+                ))}
+            </div>
 
-        <div class={css.letters}>
-            {letters.map(letter => (
-                <sl-button
-                prop:disabled={props.loading}
-                onClick={() => props.onFilterChange({ letter })}
-                >{letter}</sl-button>
-            ))}
-        </div>
-
-        {JSON.stringify(props.filterState)}
+            <div>
+                Filters: {JSON.stringify(props.filterState)}
+                <br />
+                Letters: {JSON.stringify(directory.listingLetters())}
+            </div>
         </section>
     );
 };
