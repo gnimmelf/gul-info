@@ -1,4 +1,4 @@
-import { Component, createResource, createSignal, Suspense } from "solid-js";
+import { Component, Suspense } from "solid-js";
 
 import { styler } from "~/lib/styler";
 
@@ -10,6 +10,8 @@ import { Address } from "./partials/Address";
 import { IconLabel } from "./partials/IconLabel";
 import { useService } from "./ServiceProvider";
 import { Loading } from "./partials/Loading";
+import { ListingsFilters } from "./partials/ListingsFilters";
+import { FilterState } from "~/services/DirectoryService";
 
 const css = styler.css({
   card: {
@@ -50,25 +52,18 @@ const css = styler.css({
 export const PageListings: Component = () => {
   const { directory } = useService();
 
-  const [filters, setFilters] = createSignal(0);
+  const { listings, filters, setFilters } = directory;
 
-  const [listings, { refetch }] = createResource(
-    () => directory.loadData(filters())
-  )
-
-  const reload = () => {
-    setFilters((prev) => prev + 1);
-    refetch(filters())
-  };
+  const handleTagClick = (tagKey: string) => setFilters((prev) => ({ ...prev, tag: tagKey }));
+  const handleFilterChange = (next: FilterState) => setFilters((prev) => ({ ...prev, ...next }));
 
   return (
     <section>
-      <div>
-        <sl-button
-          on:click={reload}
-          prop:disabled={listings.loading}
-        >Reload {filters() + 1}</sl-button>
-      </div>
+      <ListingsFilters
+        loading={listings.loading}
+        filterState={filters()}
+        onFilterChange={handleFilterChange}
+      />
 
       <Suspense fallback={<Loading />}>
         {listings()?.map((
@@ -104,7 +99,10 @@ export const PageListings: Component = () => {
                 </div>
               </div>
               <div>
-                {tags.map((tag) => <Tag {...tag} />)}
+                {tags.map((tag) => <Tag
+                  {...tag}
+                  onTagClick={handleTagClick}
+                />)}
               </div>
             </div>
           </sl-card>

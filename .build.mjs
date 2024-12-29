@@ -14,10 +14,19 @@ const assetPaths = {
     pemCert: '.dev-certs/server.cert',
 }
 
+const logPlugin = () => ({
+    name: 'logPlugin',
+    setup(build) {
+        build.onEnd(result => {
+            console.log(`build ended with ${result.errors.length} errors`)
+        })
+    },
+})
+
 const checkAssetPaths = () => {
     const missingAssets = Object.entries(assetPaths)
         .filter(([key, assetPath]) => !fs.existsSync(assetPath))
-        .map(([ key ]) => key)
+        .map(([key]) => key)
 
     if (missingAssets.length) {
         console.log(`Missing assets: ${missingAssets.join(', ')}`, assetPaths)
@@ -35,7 +44,8 @@ const startEsbuild = async () => {
         bundle: true,
         sourcemap: true,
         outfile: 'dist/app.js',
-        plugins: [solidPlugin()],
+        // minify: true,
+        plugins: [solidPlugin(), logPlugin()],
     })
     await ctx.watch()
     // Start esbuild serve for `cwd` on a random local port

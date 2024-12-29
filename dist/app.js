@@ -98,7 +98,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css6 = this.source;
+          let css7 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -111,7 +111,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css6.split(/\r?\n/);
+          let lines = css7.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1380,9 +1380,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css6, opts) {
+        constructor(css7, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css6);
+          this.loadAnnotation(css7);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1421,13 +1421,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css6) {
-          let comments = css6.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css7) {
+          let comments = css7.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css6.lastIndexOf(comments.pop());
-          let end = css6.indexOf("*/", start);
+          let start = css7.lastIndexOf(comments.pop());
+          let end = css7.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css6.substring(start, end));
+            this.annotation = this.getAnnotationURL(css7.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1500,11 +1500,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css6, opts = {}) {
-          if (css6 === null || typeof css6 === "undefined" || typeof css6 === "object" && !css6.toString) {
-            throw new Error(`PostCSS received ${css6} instead of CSS string`);
+        constructor(css7, opts = {}) {
+          if (css7 === null || typeof css7 === "undefined" || typeof css7 === "object" && !css7.toString) {
+            throw new Error(`PostCSS received ${css7} instead of CSS string`);
           }
-          this.css = css6.toString();
+          this.css = css7.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2231,11 +2231,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css6 = input.css.valueOf();
+        let css7 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n8, prev;
-        let length = css6.length;
+        let length = css7.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2252,7 +2252,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css6.charCodeAt(pos);
+          code = css7.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2262,9 +2262,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css6.charCodeAt(next);
+                code = css7.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css6.slice(pos, next)];
+              currentToken = ["space", css7.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2281,12 +2281,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n8 = css6.charCodeAt(pos + 1);
+              n8 = css7.charCodeAt(pos + 1);
               if (prev === "url" && n8 !== SINGLE_QUOTE && n8 !== DOUBLE_QUOTE && n8 !== SPACE && n8 !== NEWLINE && n8 !== TAB && n8 !== FEED && n8 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css6.indexOf(")", next + 1);
+                  next = css7.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2296,16 +2296,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css6.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css6.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css7.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css6.indexOf(")", pos + 1);
-                content = css6.slice(pos, next + 1);
+                next = css7.indexOf(")", pos + 1);
+                content = css7.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2321,7 +2321,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css6.indexOf(quote, next + 1);
+                next = css7.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2331,71 +2331,71 @@
                   }
                 }
                 escapePos = next;
-                while (css6.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css6.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css6);
+              RE_AT_END.test(css7);
               if (RE_AT_END.lastIndex === 0) {
-                next = css6.length - 1;
+                next = css7.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css6.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css6.charCodeAt(next + 1) === BACKSLASH) {
+              while (css7.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css6.charCodeAt(next + 1);
+              code = css7.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css6.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css6.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css7.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css7.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css6.charCodeAt(next + 1) === SPACE) {
+                  if (css7.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css6.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css6.charCodeAt(pos + 1) === ASTERISK) {
-                next = css6.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css7.charCodeAt(pos + 1) === ASTERISK) {
+                next = css7.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css6.length;
+                    next = css7.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css6.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css7.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css6);
+                RE_WORD_END.test(css7);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css6.length - 1;
+                  next = css7.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css6.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css7.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2957,8 +2957,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css6, opts) {
-        let input = new Input2(css6, opts);
+      function parse3(css7, opts) {
+        let input = new Input2(css7, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3171,18 +3171,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css6, opts) {
+        constructor(processor, css7, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css6 === "object" && css6 !== null && (css6.type === "root" || css6.type === "document")) {
-            root2 = cleanMarks(css6);
-          } else if (css6 instanceof _LazyResult || css6 instanceof Result2) {
-            root2 = cleanMarks(css6.root);
-            if (css6.map) {
+          if (typeof css7 === "object" && css7 !== null && (css7.type === "root" || css7.type === "document")) {
+            root2 = cleanMarks(css7);
+          } else if (css7 instanceof _LazyResult || css7 instanceof Result2) {
+            root2 = cleanMarks(css7.root);
+            if (css7.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css6.map;
+              opts.map.prev = css7.map;
             }
           } else {
             let parser2 = parse3;
@@ -3190,7 +3190,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css6, opts);
+              root2 = parser2(css7, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3558,24 +3558,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css6, opts) {
-          css6 = css6.toString();
+        constructor(processor, css7, opts) {
+          css7 = css7.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css6;
+          this._css = css7;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css6;
+          this.result.css = css7;
           let self2 = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self2.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css6);
+          let map = new MapGenerator(str, root2, this._opts, css7);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3703,11 +3703,11 @@
           }
           return normalized;
         }
-        process(css6, opts = {}) {
+        process(css7, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css6, opts);
+            return new NoWorkResult(this, css7, opts);
           } else {
-            return new LazyResult(this, css6, opts);
+            return new LazyResult(this, css7, opts);
           }
         }
         use(plugin2) {
@@ -3776,8 +3776,8 @@
             return cache;
           }
         });
-        creator.process = function(css6, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css6, processOpts);
+        creator.process = function(css7, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css7, processOpts);
         };
         return creator;
       };
@@ -6109,31 +6109,31 @@
         hex[hexChars.charCodeAt(i8)] = true;
       }
       var i8;
-      function consumeWord(css6, start) {
+      function consumeWord(css7, start) {
         var next = start;
         var code;
         do {
-          code = css6.charCodeAt(next);
+          code = css7.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t6.backslash) {
-            next = consumeEscape(css6, next) + 1;
+            next = consumeEscape(css7, next) + 1;
           } else {
             next++;
           }
-        } while (next < css6.length);
+        } while (next < css7.length);
         return next - 1;
       }
-      function consumeEscape(css6, start) {
+      function consumeEscape(css7, start) {
         var next = start;
-        var code = css6.charCodeAt(next + 1);
+        var code = css7.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css6.charCodeAt(next + 1);
+            code = css7.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t6.space) {
             next++;
@@ -6155,8 +6155,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css6 = input.css.valueOf();
-        var _css = css6, length = _css.length;
+        var css7 = input.css.valueOf();
+        var _css = css7, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6164,14 +6164,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css6 += fix;
-            next = css6.length - 1;
+            css7 += fix;
+            next = css7.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css6.charCodeAt(start);
+          code = css7.charCodeAt(start);
           if (code === t6.newline) {
             offset3 = start;
             line += 1;
@@ -6185,7 +6185,7 @@
               next = start;
               do {
                 next += 1;
-                code = css6.charCodeAt(next);
+                code = css7.charCodeAt(next);
                 if (code === t6.newline) {
                   offset3 = next;
                   line += 1;
@@ -6203,7 +6203,7 @@
               next = start;
               do {
                 next += 1;
-                code = css6.charCodeAt(next);
+                code = css7.charCodeAt(next);
               } while (code === t6.plus || code === t6.greaterThan || code === t6.tilde || code === t6.pipe);
               tokenType = t6.combinator;
               endLine = line;
@@ -6236,12 +6236,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css6.indexOf(quote, next + 1);
+                next = css7.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css6.charCodeAt(escapePos - 1) === t6.backslash) {
+                while (css7.charCodeAt(escapePos - 1) === t6.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6252,12 +6252,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t6.slash && css6.charCodeAt(start + 1) === t6.asterisk) {
-                next = css6.indexOf("*/", start + 2) + 1;
+              if (code === t6.slash && css7.charCodeAt(start + 1) === t6.asterisk) {
+                next = css7.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css6.slice(start, next + 1);
+                content = css7.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6278,7 +6278,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css6, start);
+                next = consumeWord(css7, start);
                 tokenType = t6.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -8208,6 +8208,7 @@
   }
   var equalFn = (a4, b3) => a4 === b3;
   var $PROXY = Symbol("solid-proxy");
+  var SUPPORTS_PROXY = typeof Proxy === "function";
   var $TRACK = Symbol("solid-track");
   var $DEVCOMP = Symbol("solid-dev-component");
   var signalOptions = {
@@ -8934,6 +8935,110 @@
     }
     return untrack(() => Comp(props || {}));
   }
+  function trueFn() {
+    return true;
+  }
+  var propTraps = {
+    get(_2, property, receiver) {
+      if (property === $PROXY) return receiver;
+      return _2.get(property);
+    },
+    has(_2, property) {
+      if (property === $PROXY) return true;
+      return _2.has(property);
+    },
+    set: trueFn,
+    deleteProperty: trueFn,
+    getOwnPropertyDescriptor(_2, property) {
+      return {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return _2.get(property);
+        },
+        set: trueFn,
+        deleteProperty: trueFn
+      };
+    },
+    ownKeys(_2) {
+      return _2.keys();
+    }
+  };
+  function resolveSource(s4) {
+    return !(s4 = typeof s4 === "function" ? s4() : s4) ? {} : s4;
+  }
+  function resolveSources() {
+    for (let i8 = 0, length = this.length; i8 < length; ++i8) {
+      const v2 = this[i8]();
+      if (v2 !== void 0) return v2;
+    }
+  }
+  function mergeProps(...sources) {
+    let proxy = false;
+    for (let i8 = 0; i8 < sources.length; i8++) {
+      const s4 = sources[i8];
+      proxy = proxy || !!s4 && $PROXY in s4;
+      sources[i8] = typeof s4 === "function" ? (proxy = true, createMemo(s4)) : s4;
+    }
+    if (SUPPORTS_PROXY && proxy) {
+      return new Proxy(
+        {
+          get(property) {
+            for (let i8 = sources.length - 1; i8 >= 0; i8--) {
+              const v2 = resolveSource(sources[i8])[property];
+              if (v2 !== void 0) return v2;
+            }
+          },
+          has(property) {
+            for (let i8 = sources.length - 1; i8 >= 0; i8--) {
+              if (property in resolveSource(sources[i8])) return true;
+            }
+            return false;
+          },
+          keys() {
+            const keys = [];
+            for (let i8 = 0; i8 < sources.length; i8++)
+              keys.push(...Object.keys(resolveSource(sources[i8])));
+            return [...new Set(keys)];
+          }
+        },
+        propTraps
+      );
+    }
+    const sourcesMap = {};
+    const defined = /* @__PURE__ */ Object.create(null);
+    for (let i8 = sources.length - 1; i8 >= 0; i8--) {
+      const source = sources[i8];
+      if (!source) continue;
+      const sourceKeys = Object.getOwnPropertyNames(source);
+      for (let i9 = sourceKeys.length - 1; i9 >= 0; i9--) {
+        const key = sourceKeys[i9];
+        if (key === "__proto__" || key === "constructor") continue;
+        const desc = Object.getOwnPropertyDescriptor(source, key);
+        if (!defined[key]) {
+          defined[key] = desc.get ? {
+            enumerable: true,
+            configurable: true,
+            get: resolveSources.bind(sourcesMap[key] = [desc.get.bind(source)])
+          } : desc.value !== void 0 ? desc : void 0;
+        } else {
+          const sources2 = sourcesMap[key];
+          if (sources2) {
+            if (desc.get) sources2.push(desc.get.bind(source));
+            else if (desc.value !== void 0) sources2.push(() => desc.value);
+          }
+        }
+      }
+    }
+    const target = {};
+    const definedKeys = Object.keys(defined);
+    for (let i8 = definedKeys.length - 1; i8 >= 0; i8--) {
+      const key = definedKeys[i8], desc = defined[key];
+      if (desc && desc.get) Object.defineProperty(target, key, desc);
+      else target[key] = desc ? desc.value : void 0;
+    }
+    return target;
+  }
   var Errors;
   function ErrorBoundary(props) {
     let err;
@@ -9127,6 +9232,7 @@
       }
     }
   }
+  var $$EVENTS = "_$DX_DELEGATE";
   function template(html, isImportNode, isSVG) {
     let node;
     const create = () => {
@@ -9137,6 +9243,16 @@
     const fn = isImportNode ? () => untrack(() => document.importNode(node || (node = create()), true)) : () => (node || (node = create())).cloneNode(true);
     fn.cloneNode = fn;
     return fn;
+  }
+  function delegateEvents(eventNames, document3 = window.document) {
+    const e12 = document3[$$EVENTS] || (document3[$$EVENTS] = /* @__PURE__ */ new Set());
+    for (let i8 = 0, l5 = eventNames.length; i8 < l5; i8++) {
+      const name2 = eventNames[i8];
+      if (!e12.has(name2)) {
+        e12.add(name2);
+        document3.addEventListener(name2, eventHandler);
+      }
+    }
   }
   function setAttribute(node, name2, value) {
     if (isHydrating(node)) return;
@@ -9166,6 +9282,56 @@
   }
   function isHydrating(node) {
     return !!sharedConfig.context && !sharedConfig.done && (!node || node.isConnected);
+  }
+  function eventHandler(e12) {
+    if (sharedConfig.registry && sharedConfig.events) {
+      if (sharedConfig.events.find(([el, ev]) => ev === e12)) return;
+    }
+    let node = e12.target;
+    const key = `$$${e12.type}`;
+    const oriTarget = e12.target;
+    const oriCurrentTarget = e12.currentTarget;
+    const retarget = (value) => Object.defineProperty(e12, "target", {
+      configurable: true,
+      value
+    });
+    const handleNode = () => {
+      const handler = node[key];
+      if (handler && !node.disabled) {
+        const data = node[`${key}Data`];
+        data !== void 0 ? handler.call(node, data, e12) : handler.call(node, e12);
+        if (e12.cancelBubble) return;
+      }
+      node.host && typeof node.host !== "string" && !node.host._$host && node.contains(e12.target) && retarget(node.host);
+      return true;
+    };
+    const walkUpTree = () => {
+      while (handleNode() && (node = node._$host || node.parentNode || node.host)) ;
+    };
+    Object.defineProperty(e12, "currentTarget", {
+      configurable: true,
+      get() {
+        return node || document;
+      }
+    });
+    if (sharedConfig.registry && !sharedConfig.done) sharedConfig.done = _$HY.done = true;
+    if (e12.composedPath) {
+      const path = e12.composedPath();
+      retarget(path[0]);
+      for (let i8 = 0; i8 < path.length - 2; i8++) {
+        node = path[i8];
+        if (!handleNode()) break;
+        if (node._$host) {
+          node = node._$host;
+          walkUpTree();
+          break;
+        }
+        if (node.parentNode === oriCurrentTarget) {
+          break;
+        }
+      }
+    } else walkUpTree();
+    retarget(oriTarget);
   }
   function insertExpression(parent, value, current, marker, unwrapArray) {
     const hydrating = isHydrating(parent);
@@ -11546,9 +11712,15 @@
     }
     async invalidate() {
     }
-    async fetchListings(filters) {
-      console.log("api.loadData", filters);
-      const query = surrealql`SELECT * FROM listings;`;
+    async fetchListings(whereClause) {
+      console.log("api.fetchListings", whereClause);
+      const query = surrealql`SELECT * FROM listings ;`;
+      const res = (await this.db.query(query)).pop();
+      return new Promise((resolve) => setTimeout(() => resolve(res), 800));
+    }
+    async fetchListingLetters() {
+      console.log("api.fetchLetterListings");
+      const query = surrealql`SELECT * FROM listings ;`;
       const res = (await this.db.query(query)).pop();
       return new Promise((resolve) => setTimeout(() => resolve(res), 800));
     }
@@ -11556,6 +11728,9 @@
   __decorateClass([
     Connect
   ], ApiService.prototype, "fetchListings", 1);
+  __decorateClass([
+    Connect
+  ], ApiService.prototype, "fetchListingLetters", 1);
   var ApiService_default = ApiService;
 
   // node_modules/.pnpm/zod@3.24.1/node_modules/zod/lib/index.mjs
@@ -15812,42 +15987,66 @@
   var ProfileService_default = ProfileService;
 
   // src/services/DirectoryService.ts
-  var CompanySchema = z.object({
-    address: z.string(),
+  var ListingSchema = z.object({
+    isActive: z.boolean(),
+    title: z.string(),
     description: z.string(),
+    address: z.string(),
+    muncipiality: z.string(),
+    zip: z.string().regex(/^\d{4}$/),
+    phone: z.string(),
+    // TODO! Get from '~/lib/form-utils
     email: z.string().email(),
+    // TODO! Get from '~/lib/form-utils
     id: z.object({
       tb: z.string(),
       id: z.string()
     }),
-    isActive: z.boolean(),
     links: z.array(
       z.object({
         href: z.string()
       })
     ),
-    muncipiality: z.string(),
-    phone: z.string(),
-    // Can use z.string().regex(/^\d+$/) for stricter validation of numbers
     tags: z.array(
       z.object({
         key: z.string(),
         name: z.string()
       })
-    ),
-    title: z.string(),
-    zip: z.string()
-    // Can use z.string().regex(/^\d{4}$/) if the zip code is always 4 digits
+    )
   });
-  var DirectorySchema = z.array(CompanySchema).optional();
+  var ListingsSchema = z.array(ListingSchema);
+  var FilterSchema = z.object({
+    letter: z.string().length(1).optional(),
+    tag: z.string().optional(),
+    text: z.string().optional()
+  });
+  var LetterSchema = z.object({
+    letter: z.string().length(1).optional(),
+    count: z.number()
+  });
+  var LettersSchema = z.array(LetterSchema);
   var DirectoryService = class {
     #apiService;
+    filters;
+    setFilters;
+    listings;
     constructor(apiService) {
       this.#apiService = apiService;
+      [this.filters, this.setFilters] = createSignal(zodSchemaDefaults(FilterSchema));
+      [this.listings] = createResource(
+        () => this.filters(),
+        (filterValue) => this.loadListings(filterValue)
+      );
     }
-    async loadData(filters) {
-      const details = await this.#apiService.fetchListings(filters);
-      checkLoadedData(DirectorySchema, details);
+    async loadListingLetters() {
+      const details = await this.#apiService.fetchListingLetters();
+      checkLoadedData(LettersSchema, details);
+      return details;
+    }
+    async loadListings(filters) {
+      const whereClause = JSON.stringify(filters);
+      const details = await this.#apiService.fetchListings(whereClause);
+      checkLoadedData(ListingsSchema, details);
       return details;
     }
   };
@@ -16044,24 +16243,30 @@
   var css4 = styler.css({
     wrapper: {
       paddingRight: "2px"
+    },
+    tag: {
+      cursor: "pointer"
     }
   });
   var Tag = (props) => {
     return (() => {
       var _el$ = _tmpl$5(), _el$2 = _el$.firstChild;
+      addEventListener(_el$2, "click", () => props.onTagClick(props.key));
       _el$2.variant = "primary";
       _el$2.size = "small";
       _el$2.pill = false;
       _el$2._$owner = getOwner();
       insert(_el$2, () => props.name);
       createRenderEffect((_p$) => {
-        var _v$ = props.key, _v$2 = css4.wrapper;
+        var _v$ = props.key, _v$2 = css4.wrapper, _v$3 = css4.tag;
         _v$ !== _p$.e && setAttribute(_el$, "data-key", _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$2, _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0
       });
       return _el$;
     })();
@@ -16104,11 +16309,45 @@
     return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
   };
 
-  // src/components/PageListings.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<section><div><sl-button>Reload `, true, false);
-  var _tmpl$23 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
-  var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
+  // src/components/partials/ListingsFilters.tsx
+  var _tmpl$8 = /* @__PURE__ */ template(`<section><div>`);
+  var _tmpl$23 = /* @__PURE__ */ template(`<sl-button>`, true, false);
   var css5 = styler.css({
+    letters: ({
+      theme
+    }) => ({
+      display: "flex",
+      overflowY: "hidden",
+      overflowX: "scroll",
+      marginBottom: theme.spaceY
+    })
+  });
+  var ListingsFilters = (props) => {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ\xC6\xD8\xC5".split("");
+    return (() => {
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild;
+      insert(_el$2, () => letters.map((letter) => (() => {
+        var _el$3 = _tmpl$23();
+        _el$3.$$click = () => props.onFilterChange({
+          letter
+        });
+        _el$3._$owner = getOwner();
+        insert(_el$3, letter);
+        createRenderEffect(() => _el$3.disabled = props.loading);
+        return _el$3;
+      })()));
+      insert(_el$, () => JSON.stringify(props.filterState), null);
+      createRenderEffect(() => className(_el$2, css5.letters));
+      return _el$;
+    })();
+  };
+  delegateEvents(["click"]);
+
+  // src/components/PageListings.tsx
+  var _tmpl$9 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$24 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
+  var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
+  var css6 = styler.css({
     card: {
       "--border-radius": "15px",
       width: "100%",
@@ -16147,19 +16386,30 @@
     const {
       directory
     } = useService();
-    const [filters, setFilters] = createSignal(0);
-    const [listings, {
-      refetch
-    }] = createResource(() => directory.loadData(filters()));
-    const reload = () => {
-      setFilters((prev) => prev + 1);
-      refetch(filters());
-    };
+    const {
+      listings,
+      filters,
+      setFilters
+    } = directory;
+    const handleTagClick = (tagKey) => setFilters((prev) => ({
+      ...prev,
+      tag: tagKey
+    }));
+    const handleFilterChange = (next) => setFilters((prev) => ({
+      ...prev,
+      ...next
+    }));
     return (() => {
-      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild;
-      addEventListener(_el$3, "click", reload);
-      _el$3._$owner = getOwner();
-      insert(_el$3, () => filters() + 1, null);
+      var _el$ = _tmpl$9();
+      insert(_el$, createComponent(ListingsFilters, {
+        get loading() {
+          return listings.loading;
+        },
+        get filterState() {
+          return filters();
+        },
+        onFilterChange: handleFilterChange
+      }), null);
       insert(_el$, createComponent(Suspense, {
         get fallback() {
           return createComponent(Loading, {});
@@ -16172,34 +16422,36 @@
             tags,
             ...contact
           }) => (() => {
-            var _el$5 = _tmpl$23(), _el$6 = _el$5.firstChild, _el$7 = _el$6.firstChild, _el$8 = _el$7.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$6.nextSibling, _el$11 = _el$10.firstChild, _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$11.nextSibling;
-            _el$5._$owner = getOwner();
-            insert(_el$7, title);
-            insert(_el$8, createComponent(IconLabel, {
+            var _el$2 = _tmpl$24(), _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.nextSibling, _el$6 = _el$5.nextSibling, _el$7 = _el$3.nextSibling, _el$8 = _el$7.firstChild, _el$9 = _el$8.firstChild, _el$10 = _el$9.nextSibling, _el$11 = _el$8.nextSibling;
+            _el$2._$owner = getOwner();
+            insert(_el$4, title);
+            insert(_el$5, createComponent(IconLabel, {
               label: "beskrivelse",
               icon: "info-circle",
               children: description
             }));
-            insert(_el$9, createComponent(Phone, {
+            insert(_el$6, createComponent(Phone, {
               get phoneNumber() {
                 return contact.phone;
               }
             }));
-            insert(_el$12, createComponent(Address, contact));
-            insert(_el$13, () => links.map((link) => (() => {
-              var _el$15 = _tmpl$32(), _el$16 = _el$15.firstChild;
-              insert(_el$15, createComponent(WebLink, {
+            insert(_el$9, createComponent(Address, contact));
+            insert(_el$10, () => links.map((link) => (() => {
+              var _el$12 = _tmpl$32(), _el$13 = _el$12.firstChild;
+              insert(_el$12, createComponent(WebLink, {
                 link
-              }), _el$16);
-              return _el$15;
+              }), _el$13);
+              return _el$12;
             })()));
-            insert(_el$14, () => tags.map((tag) => createComponent(Tag, tag)));
+            insert(_el$11, () => tags.map((tag) => createComponent(Tag, mergeProps(tag, {
+              onTagClick: handleTagClick
+            }))));
             createRenderEffect((_p$) => {
-              var _v$ = css5.card, _v$2 = css5.cardHeader, _v$3 = css5.title, _v$4 = css5.cardBody;
-              _v$ !== _p$.e && className(_el$5, _p$.e = _v$);
-              _v$2 !== _p$.t && className(_el$6, _p$.t = _v$2);
-              _v$3 !== _p$.a && className(_el$7, _p$.a = _v$3);
-              _v$4 !== _p$.o && className(_el$11, _p$.o = _v$4);
+              var _v$ = css6.card, _v$2 = css6.cardHeader, _v$3 = css6.title, _v$4 = css6.cardBody;
+              _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
+              _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
+              _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
+              _v$4 !== _p$.o && className(_el$8, _p$.o = _v$4);
               return _p$;
             }, {
               e: void 0,
@@ -16207,11 +16459,10 @@
               a: void 0,
               o: void 0
             });
-            return _el$5;
+            return _el$2;
           })());
         }
       }), null);
-      createRenderEffect(() => _el$3.disabled = listings.loading);
       return _el$;
     })();
   };
@@ -16222,8 +16473,8 @@
   };
 
   // src/components/App.tsx
-  var _tmpl$9 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
-  var _tmpl$24 = /* @__PURE__ */ template(`<style id=styler>`);
+  var _tmpl$10 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$25 = /* @__PURE__ */ template(`<style id=styler>`);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
     "font-optical-sizing": "auto",
     "font-weight": "400",
@@ -16237,7 +16488,8 @@
       colorAccent: "var(--gifo-color-accent)",
       fontSizeLg: "2rem",
       fontSizeMd: "1.2rem",
-      breakPointSm: "600px"
+      breakPointSm: "600px",
+      spaceY: "var(--sl-spacing-medium)"
     }
   }).globals({
     ":root": ({
@@ -16245,6 +16497,34 @@
     }) => ({
       "--breakpoint-sm": theme.breakPointSmall
     }),
+    /* Global scrollbar styles */
+    "::-webkit-scrollbar": {
+      width: "8px",
+      height: "8px"
+    },
+    "::-webkit-scrollbar-thumb": {
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      // Semi-transparent thumb
+      borderRadius: "4px",
+      // Rounded edges for the thumb
+      transition: "background-color 0.2s"
+      // Smooth transition
+    },
+    "::-webkit-scrollbar-thumb:hover": {
+      backgroundColor: "rgba(0, 0, 0, 0.7)"
+      // Darker thumb on hover
+    },
+    "::-webkit-scrollbar-track": {
+      backgroundColor: "transparent"
+      // Fully transparent track
+    },
+    /* Firefox-specific scrollbar styles */
+    ".scrollable-element": {
+      scrollbarWidth: "thin",
+      // Thin scrollbar
+      scrollbarColor: "rgba(0, 0, 0, 0.5) transparent"
+      // Thumb and track colors
+    },
     "a, a:hover, a:visited": ({
       theme
     }) => ({
@@ -16253,8 +16533,8 @@
     })
   });
   var App = (props) => {
-    return [_tmpl$9(), (() => {
-      var _el$2 = _tmpl$24();
+    return [_tmpl$10(), (() => {
+      var _el$2 = _tmpl$25();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);
       return _el$2;
@@ -22137,8 +22417,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css6 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css6.transform !== "none" || css6.perspective !== "none" || (css6.containerType ? css6.containerType !== "normal" : false) || !webkit && (css6.backdropFilter ? css6.backdropFilter !== "none" : false) || !webkit && (css6.filter ? css6.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css6.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css6.contain || "").includes(value));
+    const css7 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css7.transform !== "none" || css7.perspective !== "none" || (css7.containerType ? css7.containerType !== "normal" : false) || !webkit && (css7.backdropFilter ? css7.backdropFilter !== "none" : false) || !webkit && (css7.filter ? css7.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css7.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css7.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -22220,9 +22500,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css6 = getComputedStyle2(element);
-    let width = parseFloat(css6.width) || 0;
-    let height = parseFloat(css6.height) || 0;
+    const css7 = getComputedStyle2(element);
+    let width = parseFloat(css7.width) || 0;
+    let height = parseFloat(css7.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -22316,9 +22596,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css6 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css6.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css6.paddingTop)) * iframeScale.y;
+        const css7 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css7.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css7.paddingTop)) * iframeScale.y;
         x2 *= iframeScale.x;
         y3 *= iframeScale.y;
         width *= iframeScale.x;

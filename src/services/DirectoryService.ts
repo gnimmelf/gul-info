@@ -2,56 +2,87 @@ import { z } from 'zod';
 
 import { checkLoadedData } from '../lib/form-utils';
 import ApiService from './ApiService';
-import { StateCreator, StateGetter, StateSetter } from '../types';
+import { createResource, createSignal, Resource, Signal } from 'solid-js';
+import { zodSchemaDefaults } from '~/lib/utils';
+import { StateGetter, StateSetter } from '~/types';
 
-export const CompanySchema = z.object({
-  address: z.string(),
+export const ListingSchema = z.object({
+  isActive: z.boolean(),
+  title: z.string(),
   description: z.string(),
-  email: z.string().email(),
+  address: z.string(),
+  muncipiality: z.string(),
+  zip: z.string().regex(/^\d{4}$/),
+  phone: z.string(), // TODO! Get from '~/lib/form-utils
+  email: z.string().email(), // TODO! Get from '~/lib/form-utils
   id: z.object({
     tb: z.string(),
     id: z.string(),
   }),
-  isActive: z.boolean(),
   links: z.array(
     z.object({
       href: z.string(),
     })
   ),
-  muncipiality: z.string(),
-  phone: z.string(), // Can use z.string().regex(/^\d+$/) for stricter validation of numbers
   tags: z.array(
     z.object({
       key: z.string(),
       name: z.string(),
     })
-  ),
-  title: z.string(),
-  zip: z.string(), // Can use z.string().regex(/^\d{4}$/) if the zip code is always 4 digits
+  )
 });
 
-// Make `undefined` a valid default value
-const DirectorySchema = z.array(CompanySchema).optional()
+const ListingsSchema = z.array(ListingSchema)
 
-export type DirectoryState = z.infer<typeof DirectorySchema>;
+export const FilterSchema = z.object({
+  letter: z.string().length(1).optional(),
+  tag: z.string().optional(),
+  text: z.string().optional(),
+})
 
-interface Filters { }
+export const LetterSchema = z.object({
+  letter: z.string().length(1).optional(),
+  count: z.number()
+})
+
+export const LettersSchema = z.array(LetterSchema)
+
+export type ListingsState = z.infer<typeof ListingsSchema>;
+export type LettersState = z.infer<typeof LettersSchema>;
+export type FilterState = z.infer<typeof FilterSchema>;
+
 
 /**
  * Class
  */
 class DirectoryService {
   #apiService: ApiService
+  filters: StateGetter<FilterState>
+  setFilters: StateSetter<FilterState>
+  listings: Resource<ListingsState>
 
   constructor(
     apiService: ApiService,
   ) {
     this.#apiService = apiService
+      ;[this.filters, this.setFilters] = createSignal(zodSchemaDefaults(FilterSchema))
+      ;[this.listings] = createResource(
+        () => this.filters(),
+        (filterValue) => this.loadListings(filterValue)
+      )
   }
 
-  async loadData(filters?: Filters): Promise<DirectoryState> {
-    const details = await this.#apiService.fetchListings(filters) as DirectoryState
-    checkLoadedData(DirectorySchema, details)
+  async loadListingLetters() {
+    const details = await this.#apiService.fetchListingLetters() as LettersState
+    checkLoadedData(LettersSchema, details)
+    return details
+  }
+
+  async loadListings(filters?: FilterState): Promise<ListingsState> {
+    // TODO! Querybuilder
+    const whereClause = JSON.stringify(filters)
+    const details = await this.#apiService.fetchListings(whereClause) as ListingsState
+    checkLoadedData(ListingsSchema, details)
     return details
   }
 }

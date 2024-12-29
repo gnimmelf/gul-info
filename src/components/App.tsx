@@ -26,11 +26,33 @@ styler
       fontSizeLg: "2rem",
       fontSizeMd: "1.2rem",
       breakPointSm: "600px",
+      spaceY: "var(--sl-spacing-medium)",
     },
   }).globals({
     ":root": ({ theme }) => ({
       "--breakpoint-sm": theme.breakPointSmall,
     }),
+    /* Global scrollbar styles */
+    "::-webkit-scrollbar": {
+      width: "8px",
+      height: "8px",
+    },
+    "::-webkit-scrollbar-thumb": {
+      backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent thumb
+      borderRadius: "4px", // Rounded edges for the thumb
+      transition: "background-color 0.2s", // Smooth transition
+    },
+    "::-webkit-scrollbar-thumb:hover": {
+      backgroundColor: "rgba(0, 0, 0, 0.7)", // Darker thumb on hover
+    },
+    "::-webkit-scrollbar-track": {
+      backgroundColor: "transparent", // Fully transparent track
+    },
+    /* Firefox-specific scrollbar styles */
+    ".scrollable-element": {
+      scrollbarWidth: "thin", // Thin scrollbar
+      scrollbarColor: "rgba(0, 0, 0, 0.5) transparent", // Thumb and track colors
+    },
     "a, a:hover, a:visited": ({ theme }) => ({
       textDecoration: "none",
       color: theme.colorOnPrimary,
