@@ -25,6 +25,7 @@ export const ListingsFilters: Component<{
     onFilterChange: (filters: FilterState) => void;
 }> = (props) => {
     const { directory } = useService();
+    // TODO! Drop this, just use `letterCount`
     const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ".split("");
 
     const getLetterCount = (letter: string) =>
@@ -43,7 +44,13 @@ export const ListingsFilters: Component<{
                             isActive={props.filterState.letter === letter}
                             disabled={props.loading ||
                                 !getLetterCount(letter)}
-                            onClick={() => props.onFilterChange({ letter })}
+                            onClick={() =>
+                                props.onFilterChange({
+                                    // Unselect letter if already selected
+                                    letter: props.filterState.letter === letter
+                                        ? ""
+                                        : letter,
+                                })}
                         />
                     </Show>
                 ))}

@@ -87,22 +87,28 @@ export class ApiService {
     return this.db.status
   }
 
-  async authenticate(token: string) {}
-  async signup() {}
-  async signin() {}
-  async invalidate() {}
+  async authenticate(token: string) { }
+  async signup() { }
+  async signin() { }
+  async invalidate() { }
 
   @Connect
-  async fetchListings(whereClause: string) {
-    console.log("api.fetchListings", whereClause)
-    const query = surql`SELECT * FROM listings;`
+  async fetchListings(whereClause?: string) {
+
+    const query = whereClause
+      ? `SELECT * FROM listings WHERE ${whereClause};`
+      : `SELECT * FROM listings;`
+
+    console.log("api.fetchListings", { whereClause, query })
+
     const res = (await this.db.query(query)).pop()
-    return new Promise((resolve) => setTimeout(() => resolve(res), 0))
+
+    return new Promise((resolve) => setTimeout(() => resolve(res), 800))
   }
 
   @Connect
   async fetchListingFirstLetters() {
-    console.log("api.fetchLetterListings")
+    console.log("api.fetchListingFirstLetters")
     const query = surql`SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM listings GROUP BY letter;`
     const res = (await this.db.query(query)).pop()
     return new Promise((resolve) => setTimeout(() => resolve(res), 200))

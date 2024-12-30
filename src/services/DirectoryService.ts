@@ -82,8 +82,18 @@ class DirectoryService {
   }
 
   async loadListings(filters?: FilterState): Promise<ListingsState> {
-    // TODO! Querybuilder
-    const whereClause = JSON.stringify(filters)
+    let whereClause;
+    const conditions = []
+    if(filters?.letter) {
+      conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`)
+    }
+
+    if (conditions.length) {
+      whereClause = conditions.join(' AND ')
+    }
+
+    console.log('Filters:', filters, '=>',whereClause)
+
     const details = await this.#apiService.fetchListings(whereClause) as ListingsState
     checkLoadedData(ListingsSchema, details)
     return details

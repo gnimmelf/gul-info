@@ -54,8 +54,14 @@ export const PageListings: Component = () => {
 
   const { listings, filters, setFilters } = directory;
 
-  const handleTagClick = (tagKey: string) => setFilters((prev) => ({ ...prev, tag: tagKey }));
-  const handleFilterChange = (next: FilterState) => setFilters((prev) => ({ ...prev, ...next }));
+  const handleFilterChange = (
+    next: FilterState,
+    mergeFilters?: boolean
+  ) => setFilters((prev) => {
+    return mergeFilters
+      ? { ...prev, ...next }
+      : next
+  });
 
   return (
     <section>
@@ -101,7 +107,7 @@ export const PageListings: Component = () => {
               <div>
                 {tags.map((tag) => <Tag
                   {...tag}
-                  onTagClick={handleTagClick}
+                  onTagClick={() => handleFilterChange({ tag: tag.key })}
                 />)}
               </div>
             </div>

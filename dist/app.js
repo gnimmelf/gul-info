@@ -11740,13 +11740,13 @@
     async invalidate() {
     }
     async fetchListings(whereClause) {
-      console.log("api.fetchListings", whereClause);
-      const query = surrealql`SELECT * FROM listings;`;
+      const query = whereClause ? `SELECT * FROM listings WHERE ${whereClause};` : `SELECT * FROM listings;`;
+      console.log("api.fetchListings", { whereClause, query });
       const res = (await this.db.query(query)).pop();
-      return new Promise((resolve) => setTimeout(() => resolve(res), 0));
+      return new Promise((resolve) => setTimeout(() => resolve(res), 800));
     }
     async fetchListingFirstLetters() {
-      console.log("api.fetchLetterListings");
+      console.log("api.fetchListingFirstLetters");
       const query = surrealql`SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM listings GROUP BY letter;`;
       const res = (await this.db.query(query)).pop();
       return new Promise((resolve) => setTimeout(() => resolve(res), 200));
@@ -16073,7 +16073,15 @@
       return details;
     }
     async loadListings(filters) {
-      const whereClause = JSON.stringify(filters);
+      let whereClause;
+      const conditions = [];
+      if (filters?.letter) {
+        conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`);
+      }
+      if (conditions.length) {
+        whereClause = conditions.join(" AND ");
+      }
+      console.log("Filters:", filters, "=>", whereClause);
       const details = await this.#apiService.fetchListings(whereClause);
       checkLoadedData(ListingsSchema, details);
       return details;
@@ -16446,7 +16454,8 @@
               return props.loading || !getLetterCount(letter);
             },
             onClick: () => props.onFilterChange({
-              letter
+              // Unselect letter if already selected
+              letter: props.filterState.letter === letter ? "" : letter
             })
           });
         }
@@ -16514,14 +16523,12 @@
       filters,
       setFilters
     } = directory;
-    const handleTagClick = (tagKey) => setFilters((prev) => ({
-      ...prev,
-      tag: tagKey
-    }));
-    const handleFilterChange = (next) => setFilters((prev) => ({
-      ...prev,
-      ...next
-    }));
+    const handleFilterChange = (next, mergeFilters) => setFilters((prev) => {
+      return mergeFilters ? {
+        ...prev,
+        ...next
+      } : next;
+    });
     return (() => {
       var _el$ = _tmpl$10();
       insert(_el$, createComponent(ListingsFilters, {
@@ -16567,7 +16574,9 @@
               return _el$12;
             })()));
             insert(_el$11, () => tags.map((tag) => createComponent(Tag, mergeProps(tag, {
-              onTagClick: handleTagClick
+              onTagClick: () => handleFilterChange({
+                tag: tag.key
+              })
             }))));
             createRenderEffect((_p$) => {
               var _v$ = css7.card, _v$2 = css7.cardHeader, _v$3 = css7.title, _v$4 = css7.cardBody;
