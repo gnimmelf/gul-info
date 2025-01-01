@@ -11202,20 +11202,6 @@
       return this._query = new Uint8Array(current.byteLength + added.byteLength), this._query.set(current), this._query.set(added, current.byteLength), this;
     }
   };
-  function surrealql(query_raw, ...values) {
-    let reused = 0, gaps = /* @__PURE__ */ new Map(), mapped_bindings = values.map((v2, i8) => {
-      if (v2 instanceof Gap) {
-        let index2 = gaps.get(v2);
-        if (index2 !== void 0) return reused++, [`bind___${index2}`, v2];
-        gaps.set(v2, i8 - reused);
-      }
-      return [`bind___${i8 - reused}`, v2];
-    }), bindings = mapped_bindings.reduce((prev, [k2, v2]) => (prev[k2] = v2, prev), {}), query = query_raw.flatMap((segment, i8) => {
-      let variable = mapped_bindings[i8]?.[0];
-      return [segment, ...variable ? [`$${variable}`] : []];
-    }).join("");
-    return new PreparedQuery(query, bindings);
-  }
   function convertAuth(params) {
     let result = {}, convertString = (a4, b3, optional) => {
       if (a4 in params) result[b3] = `${params[a4]}`, delete result[a4];
@@ -11682,8 +11668,9 @@
     return subject instanceof RecordId || subject instanceof StringRecordId ? Array.isArray(input) ? input[0] : input : Array.isArray(input) ? input : [input];
   }
 
-  // src/services/ApiService.ts
-  function Connect(target, propertyKey, descriptor) {
+  // src/adapters/SurrealDb.ts
+  var TB_LISTINGS = "listings";
+  function Connect(_target, _propertyKey, descriptor) {
     const originalMethod = descriptor.value;
     descriptor.value = async function(...args) {
       const self2 = this;
@@ -11691,15 +11678,10 @@
       return originalMethod.apply(this, args);
     };
   }
-  var ApiService = class {
+  var SurrealAdapter = class {
     db = new Surreal();
-    setState;
-    state;
     config;
-    constructor(config, useState) {
-      const [state, setState] = useState(void 0);
-      this.setState = setState;
-      this.state = state;
+    constructor(config) {
       const {
         namespace,
         database,
@@ -11719,10 +11701,8 @@
         try {
           const { url, namespace, database } = this.config;
           await this.db.connect(url, { namespace, database });
-          this.setState(true);
         } catch (err) {
           console.error("Failed to connect to SurrealDB:", err instanceof Error ? err.message : String(err));
-          this.setState(false);
           await this.db.close();
           throw err;
         }
@@ -11739,26 +11719,43 @@
     }
     async invalidate() {
     }
-    async fetchListings(whereClause) {
-      const query = whereClause ? `SELECT * FROM listings WHERE ${whereClause};` : `SELECT * FROM listings;`;
-      console.log("api.fetchListings", { whereClause, query });
+    async getListings(filters) {
+      let whereClause;
+      const conditions = [];
+      if (filters?.letter) {
+        conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`);
+      }
+      if (filters?.tag) {
+        conditions.push(`tags[WHERE key = '${filters.tag}']`);
+      }
+      if (conditions.length) {
+        whereClause = conditions.join(" AND ");
+      }
+      const query = whereClause ? `SELECT * FROM ${TB_LISTINGS} WHERE ${whereClause};` : `SELECT * FROM ${TB_LISTINGS};`;
       const res = (await this.db.query(query)).pop();
-      return new Promise((resolve) => setTimeout(() => resolve(res), 800));
+      return res;
     }
-    async fetchListingFirstLetters() {
-      console.log("api.fetchListingFirstLetters");
-      const query = surrealql`SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM listings GROUP BY letter;`;
+    async getIndex() {
+      const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TB_LISTINGS} GROUP BY letter;`;
       const res = (await this.db.query(query)).pop();
-      return new Promise((resolve) => setTimeout(() => resolve(res), 200));
+      return res;
+    }
+    async getTags() {
+      const query = `RETURN fn::unique_tags();`;
+      const res = (await this.db.query(query)).pop();
+      return res;
     }
   };
   __decorateClass([
     Connect
-  ], ApiService.prototype, "fetchListings", 1);
+  ], SurrealAdapter.prototype, "getListings", 1);
   __decorateClass([
     Connect
-  ], ApiService.prototype, "fetchListingFirstLetters", 1);
-  var ApiService_default = ApiService;
+  ], SurrealAdapter.prototype, "getIndex", 1);
+  __decorateClass([
+    Connect
+  ], SurrealAdapter.prototype, "getTags", 1);
+  var SurrealDb_default = SurrealAdapter;
 
   // node_modules/.pnpm/zod@3.24.1/node_modules/zod/lib/index.mjs
   var util;
@@ -15857,7 +15854,7 @@
     }
   };
 
-  // src/services/AuthService.ts
+  // src/core/AuthService.ts
   var AuthSchema = z.object({
     isAuthenticated: z.boolean().default(false)
   });
@@ -15866,12 +15863,12 @@
     pass: pass.default("")
   });
   var AuthService = class {
-    #apiService;
+    repo;
     #accessToken;
     #setState;
     state;
-    constructor(apiService, useState) {
-      this.#apiService = apiService;
+    constructor(repository, useState) {
+      this.repo = repository;
       this.#accessToken = "";
       const [state, setState] = useState(zodSchemaDefaults(AuthSchema));
       this.#setState = setState;
@@ -15881,14 +15878,14 @@
       localStorage.accessToken = this.#accessToken;
     }
     get #isAuthenticated() {
-      return !!this.#accessToken && this.#apiService.isConnected;
+      return !!this.#accessToken && this.repo.isConnected;
     }
     async authenticate() {
       if (localStorage.accessToken) {
         this.#accessToken = localStorage.accessToken;
         try {
           console.info("Authenticating token from localStorage...");
-          await this.#apiService.authenticate(this.#accessToken);
+          await this.repo.authenticate(this.#accessToken);
         } catch (error) {
           logError(error);
           return this.signout();
@@ -15901,7 +15898,7 @@
     }
     async signup(credentials) {
       try {
-        this.#accessToken = await this.#apiService.signup({
+        this.#accessToken = await this.repo.signup({
           email: credentials.email,
           pass: credentials.pass
         });
@@ -15916,7 +15913,7 @@
     }
     async signin(credentials) {
       try {
-        this.#accessToken = await this.#apiService.signin({
+        this.#accessToken = await this.repo.signin({
           email: credentials.email,
           pass: credentials.pass
         });
@@ -15932,7 +15929,7 @@
     async signout() {
       this.#accessToken = "";
       this.#storeAccessToken();
-      await this.#apiService.invalidate();
+      await this.repo.invalidate();
       this.#setState((prev) => ({
         ...prev,
         isAuthenticated: this.#isAuthenticated
@@ -15941,7 +15938,7 @@
   };
   var AuthService_default = AuthService;
 
-  // src/services/AccountService.ts
+  // src/core/AccountService.ts
   var AccountSchema = z.object({
     email: email.default("")
   });
@@ -15957,34 +15954,34 @@
     pass: pass.default("")
   });
   var AccountService = class {
-    #apiService;
+    repo;
     #setState;
     state;
-    constructor(ApiService2, useState) {
-      this.#apiService = ApiService2;
+    constructor(SurrealAdapter2, useState) {
+      this.repo = SurrealAdapter2;
       const [state, setState] = useState(zodSchemaDefaults(AccountSchema));
       this.#setState = setState;
       this.state = state;
     }
     async loadData() {
-      const details = await this.#apiService.getAccountDetails();
+      const details = await this.repo.getAccountDetails();
       checkLoadedData(AccountSchema, details);
       this.#setState(details);
     }
     async updateEmail(details) {
-      await this.#apiService.setAccountEmail(details);
+      await this.repo.setAccountEmail(details);
       this.#setState({ email: details.email });
     }
     async updatePassword(details) {
-      await this.#apiService.setAccountPassword(details);
+      await this.repo.setAccountPassword(details);
     }
     async deleteAccount(details) {
-      await this.#apiService.deleteAccount();
+      await this.repo.deleteAccount();
     }
   };
   var AccountService_default = AccountService;
 
-  // src/services/ProfileService.ts
+  // src/core/ProfileService.ts
   var ProfileSchema = z.object({
     firstName: name.default(""),
     lastName: name.default(""),
@@ -15992,29 +15989,29 @@
     phone: phone.default("")
   });
   var ProfileService = class {
-    #apiService;
+    repo;
     #setState;
     state;
-    constructor(ApiService2, useState) {
-      this.#apiService = ApiService2;
+    constructor(SurrealAdapter2, useState) {
+      this.repo = SurrealAdapter2;
       const [state, setState] = useState(zodSchemaDefaults(ProfileSchema));
       this.#setState = setState;
       this.state = state;
     }
     async loadData() {
-      const details = await this.#apiService.getProfileDetails();
+      const details = await this.repo.getProfileDetails();
       checkLoadedData(ProfileSchema, details);
       this.#setState(details);
     }
     async saveData(details) {
-      await this.#apiService.setProfileDetails(details);
+      await this.repo.setProfileDetails(details);
       this.#setState(details);
     }
   };
   var ProfileService_default = ProfileService;
 
-  // src/services/DirectoryService.ts
-  var ListingSchema = z.object({
+  // src/core/repository.ts
+  var ProductSchema = z.object({
     isActive: z.boolean(),
     title: z.string(),
     description: z.string(),
@@ -16041,49 +16038,54 @@
       })
     )
   });
-  var ListingsSchema = z.array(ListingSchema);
-  var FilterSchema = z.object({
+  var ProductListSchema = z.array(ProductSchema);
+  var IndexSchema = z.object({
+    letter: z.string().length(1),
+    count: z.number()
+  });
+  var IndexListSchema = z.array(IndexSchema);
+  var FiltersSchema = z.object({
     letter: z.string().length(1).optional(),
     tag: z.string().optional(),
     text: z.string().optional()
   });
-  var FirstLetterSchema = z.object({
-    letter: z.string().length(1),
-    count: z.number()
+  var TagSchema = z.object({
+    key: z.string(),
+    name: z.string()
   });
-  var FirstLettersSchema = z.array(FirstLetterSchema);
+  var TagsSchema = z.array(TagSchema);
+
+  // src/core/DirectoryService.ts
   var DirectoryService = class {
-    #apiService;
+    repo;
     filters;
     setFilters;
-    listings;
-    listingLetters;
-    constructor(apiService) {
-      this.#apiService = apiService;
-      [this.filters, this.setFilters] = createSignal(zodSchemaDefaults(FilterSchema));
-      [this.listings] = createResource(
+    products;
+    indexLetters;
+    tags;
+    constructor(repository) {
+      this.repo = repository;
+      [this.filters, this.setFilters] = createSignal(zodSchemaDefaults(FiltersSchema));
+      [this.products] = createResource(
         () => this.filters(),
         (filterValue) => this.loadListings(filterValue)
       );
-      [this.listingLetters] = createResource(() => this.loadFirstLetters());
+      [this.indexLetters] = createResource(() => this.loadIndex());
+      [this.tags] = createResource(() => this.loadTags());
     }
-    async loadFirstLetters() {
-      const details = await this.#apiService.fetchListingFirstLetters();
-      checkLoadedData(FirstLettersSchema, details);
+    async loadIndex() {
+      const details = await this.repo.getIndex();
+      checkLoadedData(IndexListSchema, details);
+      return details;
+    }
+    async loadTags() {
+      const details = await this.repo.getTags();
+      checkLoadedData(TagsSchema, details);
       return details;
     }
     async loadListings(filters) {
-      let whereClause;
-      const conditions = [];
-      if (filters?.letter) {
-        conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`);
-      }
-      if (conditions.length) {
-        whereClause = conditions.join(" AND ");
-      }
-      console.log("Filters:", filters, "=>", whereClause);
-      const details = await this.#apiService.fetchListings(whereClause);
-      checkLoadedData(ListingsSchema, details);
+      const details = await this.repo.getListings(filters);
+      checkLoadedData(ProductListSchema, details);
       return details;
     }
   };
@@ -16092,17 +16094,17 @@
   // src/components/ServiceProvider.tsx
   var ServiceContext = createContext();
   var ServiceProvider = (props) => {
-    const apiService = new ApiService_default({
+    const repository = new SurrealDb_default({
       datapoint: props.datapoint,
       namespace: props.namespace,
       database: props.database
-    }, createSignal);
-    const directoryService = new DirectoryService_default(apiService);
-    const authService = new AuthService_default(apiService, createSignal);
-    const accountService = new AccountService_default(apiService, createSignal);
-    const profileService = new ProfileService_default(apiService, createSignal);
+    });
+    const directoryService = new DirectoryService_default(repository);
+    const authService = new AuthService_default(repository, createSignal);
+    const accountService = new AccountService_default(repository, createSignal);
+    const profileService = new ProfileService_default(repository, createSignal);
     const services = {
-      api: apiService,
+      api: repository,
       auth: authService,
       account: accountService,
       profile: profileService,
@@ -16369,7 +16371,7 @@
       height: "12px",
       borderWidth: "1px",
       borderStyle: "solid",
-      borderRadius: "999px",
+      borderRadius: "5px",
       backgroundColor: "var(--sl-color-primary-50)",
       borderColor: "var(--sl-color-primary-200)",
       "& > .text": {
@@ -16411,8 +16413,8 @@
   };
   delegateEvents(["click"]);
 
-  // src/components/partials/ListingsFilters.tsx
-  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div>Filters: <br>Letters: `);
+  // src/components/partials/ProductFilters.tsx
+  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div>`);
   var css6 = styler.css({
     section: ({
       theme
@@ -16421,7 +16423,7 @@
         marginBottom: theme.spaceY
       }
     }),
-    letters: ({
+    filterValues: ({
       theme
     }) => ({
       display: "flex",
@@ -16429,47 +16431,46 @@
       overflowX: "scroll"
     })
   });
-  var ListingsFilters = (props) => {
+  var ProductFilters = (props) => {
     const {
       directory
     } = useService();
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ\xC6\xD8\xC5".split("");
-    const getLetterCount = (letter) => directory.listingLetters()?.find((x2) => x2.letter === letter)?.count;
     return (() => {
-      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$4.nextSibling, _el$6 = _el$5.nextSibling;
-      insert(_el$2, () => letters.map((letter) => createComponent(Show, {
-        get when() {
-          return getLetterCount(letter);
+      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      insert(_el$2, () => directory.indexLetters()?.map(({
+        letter,
+        count
+      }) => createComponent(BadgeButton, {
+        buttonLabel: letter,
+        badgeLabel: count,
+        get isActive() {
+          return props.filterState.letter === letter;
         },
-        get children() {
-          return createComponent(BadgeButton, {
-            buttonLabel: letter,
-            get badgeLabel() {
-              return getLetterCount(letter);
-            },
-            get isActive() {
-              return props.filterState.letter === letter;
-            },
-            get disabled() {
-              return props.loading || !getLetterCount(letter);
-            },
-            onClick: () => props.onFilterChange({
-              // Unselect letter if already selected
-              letter: props.filterState.letter === letter ? "" : letter
-            })
+        get disabled() {
+          return props.loading;
+        },
+        onClick: () => props.onFilterChange({
+          // Unselect letter if already selected
+          letter: props.filterState.letter === letter ? "" : letter
+        })
+      })));
+      insert(_el$3, () => directory.tags()?.map((tag) => createComponent(Tag, mergeProps(tag, {
+        onTagClick: () => {
+          props.onFilterChange({
+            tag: tag.key
           });
         }
-      })));
-      insert(_el$3, () => JSON.stringify(props.filterState), _el$5);
-      insert(_el$3, () => JSON.stringify(directory.listingLetters()), null);
+      }))));
       createRenderEffect((_p$) => {
-        var _v$ = css6.section, _v$2 = css6.letters;
+        var _v$ = css6.section, _v$2 = css6.filterValues, _v$3 = css6.filterValues;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$3, _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0
       });
       return _el$;
     })();
@@ -16519,21 +16520,25 @@
       directory
     } = useService();
     const {
-      listings,
+      products,
       filters,
       setFilters
     } = directory;
     const handleFilterChange = (next, mergeFilters) => setFilters((prev) => {
-      return mergeFilters ? {
+      const filter = mergeFilters ? {
         ...prev,
         ...next
       } : next;
+      console.log({
+        filter
+      });
+      return filter;
     });
     return (() => {
       var _el$ = _tmpl$10();
-      insert(_el$, createComponent(ListingsFilters, {
+      insert(_el$, createComponent(ProductFilters, {
         get loading() {
-          return listings.loading;
+          return products.loading;
         },
         get filterState() {
           return filters();
@@ -16545,7 +16550,7 @@
           return createComponent(Loading, {});
         },
         get children() {
-          return listings()?.map(({
+          return products()?.map(({
             title,
             description,
             links,

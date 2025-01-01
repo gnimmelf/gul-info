@@ -6,21 +6,21 @@ import {
   useContext,
 } from "solid-js";
 
-import ApiService from "~/services/ApiService";
-import AuthService from "~/services/AuthService";
-import AccountService from "~/services/AccountService";
-import ProfileService from "~/services/ProfileService";
-import DirectoryService from "~/services/DirectoryService";
+import SurrealAdapter from "~/adapters/SurrealDb";
+import AuthService from "~/core/AuthService";
+import AccountService from "~/core/AccountService";
+import ProfileService from "~/core/ProfileService";
+import DirectoryService from "~/core/DirectoryService";
 
-type TServiceProvider = {
-  api: ApiService;
+type ServiceProviderType = {
+  api: SurrealAdapter;
   auth: AuthService;
   account: AccountService;
   profile: ProfileService;
   directory: DirectoryService;
 };
 
-const ServiceContext = createContext<TServiceProvider>();
+const ServiceContext = createContext<ServiceProviderType>();
 
 /**
  * Class
@@ -31,33 +31,33 @@ export const ServiceProvider: Component<{
   datapoint: string;
   children: JSXElement;
 }> = (props) => {
-  const apiService = new ApiService({
+  const repository = new SurrealAdapter({
     datapoint: props.datapoint,
     namespace: props.namespace,
     database: props.database,
-  }, createSignal);
+  });
 
   const directoryService = new DirectoryService(
-    apiService,
+    repository,
   );
 
   const authService = new AuthService(
-    apiService,
+    repository,
     createSignal,
   );
 
   const accountService = new AccountService(
-    apiService,
+    repository,
     createSignal,
   );
 
   const profileService = new ProfileService(
-    apiService,
+    repository,
     createSignal,
   );
 
   const services = {
-    api: apiService,
+    api: repository,
     auth: authService,
     account: accountService,
     profile: profileService,
@@ -72,5 +72,5 @@ export const ServiceProvider: Component<{
 };
 
 export const useService = () => {
-  return useContext(ServiceContext) as TServiceProvider;
+  return useContext(ServiceContext) as ServiceProviderType;
 };

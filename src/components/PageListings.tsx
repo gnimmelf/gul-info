@@ -2,16 +2,16 @@ import { Component, Suspense } from "solid-js";
 
 import { styler } from "~/lib/styler";
 
+import { Filters } from "~/core/repository";
+
 import { WebLink } from "./partials/WebLink";
 import { Tag } from "./partials/Tag";
 import { Phone } from "./partials/Phone";
 import { Address } from "./partials/Address";
-
 import { IconLabel } from "./partials/IconLabel";
 import { useService } from "./ServiceProvider";
 import { Loading } from "./partials/Loading";
-import { ListingsFilters } from "./partials/ListingsFilters";
-import { FilterState } from "~/services/DirectoryService";
+import { ProductFilters } from "./partials/ProductFilters";
 
 const css = styler.css({
   card: {
@@ -52,27 +52,29 @@ const css = styler.css({
 export const PageListings: Component = () => {
   const { directory } = useService();
 
-  const { listings, filters, setFilters } = directory;
+  const { products, filters, setFilters } = directory;
 
   const handleFilterChange = (
-    next: FilterState,
+    next: Filters,
     mergeFilters?: boolean
   ) => setFilters((prev) => {
-    return mergeFilters
+    const filter = mergeFilters
       ? { ...prev, ...next }
       : next
+    console.log({filter})
+    return filter
   });
 
   return (
     <section>
-      <ListingsFilters
-        loading={listings.loading}
+      <ProductFilters
+        loading={products.loading}
         filterState={filters()}
         onFilterChange={handleFilterChange}
       />
 
       <Suspense fallback={<Loading />}>
-        {listings()?.map((
+        {products()?.map((
           { title, description, links, tags, ...contact },
         ) => (
           <sl-card class={css.card}>

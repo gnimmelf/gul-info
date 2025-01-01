@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import ApiService from './ApiService';
+import SurrealAdapter from '../adapters/SurrealDb';
 import { logError, zodSchemaDefaults } from '../lib/utils';
 import { StateCreator, StateGetter, StateSetter } from '../types';
 import { email, pass } from '../lib/form-utils';
@@ -29,16 +29,16 @@ export type AuthState = z.infer<typeof AuthSchema>;
  * Class
  */
 class AuthService {
-  #apiService: ApiService
+  repo: Repository
   #accessToken: string
   #setState: StateSetter<AuthState>
   state: StateGetter<AuthState>
 
   constructor(
-    apiService: ApiService,
+    repository: SurrealAdapter,
     useState: StateCreator<AuthState>
   ) {
-    this.#apiService = apiService
+    this.repo = repository
     this.#accessToken = ''
 
     const [state, setState] = useState(zodSchemaDefaults(AuthSchema))
@@ -51,7 +51,7 @@ class AuthService {
   }
 
   get #isAuthenticated(): boolean {
-    return !!this.#accessToken && this.#apiService.isConnected
+    return !!this.#accessToken && this.repo.isConnected
   }
 
   async authenticate() {
@@ -59,7 +59,7 @@ class AuthService {
       this.#accessToken = localStorage.accessToken
       try {
         console.info('Authenticating token from localStorage...')
-        await this.#apiService.authenticate(this.#accessToken)
+        await this.repo.authenticate(this.#accessToken)
       } catch (error) {
         logError(error as Error)
         return this.signout();
@@ -73,7 +73,7 @@ class AuthService {
 
   async signup(credentials: Credentials) {
     try {
-      this.#accessToken = await this.#apiService.signup({
+      this.#accessToken = await this.repo.signup({
         email: credentials.email,
         pass: credentials.pass,
       })
@@ -89,7 +89,7 @@ class AuthService {
 
   async signin(credentials: Credentials) {
     try {
-      this.#accessToken = await this.#apiService.signin({
+      this.#accessToken = await this.repo.signin({
         email: credentials.email,
         pass: credentials.pass,
       })
@@ -106,7 +106,7 @@ class AuthService {
   async signout() {
     this.#accessToken = ''
     this.#storeAccessToken()
-    await this.#apiService.invalidate()
+    await this.repo.invalidate()
     this.#setState((prev) => ({
       ...prev,
       isAuthenticated: this.#isAuthenticated

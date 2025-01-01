@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { checkLoadedData, email, pass } from '../lib/form-utils';
-import ApiService from './ApiService';
+import SurrealAdapter from '../adapters/SurrealDb';
 import { StateCreator, StateGetter, StateSetter } from '../types';
 import { zodSchemaDefaults } from '../lib/utils';
 
@@ -32,15 +32,15 @@ export type DeleteAccountParams = z.infer<typeof DeleteAccountSchema>;
  * Class
  */
 class AccountService {
-  #apiService: ApiService
+  repo: Repository
   #setState: StateSetter<AccountState>
   state: StateGetter<AccountState>
 
   constructor(
-    ApiService: ApiService,
+    SurrealAdapter: SurrealAdapter,
     useState: StateCreator<AccountState>
   ) {
-    this.#apiService = ApiService
+    this.repo = SurrealAdapter
 
     const [state, setState] = useState(zodSchemaDefaults(AccountSchema))
     this.#setState = setState
@@ -48,22 +48,22 @@ class AccountService {
   }
 
   async loadData(): Promise<void> {
-    const details = await this.#apiService.getAccountDetails() as AccountState
+    const details = await this.repo.getAccountDetails() as AccountState
     checkLoadedData(AccountSchema, details)
     this.#setState(details)
   }
 
   async updateEmail(details: UpdateEmailParams): Promise<void> {
-    await this.#apiService.setAccountEmail(details)
+    await this.repo.setAccountEmail(details)
     this.#setState({ email: details.email })
   }
 
   async updatePassword(details: UpdatePassParams): Promise<void> {
-    await this.#apiService.setAccountPassword(details)
+    await this.repo.setAccountPassword(details)
   }
 
   async deleteAccount(details: DeleteAccountParams): Promise<void> {
-    await this.#apiService.deleteAccount()
+    await this.repo.deleteAccount()
   }
 }
 

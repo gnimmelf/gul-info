@@ -1,20 +1,19 @@
 import Surreal, { surql } from "surrealdb";
-import { logError, zodSchemaDefaults } from '../lib/utils';
-import { StateCreator, StateGetter, StateSetter } from '../types';
+import { Repository, Filters, IndexList, ProductList, TagList } from "../core/repository";
 
-interface DbConfig {
+interface DbConfigArg {
   namespace: string
   database: string
   datapoint: string
 }
 
-type DbConfigType = {
+type DbConfig = {
   namespace: string
   database: string
   url: string
 }
 
-export type ApiState = boolean | undefined
+const TB_LISTINGS = 'listings'
 
 /**
  * Method decorator to Ensure connection
@@ -23,8 +22,8 @@ export type ApiState = boolean | undefined
  * @param descriptor
  */
 function Connect(
-  target: any,
-  propertyKey: string | symbol,
+  _target: any,
+  _propertyKey: string | symbol,
   descriptor: TypedPropertyDescriptor<any>
 ): void {
   const originalMethod = descriptor.value;
@@ -39,18 +38,11 @@ function Connect(
   };
 }
 
-export class ApiService {
+export class SurrealAdapter implements Repository {
   private db = new Surreal()
-  private setState: StateSetter<ApiState>
-  public state: StateGetter<ApiState>
+  public config: DbConfig
 
-  public config: DbConfigType
-
-  constructor(config: DbConfig, useState: StateCreator<ApiState>) {
-    const [state, setState] = useState(undefined)
-    this.setState = setState
-    this.state = state
-
+  constructor(config: DbConfigArg) {
     const {
       namespace,
       database,
@@ -73,10 +65,8 @@ export class ApiService {
       try {
         const { url, namespace, database } = this.config
         await this.db.connect(url, { namespace, database });
-        this.setState(true)
       } catch (err) {
         console.error("Failed to connect to SurrealDB:", err instanceof Error ? err.message : String(err));
-        this.setState(false)
         await this.db.close();
         throw err;
       }
@@ -93,26 +83,43 @@ export class ApiService {
   async invalidate() { }
 
   @Connect
-  async fetchListings(whereClause?: string) {
+  async getListings(filters?: Filters) {
+
+    let whereClause;
+    const conditions = []
+    if (filters?.letter) {
+      conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`)
+    }
+
+    if (filters?.tag) {
+      conditions.push(`tags[WHERE key = '${filters.tag}']`)
+    }
+
+    if (conditions.length) {
+      whereClause = conditions.join(' AND ')
+    }
 
     const query = whereClause
-      ? `SELECT * FROM listings WHERE ${whereClause};`
-      : `SELECT * FROM listings;`
+      ? `SELECT * FROM ${TB_LISTINGS} WHERE ${whereClause};`
+      : `SELECT * FROM ${TB_LISTINGS};`
 
-    console.log("api.fetchListings", { whereClause, query })
-
-    const res = (await this.db.query(query)).pop()
-
-    return new Promise((resolve) => setTimeout(() => resolve(res), 800))
+    const res = (await this.db.query<[ProductList]>(query)).pop()!
+    return res
   }
 
   @Connect
-  async fetchListingFirstLetters() {
-    console.log("api.fetchListingFirstLetters")
-    const query = surql`SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM listings GROUP BY letter;`
-    const res = (await this.db.query(query)).pop()
-    return new Promise((resolve) => setTimeout(() => resolve(res), 200))
+  async getIndex() {
+    const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TB_LISTINGS} GROUP BY letter;`
+    const res = (await this.db.query<[IndexList]>(query)).pop()!
+    return res
+  }
+
+  @Connect
+  async getTags() {
+    const query = `RETURN fn::unique_tags();`
+    const res = (await this.db.query<[TagList]>(query)).pop()!
+    return res
   }
 }
 
-export default ApiService
+export default SurrealAdapter

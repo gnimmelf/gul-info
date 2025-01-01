@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { name, address, phone, checkLoadedData } from '../lib/form-utils';
-import ApiService from './ApiService';
+import SurrealAdapter from '../adapters/SurrealDb';
 import { zodSchemaDefaults } from '../lib/utils';
 import { StateCreator, StateGetter, StateSetter } from '../types';
 
@@ -19,15 +19,15 @@ export type ProfileState = z.infer<typeof ProfileSchema>;
  * Class
  */
 class ProfileService {
-  #apiService: ApiService
+  repo: Repository
   #setState: StateSetter<ProfileState>
   state: StateGetter<ProfileState>
 
   constructor(
-    ApiService: ApiService,
+    SurrealAdapter: SurrealAdapter,
     useState: StateCreator<ProfileState>
   ) {
-    this.#apiService = ApiService
+    this.repo = SurrealAdapter
 
     const [state, setState] = useState(zodSchemaDefaults(ProfileSchema))
     this.#setState = setState
@@ -35,13 +35,13 @@ class ProfileService {
   }
 
   async loadData(): Promise<void> {
-    const details = await  this.#apiService.getProfileDetails() as ProfileState
+    const details = await  this.repo.getProfileDetails() as ProfileState
     checkLoadedData(ProfileSchema, details)
     this.#setState(details)
   }
 
   async saveData(details: ProfileState): Promise<void> {
-    await this.#apiService.setProfileDetails(details)
+    await this.repo.setProfileDetails(details)
     this.#setState(details)
   }
 }
