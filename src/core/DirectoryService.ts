@@ -50,7 +50,9 @@ class DirectoryService {
   async loadTags() {
     const details = await this.repo.getTags()
     checkLoadedData(TagsSchema, details)
-    return details.sort((a, b) => a.name < b.name ? -1 : 1)
+    return details
+      .filter(({ usages }) => usages)
+      .sort((a, b) => a.name < b.name ? -1 : 1)
   }
 
   async loadListings(filters?: Filters): Promise<ProductList> {

@@ -85,7 +85,7 @@ export class SurrealAdapter implements Repository {
   @Connect
   async getListings(filters?: Filters) {
 
-    let whereClause;
+    let whereClause ='';
     const conditions = []
     if (filters?.letter) {
       conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`)
@@ -96,12 +96,10 @@ export class SurrealAdapter implements Repository {
     }
 
     if (conditions.length) {
-      whereClause = conditions.join(' AND ')
+      whereClause = ` WHERE ${conditions.join(' AND ')}`
     }
 
-    const query = whereClause
-      ? `SELECT * FROM ${TB_LISTINGS} WHERE ${whereClause};`
-      : `SELECT * FROM ${TB_LISTINGS};`
+    const query = `SELECT *, tags.*.* FROM ${TB_LISTINGS}${whereClause};`
 
     const res = (await this.db.query<[ProductList]>(query)).pop()!
     return res
@@ -116,7 +114,12 @@ export class SurrealAdapter implements Repository {
 
   @Connect
   async getTags() {
-    const query = `RETURN fn::unique_tags();`
+    const query = `SELECT *, count(
+      SELECT id
+      FROM listings
+      WHERE $parent.id INSIDE tags
+    ) as usages
+    FROM tags;`
     const res = (await this.db.query<[TagList]>(query)).pop()!
     return res
   }

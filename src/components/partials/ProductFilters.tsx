@@ -6,7 +6,6 @@ import { Filters } from "~/core/repository";
 
 import { useService } from "../ServiceProvider";
 import { BadgeButton } from "./BadgeButton";
-import { SelectableTag } from "./SelectableTag";
 
 const css = styler.css({
   section: ({ theme }) => ({
@@ -38,18 +37,18 @@ export const ProductFilters: Component<{
             badgeLabel={count}
             isActive={props.filterState.letter === letter}
             disabled={props.loading}
-            onClick={() =>
-              props.onFilterChange({ letter })}
+            onClick={() => props.onFilterChange({ letter })}
           />
         ))}
       </div>
 
       <div class={css.filterValues}>
-        {directory.tags()?.map(({ key, name }) => (
-          <SelectableTag
-            key={key}
-            name={name}
+        {directory.tags()?.map(({ key, name, usages }) => (
+          <BadgeButton
+            size="small"
             isActive={props.filterState.tag === key}
+            buttonLabel={name}
+            badgeLabel={usages}
             disabled={props.loading}
             onClick={() => {
               props.onFilterChange({ tag: key });

@@ -50,6 +50,7 @@ export type Filters = z.infer<typeof FiltersSchema>;
 export const TagSchema = z.object({
     key: z.string(),
     name: z.string(),
+    usages: z.number()
 })
 export const TagsSchema = z.array(TagSchema)
 export type TagList = z.infer<typeof TagsSchema>;

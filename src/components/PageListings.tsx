@@ -100,7 +100,7 @@ export const PageListings: Component = () => {
               </div>
             </div>
             <div>
-              <div slot="header" class={css.cardBody}>
+              <div class={css.cardBody}>
                 <div>
                   <Address {...contact} />
                 </div>

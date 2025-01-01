@@ -98,7 +98,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css8 = this.source;
+          let css7 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -111,7 +111,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css8.split(/\r?\n/);
+          let lines = css7.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1380,9 +1380,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css8, opts) {
+        constructor(css7, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css8);
+          this.loadAnnotation(css7);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1421,13 +1421,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css8) {
-          let comments = css8.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css7) {
+          let comments = css7.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css8.lastIndexOf(comments.pop());
-          let end = css8.indexOf("*/", start);
+          let start = css7.lastIndexOf(comments.pop());
+          let end = css7.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css8.substring(start, end));
+            this.annotation = this.getAnnotationURL(css7.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1500,11 +1500,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css8, opts = {}) {
-          if (css8 === null || typeof css8 === "undefined" || typeof css8 === "object" && !css8.toString) {
-            throw new Error(`PostCSS received ${css8} instead of CSS string`);
+        constructor(css7, opts = {}) {
+          if (css7 === null || typeof css7 === "undefined" || typeof css7 === "object" && !css7.toString) {
+            throw new Error(`PostCSS received ${css7} instead of CSS string`);
           }
-          this.css = css8.toString();
+          this.css = css7.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2231,11 +2231,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css8 = input.css.valueOf();
+        let css7 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n8, prev;
-        let length = css8.length;
+        let length = css7.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2252,7 +2252,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css8.charCodeAt(pos);
+          code = css7.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2262,9 +2262,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css8.charCodeAt(next);
+                code = css7.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css8.slice(pos, next)];
+              currentToken = ["space", css7.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2281,12 +2281,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n8 = css8.charCodeAt(pos + 1);
+              n8 = css7.charCodeAt(pos + 1);
               if (prev === "url" && n8 !== SINGLE_QUOTE && n8 !== DOUBLE_QUOTE && n8 !== SPACE && n8 !== NEWLINE && n8 !== TAB && n8 !== FEED && n8 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css8.indexOf(")", next + 1);
+                  next = css7.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2296,16 +2296,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css8.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css8.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css7.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css8.indexOf(")", pos + 1);
-                content = css8.slice(pos, next + 1);
+                next = css7.indexOf(")", pos + 1);
+                content = css7.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2321,7 +2321,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css8.indexOf(quote, next + 1);
+                next = css7.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2331,71 +2331,71 @@
                   }
                 }
                 escapePos = next;
-                while (css8.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css8.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css8);
+              RE_AT_END.test(css7);
               if (RE_AT_END.lastIndex === 0) {
-                next = css8.length - 1;
+                next = css7.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css8.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css8.charCodeAt(next + 1) === BACKSLASH) {
+              while (css7.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css8.charCodeAt(next + 1);
+              code = css7.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css8.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css8.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css7.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css7.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css8.charCodeAt(next + 1) === SPACE) {
+                  if (css7.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css8.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css8.charCodeAt(pos + 1) === ASTERISK) {
-                next = css8.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css7.charCodeAt(pos + 1) === ASTERISK) {
+                next = css7.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css8.length;
+                    next = css7.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css8.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css7.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css8);
+                RE_WORD_END.test(css7);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css8.length - 1;
+                  next = css7.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css8.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css7.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2957,8 +2957,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css8, opts) {
-        let input = new Input2(css8, opts);
+      function parse3(css7, opts) {
+        let input = new Input2(css7, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3171,18 +3171,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css8, opts) {
+        constructor(processor, css7, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css8 === "object" && css8 !== null && (css8.type === "root" || css8.type === "document")) {
-            root2 = cleanMarks(css8);
-          } else if (css8 instanceof _LazyResult || css8 instanceof Result2) {
-            root2 = cleanMarks(css8.root);
-            if (css8.map) {
+          if (typeof css7 === "object" && css7 !== null && (css7.type === "root" || css7.type === "document")) {
+            root2 = cleanMarks(css7);
+          } else if (css7 instanceof _LazyResult || css7 instanceof Result2) {
+            root2 = cleanMarks(css7.root);
+            if (css7.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css8.map;
+              opts.map.prev = css7.map;
             }
           } else {
             let parser2 = parse3;
@@ -3190,7 +3190,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css8, opts);
+              root2 = parser2(css7, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3558,24 +3558,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css8, opts) {
-          css8 = css8.toString();
+        constructor(processor, css7, opts) {
+          css7 = css7.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css8;
+          this._css = css7;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css8;
+          this.result.css = css7;
           let self2 = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self2.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css8);
+          let map = new MapGenerator(str, root2, this._opts, css7);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3703,11 +3703,11 @@
           }
           return normalized;
         }
-        process(css8, opts = {}) {
+        process(css7, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css8, opts);
+            return new NoWorkResult(this, css7, opts);
           } else {
-            return new LazyResult(this, css8, opts);
+            return new LazyResult(this, css7, opts);
           }
         }
         use(plugin2) {
@@ -3776,8 +3776,8 @@
             return cache;
           }
         });
-        creator.process = function(css8, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css8, processOpts);
+        creator.process = function(css7, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css7, processOpts);
         };
         return creator;
       };
@@ -6109,31 +6109,31 @@
         hex[hexChars.charCodeAt(i8)] = true;
       }
       var i8;
-      function consumeWord(css8, start) {
+      function consumeWord(css7, start) {
         var next = start;
         var code;
         do {
-          code = css8.charCodeAt(next);
+          code = css7.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t6.backslash) {
-            next = consumeEscape(css8, next) + 1;
+            next = consumeEscape(css7, next) + 1;
           } else {
             next++;
           }
-        } while (next < css8.length);
+        } while (next < css7.length);
         return next - 1;
       }
-      function consumeEscape(css8, start) {
+      function consumeEscape(css7, start) {
         var next = start;
-        var code = css8.charCodeAt(next + 1);
+        var code = css7.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css8.charCodeAt(next + 1);
+            code = css7.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t6.space) {
             next++;
@@ -6155,8 +6155,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css8 = input.css.valueOf();
-        var _css = css8, length = _css.length;
+        var css7 = input.css.valueOf();
+        var _css = css7, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6164,14 +6164,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css8 += fix;
-            next = css8.length - 1;
+            css7 += fix;
+            next = css7.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css8.charCodeAt(start);
+          code = css7.charCodeAt(start);
           if (code === t6.newline) {
             offset3 = start;
             line += 1;
@@ -6185,7 +6185,7 @@
               next = start;
               do {
                 next += 1;
-                code = css8.charCodeAt(next);
+                code = css7.charCodeAt(next);
                 if (code === t6.newline) {
                   offset3 = next;
                   line += 1;
@@ -6203,7 +6203,7 @@
               next = start;
               do {
                 next += 1;
-                code = css8.charCodeAt(next);
+                code = css7.charCodeAt(next);
               } while (code === t6.plus || code === t6.greaterThan || code === t6.tilde || code === t6.pipe);
               tokenType = t6.combinator;
               endLine = line;
@@ -6236,12 +6236,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css8.indexOf(quote, next + 1);
+                next = css7.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css8.charCodeAt(escapePos - 1) === t6.backslash) {
+                while (css7.charCodeAt(escapePos - 1) === t6.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6252,12 +6252,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t6.slash && css8.charCodeAt(start + 1) === t6.asterisk) {
-                next = css8.indexOf("*/", start + 2) + 1;
+              if (code === t6.slash && css7.charCodeAt(start + 1) === t6.asterisk) {
+                next = css7.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css8.slice(start, next + 1);
+                content = css7.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6278,7 +6278,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css8, start);
+                next = consumeWord(css7, start);
                 tokenType = t6.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -11615,7 +11615,7 @@
     async invalidate() {
     }
     async getListings(filters) {
-      let whereClause;
+      let whereClause = "";
       const conditions = [];
       if (filters?.letter) {
         conditions.push(`string::starts_with(string::lowercase(title), '${filters.letter.toLocaleLowerCase()}')`);
@@ -11624,9 +11624,9 @@
         conditions.push(`tags[WHERE key = '${filters.tag}']`);
       }
       if (conditions.length) {
-        whereClause = conditions.join(" AND ");
+        whereClause = ` WHERE ${conditions.join(" AND ")}`;
       }
-      const query = whereClause ? `SELECT * FROM ${TB_LISTINGS} WHERE ${whereClause};` : `SELECT * FROM ${TB_LISTINGS};`;
+      const query = `SELECT *, tags.*.* FROM ${TB_LISTINGS}${whereClause};`;
       const res = (await this.db.query(query)).pop();
       return res;
     }
@@ -11636,7 +11636,12 @@
       return res;
     }
     async getTags() {
-      const query = `RETURN fn::unique_tags();`;
+      const query = `SELECT *, count(
+      SELECT id
+      FROM listings
+      WHERE $parent.id INSIDE tags
+    ) as usages
+    FROM tags;`;
       const res = (await this.db.query(query)).pop();
       return res;
     }
@@ -15946,7 +15951,8 @@
   });
   var TagSchema = z.object({
     key: z.string(),
-    name: z.string()
+    name: z.string(),
+    usages: z.number()
   });
   var TagsSchema = z.array(TagSchema);
 
@@ -15976,7 +15982,7 @@
     async loadTags() {
       const details = await this.repo.getTags();
       checkLoadedData(TagsSchema, details);
-      return details.sort((a4, b3) => a4.name < b3.name ? -1 : 1);
+      return details.filter(({ usages }) => usages).sort((a4, b3) => a4.name < b3.name ? -1 : 1);
     }
     async loadListings(filters) {
       const details = await this.repo.getListings(filters);
@@ -16116,6 +16122,9 @@
     },
     label: {
       paddingInlineStart: "var(--sl-spacing-2x-small)"
+    },
+    icon: {
+      minWidth: "20px"
     }
   });
   var IconLabel = (props) => {
@@ -16124,17 +16133,19 @@
       _el$2._$owner = getOwner();
       insert(_el$3, () => props.children);
       createRenderEffect((_p$) => {
-        var _v$ = css3.wrapper, _v$2 = props.icon, _v$3 = props.label, _v$4 = css3.label;
+        var _v$ = css3.wrapper, _v$2 = css3.icon, _v$3 = props.icon, _v$4 = props.label, _v$5 = css3.label;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$2.name = _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$2.label = _p$.a = _v$3);
-        _v$4 !== _p$.o && className(_el$3, _p$.o = _v$4);
+        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$2.name = _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$2.label = _p$.o = _v$4);
+        _v$5 !== _p$.i && className(_el$3, _p$.i = _v$5);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
         a: void 0,
-        o: void 0
+        o: void 0,
+        i: void 0
       });
       return _el$;
     })();
@@ -16217,7 +16228,7 @@
   var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
   var css4 = styler.css({
     button: {
-      width: "34px",
+      // width: "34px",
       marginTop: "5px",
       marginRight: "5px"
     },
@@ -16259,60 +16270,26 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = props.isActive ? "primary" : "default", _v$2 = css4.button, _v$3 = props.disabled;
-        _v$ !== _p$.e && (_el$.variant = _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$.disabled = _p$.a = _v$3);
+        var _v$ = props.size || "medium", _v$2 = props.isActive ? "primary" : "default", _v$3 = css4.button, _v$4 = props.disabled;
+        _v$ !== _p$.e && (_el$.size = _p$.e = _v$);
+        _v$2 !== _p$.t && (_el$.variant = _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$, _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$.disabled = _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
-        a: void 0
+        a: void 0,
+        o: void 0
       });
       return _el$;
     })();
   };
   delegateEvents(["click"]);
 
-  // src/components/partials/SelectableTag.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<span><sl-button>`, true, false);
-  var css5 = styler.css({
-    wrapper: {
-      paddingRight: "2px"
-    },
-    tag: {
-      cursor: "pointer"
-    }
-  });
-  var SelectableTag = (props) => {
-    return (() => {
-      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild;
-      addEventListener(_el$2, "click", () => props.onClick(props.key));
-      _el$2.size = "small";
-      _el$2._$owner = getOwner();
-      insert(_el$2, () => props.name);
-      createRenderEffect((_p$) => {
-        var _v$ = props.key, _v$2 = css5.wrapper, _v$3 = props.isActive ? "primary" : "default", _v$4 = css5.button, _v$5 = props.disabled;
-        _v$ !== _p$.e && setAttribute(_el$, "data-key", _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$2.variant = _p$.a = _v$3);
-        _v$4 !== _p$.o && className(_el$2, _p$.o = _v$4);
-        _v$5 !== _p$.i && (_el$2.disabled = _p$.i = _v$5);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0,
-        i: void 0
-      });
-      return _el$;
-    })();
-  };
-
   // src/components/partials/ProductFilters.tsx
-  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div>`);
-  var css6 = styler.css({
+  var _tmpl$8 = /* @__PURE__ */ template(`<section><div></div><div>`);
+  var css5 = styler.css({
     section: ({
       theme
     }) => ({
@@ -16334,7 +16311,7 @@
       directory
     } = useService();
     return (() => {
-      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
       insert(_el$2, () => directory.indexLetters()?.map(({
         letter,
         count
@@ -16353,13 +16330,15 @@
       })));
       insert(_el$3, () => directory.tags()?.map(({
         key,
-        name: name2
-      }) => createComponent(SelectableTag, {
-        key,
         name: name2,
+        usages
+      }) => createComponent(BadgeButton, {
+        size: "small",
         get isActive() {
           return props.filterState.tag === key;
         },
+        buttonLabel: name2,
+        badgeLabel: usages,
         get disabled() {
           return props.loading;
         },
@@ -16370,7 +16349,7 @@
         }
       })));
       createRenderEffect((_p$) => {
-        var _v$ = css6.section, _v$2 = css6.filterValues, _v$3 = css6.filterValues;
+        var _v$ = css5.section, _v$2 = css5.filterValues, _v$3 = css5.filterValues;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
         _v$3 !== _p$.a && className(_el$3, _p$.a = _v$3);
@@ -16385,11 +16364,11 @@
   };
 
   // src/components/PageListings.tsx
-  var _tmpl$10 = /* @__PURE__ */ template(`<section>`);
-  var _tmpl$24 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
+  var _tmpl$9 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$24 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
   var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
   var _tmpl$42 = /* @__PURE__ */ template(`<sl-tag>`, true, false);
-  var css7 = styler.css({
+  var css6 = styler.css({
     card: {
       "--border-radius": "15px",
       width: "100%",
@@ -16448,7 +16427,7 @@
       return parsed;
     });
     return (() => {
-      var _el$ = _tmpl$10();
+      var _el$ = _tmpl$9();
       insert(_el$, createComponent(ProductFilters, {
         get loading() {
           return listings.loading;
@@ -16510,7 +16489,7 @@
               return _el$14;
             })()));
             createRenderEffect((_p$) => {
-              var _v$ = css7.card, _v$2 = css7.cardHeader, _v$3 = css7.title, _v$4 = css7.cardBody;
+              var _v$ = css6.card, _v$2 = css6.cardHeader, _v$3 = css6.title, _v$4 = css6.cardBody;
               _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
               _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
               _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
@@ -16536,7 +16515,7 @@
   };
 
   // src/components/App.tsx
-  var _tmpl$11 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$10 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
   var _tmpl$25 = /* @__PURE__ */ template(`<style id=styler>`);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
     "font-optical-sizing": "auto",
@@ -16596,7 +16575,7 @@
     })
   });
   var App = (props) => {
-    return [_tmpl$11(), (() => {
+    return [_tmpl$10(), (() => {
       var _el$2 = _tmpl$25();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);
@@ -22480,8 +22459,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css8 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css8.transform !== "none" || css8.perspective !== "none" || (css8.containerType ? css8.containerType !== "normal" : false) || !webkit && (css8.backdropFilter ? css8.backdropFilter !== "none" : false) || !webkit && (css8.filter ? css8.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css8.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css8.contain || "").includes(value));
+    const css7 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css7.transform !== "none" || css7.perspective !== "none" || (css7.containerType ? css7.containerType !== "normal" : false) || !webkit && (css7.backdropFilter ? css7.backdropFilter !== "none" : false) || !webkit && (css7.filter ? css7.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css7.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css7.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -22563,9 +22542,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css8 = getComputedStyle2(element);
-    let width = parseFloat(css8.width) || 0;
-    let height = parseFloat(css8.height) || 0;
+    const css7 = getComputedStyle2(element);
+    let width = parseFloat(css7.width) || 0;
+    let height = parseFloat(css7.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -22659,9 +22638,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css8 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css8.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css8.paddingTop)) * iframeScale.y;
+        const css7 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css7.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css7.paddingTop)) * iframeScale.y;
         x2 *= iframeScale.x;
         y3 *= iframeScale.y;
         width *= iframeScale.x;

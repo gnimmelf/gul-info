@@ -4,7 +4,7 @@ import { styler } from "~/lib/styler";
 
 const css = styler.css({
   button: {
-    width: "34px",
+    // width: "34px",
     marginTop: "5px",
     marginRight: "5px",
   },
@@ -31,6 +31,7 @@ const css = styler.css({
 
 export const BadgeButton: Component<{
   isActive: boolean;
+  size?: "small" | "medium" | "large"
   buttonLabel: string | number;
   badgeLabel?: string | number;
   disabled?: boolean;
@@ -38,6 +39,7 @@ export const BadgeButton: Component<{
 }> = (props) => {
   return (
     <sl-button
+      prop:size={props.size || "medium"}
       prop:variant={props.isActive ? "primary" : "default"}
       class={css.button}
       prop:disabled={props.disabled}

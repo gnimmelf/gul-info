@@ -5,10 +5,12 @@ import { join, styler } from "~/lib/styler";
 const css = styler.css({
     wrapper: ({
         display: "flex",
-
     }),
     label: {
         paddingInlineStart: 'var(--sl-spacing-2x-small)'
+    },
+    icon: {
+        minWidth: "20px"
     }
 });
 
@@ -20,6 +22,7 @@ export const IconLabel: Component<{
     return (
         <span class={css.wrapper}>
             <sl-icon
+                class={css.icon}
                 prop:name={props.icon}
                 prop:label={props.label}
             />
