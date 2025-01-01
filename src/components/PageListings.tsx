@@ -5,7 +5,6 @@ import { styler } from "~/lib/styler";
 import { Filters } from "~/core/repository";
 
 import { WebLink } from "./partials/WebLink";
-import { Tag } from "./partials/Tag";
 import { Phone } from "./partials/Phone";
 import { Address } from "./partials/Address";
 import { IconLabel } from "./partials/IconLabel";
@@ -52,29 +51,37 @@ const css = styler.css({
 export const PageListings: Component = () => {
   const { directory } = useService();
 
-  const { products, filters, setFilters } = directory;
+  const { listings, filters, setFilters } = directory;
 
   const handleFilterChange = (
     next: Filters,
-    mergeFilters?: boolean
-  ) => setFilters((prev) => {
-    const filter = mergeFilters
-      ? { ...prev, ...next }
-      : next
-    console.log({filter})
-    return filter
-  });
+    mergeFilters?: boolean,
+  ) =>
+    setFilters((prev) => {
+      const parsed ={}
+      if (mergeFilters) {
+        Object.assign(parsed, prev, next)
+      }
+      else {
+        for (const key in next) {
+          //@ts-ignore
+          parsed[key] = prev[key] === next[key] ? '' : next[key]
+        }
+      }
+      console.dir({ filters: parsed })
+      return parsed
+    });
 
   return (
     <section>
       <ProductFilters
-        loading={products.loading}
+        loading={listings.loading}
         filterState={filters()}
         onFilterChange={handleFilterChange}
       />
 
       <Suspense fallback={<Loading />}>
-        {products()?.map((
+        {listings()?.map((
           { title, description, links, tags, ...contact },
         ) => (
           <sl-card class={css.card}>
@@ -107,10 +114,18 @@ export const PageListings: Component = () => {
                 </div>
               </div>
               <div>
-                {tags.map((tag) => <Tag
-                  {...tag}
-                  onTagClick={() => handleFilterChange({ tag: tag.key })}
-                />)}
+                {tags.map((tag) => (
+                  <sl-tag
+                    style={{cursor: 'pointer'}}
+                    prop:variant="primary"
+                    prop:size="small"
+                    on:click={() => {
+                      handleFilterChange({
+                        tag: tag.key,
+                      }, true /* Use merge to keep in listing */);
+                    }}
+                  >{tag.name}</sl-tag>
+                ))}
               </div>
             </div>
           </sl-card>

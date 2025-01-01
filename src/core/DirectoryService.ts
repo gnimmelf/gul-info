@@ -22,7 +22,7 @@ class DirectoryService {
   repo: Repository
   filters: StateGetter<Filters>
   setFilters: StateSetter<Filters>
-  products: Resource<ProductList>
+  listings: Resource<ProductList>
   indexLetters: Resource<IndexList>
   tags: Resource<TagList>
 
@@ -32,7 +32,7 @@ class DirectoryService {
     this.repo = repository
 
       ;[this.filters, this.setFilters] = createSignal(zodSchemaDefaults(FiltersSchema))
-      ;[this.products] = createResource(
+      ;[this.listings] = createResource(
         () => this.filters(),
         (filterValue) => this.loadListings(filterValue)
       )
@@ -44,19 +44,19 @@ class DirectoryService {
   async loadIndex() {
     const details = await this.repo.getIndex()
     checkLoadedData(IndexListSchema, details)
-    return details
+    return details.sort((a, b) => a.letter < b.letter ? -1 : 1)
   }
 
   async loadTags() {
     const details = await this.repo.getTags()
     checkLoadedData(TagsSchema, details)
-    return details
+    return details.sort((a, b) => a.name < b.name ? -1 : 1)
   }
 
   async loadListings(filters?: Filters): Promise<ProductList> {
     const details = await this.repo.getListings(filters)
     checkLoadedData(ProductListSchema, details)
-    return details
+    return details.sort((a, b) => a.title < b.title ? -1 : 1)
   }
 }
 

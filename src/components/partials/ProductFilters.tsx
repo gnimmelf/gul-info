@@ -6,13 +6,14 @@ import { Filters } from "~/core/repository";
 
 import { useService } from "../ServiceProvider";
 import { BadgeButton } from "./BadgeButton";
-import { Tag } from "./Tag";
+import { SelectableTag } from "./SelectableTag";
 
 const css = styler.css({
   section: ({ theme }) => ({
-    "> *": {
-      marginBottom: theme.spaceY,
-    },
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    marginBottom: theme.spaceY,
   }),
   filterValues: ({ theme }) => ({
     display: "flex",
@@ -38,22 +39,23 @@ export const ProductFilters: Component<{
             isActive={props.filterState.letter === letter}
             disabled={props.loading}
             onClick={() =>
-              props.onFilterChange({
-                // Unselect letter if already selected
-                letter: props.filterState.letter === letter ? "" : letter,
-              })}
+              props.onFilterChange({ letter })}
           />
         ))}
       </div>
 
       <div class={css.filterValues}>
-      {directory.tags()?.map((tag) => (
-        <Tag {...tag} onTagClick={() => {
-          props.onFilterChange({
-            tag: tag.key
-          })
-        }}/>
-      ))}
+        {directory.tags()?.map(({ key, name }) => (
+          <SelectableTag
+            key={key}
+            name={name}
+            isActive={props.filterState.tag === key}
+            disabled={props.loading}
+            onClick={() => {
+              props.onFilterChange({ tag: key });
+            }}
+          />
+        ))}
       </div>
     </section>
   );

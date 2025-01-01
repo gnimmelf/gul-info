@@ -5325,17 +5325,17 @@
         };
         return _setPrototypeOf(o10, p3);
       }
-      var Tag2 = /* @__PURE__ */ function(_Namespace) {
-        _inheritsLoose(Tag3, _Namespace);
-        function Tag3(opts) {
+      var Tag = /* @__PURE__ */ function(_Namespace) {
+        _inheritsLoose(Tag2, _Namespace);
+        function Tag2(opts) {
           var _this;
           _this = _Namespace.call(this, opts) || this;
           _this.type = _types.TAG;
           return _this;
         }
-        return Tag3;
+        return Tag2;
       }(_namespace["default"]);
-      exports["default"] = Tag2;
+      exports["default"] = Tag;
       module.exports = exports.default;
     }
   });
@@ -8208,7 +8208,6 @@
   }
   var equalFn = (a4, b3) => a4 === b3;
   var $PROXY = Symbol("solid-proxy");
-  var SUPPORTS_PROXY = typeof Proxy === "function";
   var $TRACK = Symbol("solid-track");
   var $DEVCOMP = Symbol("solid-dev-component");
   var signalOptions = {
@@ -8934,110 +8933,6 @@
       }
     }
     return untrack(() => Comp(props || {}));
-  }
-  function trueFn() {
-    return true;
-  }
-  var propTraps = {
-    get(_2, property, receiver) {
-      if (property === $PROXY) return receiver;
-      return _2.get(property);
-    },
-    has(_2, property) {
-      if (property === $PROXY) return true;
-      return _2.has(property);
-    },
-    set: trueFn,
-    deleteProperty: trueFn,
-    getOwnPropertyDescriptor(_2, property) {
-      return {
-        configurable: true,
-        enumerable: true,
-        get() {
-          return _2.get(property);
-        },
-        set: trueFn,
-        deleteProperty: trueFn
-      };
-    },
-    ownKeys(_2) {
-      return _2.keys();
-    }
-  };
-  function resolveSource(s4) {
-    return !(s4 = typeof s4 === "function" ? s4() : s4) ? {} : s4;
-  }
-  function resolveSources() {
-    for (let i8 = 0, length = this.length; i8 < length; ++i8) {
-      const v2 = this[i8]();
-      if (v2 !== void 0) return v2;
-    }
-  }
-  function mergeProps(...sources) {
-    let proxy = false;
-    for (let i8 = 0; i8 < sources.length; i8++) {
-      const s4 = sources[i8];
-      proxy = proxy || !!s4 && $PROXY in s4;
-      sources[i8] = typeof s4 === "function" ? (proxy = true, createMemo(s4)) : s4;
-    }
-    if (SUPPORTS_PROXY && proxy) {
-      return new Proxy(
-        {
-          get(property) {
-            for (let i8 = sources.length - 1; i8 >= 0; i8--) {
-              const v2 = resolveSource(sources[i8])[property];
-              if (v2 !== void 0) return v2;
-            }
-          },
-          has(property) {
-            for (let i8 = sources.length - 1; i8 >= 0; i8--) {
-              if (property in resolveSource(sources[i8])) return true;
-            }
-            return false;
-          },
-          keys() {
-            const keys = [];
-            for (let i8 = 0; i8 < sources.length; i8++)
-              keys.push(...Object.keys(resolveSource(sources[i8])));
-            return [...new Set(keys)];
-          }
-        },
-        propTraps
-      );
-    }
-    const sourcesMap = {};
-    const defined = /* @__PURE__ */ Object.create(null);
-    for (let i8 = sources.length - 1; i8 >= 0; i8--) {
-      const source = sources[i8];
-      if (!source) continue;
-      const sourceKeys = Object.getOwnPropertyNames(source);
-      for (let i9 = sourceKeys.length - 1; i9 >= 0; i9--) {
-        const key = sourceKeys[i9];
-        if (key === "__proto__" || key === "constructor") continue;
-        const desc = Object.getOwnPropertyDescriptor(source, key);
-        if (!defined[key]) {
-          defined[key] = desc.get ? {
-            enumerable: true,
-            configurable: true,
-            get: resolveSources.bind(sourcesMap[key] = [desc.get.bind(source)])
-          } : desc.value !== void 0 ? desc : void 0;
-        } else {
-          const sources2 = sourcesMap[key];
-          if (sources2) {
-            if (desc.get) sources2.push(desc.get.bind(source));
-            else if (desc.value !== void 0) sources2.push(() => desc.value);
-          }
-        }
-      }
-    }
-    const target = {};
-    const definedKeys = Object.keys(defined);
-    for (let i8 = definedKeys.length - 1; i8 >= 0; i8--) {
-      const key = definedKeys[i8], desc = defined[key];
-      if (desc && desc.get) Object.defineProperty(target, key, desc);
-      else target[key] = desc ? desc.value : void 0;
-    }
-    return target;
   }
   var narrowedError = (name2) => `Stale read from <${name2}>.`;
   function Show(props) {
@@ -16060,13 +15955,13 @@
     repo;
     filters;
     setFilters;
-    products;
+    listings;
     indexLetters;
     tags;
     constructor(repository) {
       this.repo = repository;
       [this.filters, this.setFilters] = createSignal(zodSchemaDefaults(FiltersSchema));
-      [this.products] = createResource(
+      [this.listings] = createResource(
         () => this.filters(),
         (filterValue) => this.loadListings(filterValue)
       );
@@ -16076,17 +15971,17 @@
     async loadIndex() {
       const details = await this.repo.getIndex();
       checkLoadedData(IndexListSchema, details);
-      return details;
+      return details.sort((a4, b3) => a4.letter < b3.letter ? -1 : 1);
     }
     async loadTags() {
       const details = await this.repo.getTags();
       checkLoadedData(TagsSchema, details);
-      return details;
+      return details.sort((a4, b3) => a4.name < b3.name ? -1 : 1);
     }
     async loadListings(filters) {
       const details = await this.repo.getListings(filters);
       checkLoadedData(ProductListSchema, details);
-      return details;
+      return details.sort((a4, b3) => a4.title < b3.title ? -1 : 1);
     }
   };
   var DirectoryService_default = DirectoryService;
@@ -16280,42 +16175,8 @@
     });
   };
 
-  // src/components/partials/Tag.tsx
-  var _tmpl$5 = /* @__PURE__ */ template(`<span><sl-tag>`, true, false);
-  var css4 = styler.css({
-    wrapper: {
-      paddingRight: "2px"
-    },
-    tag: {
-      cursor: "pointer"
-    }
-  });
-  var Tag = (props) => {
-    return (() => {
-      var _el$ = _tmpl$5(), _el$2 = _el$.firstChild;
-      addEventListener(_el$2, "click", () => props.onTagClick(props.key));
-      _el$2.variant = "primary";
-      _el$2.size = "small";
-      _el$2.pill = false;
-      _el$2._$owner = getOwner();
-      insert(_el$2, () => props.name);
-      createRenderEffect((_p$) => {
-        var _v$ = props.key, _v$2 = css4.wrapper, _v$3 = css4.tag;
-        _v$ !== _p$.e && setAttribute(_el$, "data-key", _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$2, _p$.a = _v$3);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0,
-        a: void 0
-      });
-      return _el$;
-    })();
-  };
-
   // src/components/partials/Phone.tsx
-  var _tmpl$6 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
+  var _tmpl$5 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
   var Phone = (props) => {
     const copyToClipboard = () => {
       navigator.clipboard.writeText(props.phoneNumber);
@@ -16324,7 +16185,7 @@
       window.location.href = `tel:${props.phoneNumber}`;
     };
     return (() => {
-      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
+      var _el$ = _tmpl$5(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
       _el$._$owner = getOwner();
       _el$2.slot = "trigger";
       _el$2.caret = true;
@@ -16346,15 +16207,15 @@
   };
 
   // src/components/partials/Address.tsx
-  var _tmpl$7 = /* @__PURE__ */ template(`<br>`);
+  var _tmpl$6 = /* @__PURE__ */ template(`<br>`);
   var Address = (props) => {
-    return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
+    return [createMemo(() => props.address), _tmpl$6(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
   };
 
   // src/components/partials/BadgeButton.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<div><div class=text>`);
+  var _tmpl$7 = /* @__PURE__ */ template(`<div><div class=text>`);
   var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
-  var css5 = styler.css({
+  var css4 = styler.css({
     button: {
       width: "34px",
       marginTop: "5px",
@@ -16391,14 +16252,14 @@
           return props.badgeLabel;
         },
         get children() {
-          var _el$3 = _tmpl$8(), _el$4 = _el$3.firstChild;
+          var _el$3 = _tmpl$7(), _el$4 = _el$3.firstChild;
           insert(_el$4, () => props.badgeLabel);
-          createRenderEffect(() => className(_el$3, css5.badge));
+          createRenderEffect(() => className(_el$3, css4.badge));
           return _el$3;
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = props.isActive ? "primary" : "default", _v$2 = css5.button, _v$3 = props.disabled;
+        var _v$ = props.isActive ? "primary" : "default", _v$2 = css4.button, _v$3 = props.disabled;
         _v$ !== _p$.e && (_el$.variant = _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
         _v$3 !== _p$.a && (_el$.disabled = _p$.a = _v$3);
@@ -16413,15 +16274,52 @@
   };
   delegateEvents(["click"]);
 
+  // src/components/partials/SelectableTag.tsx
+  var _tmpl$8 = /* @__PURE__ */ template(`<span><sl-button>`, true, false);
+  var css5 = styler.css({
+    wrapper: {
+      paddingRight: "2px"
+    },
+    tag: {
+      cursor: "pointer"
+    }
+  });
+  var SelectableTag = (props) => {
+    return (() => {
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild;
+      addEventListener(_el$2, "click", () => props.onClick(props.key));
+      _el$2.size = "small";
+      _el$2._$owner = getOwner();
+      insert(_el$2, () => props.name);
+      createRenderEffect((_p$) => {
+        var _v$ = props.key, _v$2 = css5.wrapper, _v$3 = props.isActive ? "primary" : "default", _v$4 = css5.button, _v$5 = props.disabled;
+        _v$ !== _p$.e && setAttribute(_el$, "data-key", _p$.e = _v$);
+        _v$2 !== _p$.t && className(_el$, _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$2.variant = _p$.a = _v$3);
+        _v$4 !== _p$.o && className(_el$2, _p$.o = _v$4);
+        _v$5 !== _p$.i && (_el$2.disabled = _p$.i = _v$5);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0,
+        i: void 0
+      });
+      return _el$;
+    })();
+  };
+
   // src/components/partials/ProductFilters.tsx
   var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div>`);
   var css6 = styler.css({
     section: ({
       theme
     }) => ({
-      "> *": {
-        marginBottom: theme.spaceY
-      }
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      marginBottom: theme.spaceY
     }),
     filterValues: ({
       theme
@@ -16450,17 +16348,27 @@
           return props.loading;
         },
         onClick: () => props.onFilterChange({
-          // Unselect letter if already selected
-          letter: props.filterState.letter === letter ? "" : letter
+          letter
         })
       })));
-      insert(_el$3, () => directory.tags()?.map((tag) => createComponent(Tag, mergeProps(tag, {
-        onTagClick: () => {
+      insert(_el$3, () => directory.tags()?.map(({
+        key,
+        name: name2
+      }) => createComponent(SelectableTag, {
+        key,
+        name: name2,
+        get isActive() {
+          return props.filterState.tag === key;
+        },
+        get disabled() {
+          return props.loading;
+        },
+        onClick: () => {
           props.onFilterChange({
-            tag: tag.key
+            tag: key
           });
         }
-      }))));
+      })));
       createRenderEffect((_p$) => {
         var _v$ = css6.section, _v$2 = css6.filterValues, _v$3 = css6.filterValues;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
@@ -16480,6 +16388,7 @@
   var _tmpl$10 = /* @__PURE__ */ template(`<section>`);
   var _tmpl$24 = /* @__PURE__ */ template(`<sl-card><div slot=header><div></div><div class=flex-middle></div><div></div></div><div><div slot=header><div></div><div></div></div><div>`, true, false);
   var _tmpl$32 = /* @__PURE__ */ template(`<span><br>`);
+  var _tmpl$42 = /* @__PURE__ */ template(`<sl-tag>`, true, false);
   var css7 = styler.css({
     card: {
       "--border-radius": "15px",
@@ -16520,25 +16429,29 @@
       directory
     } = useService();
     const {
-      products,
+      listings,
       filters,
       setFilters
     } = directory;
     const handleFilterChange = (next, mergeFilters) => setFilters((prev) => {
-      const filter = mergeFilters ? {
-        ...prev,
-        ...next
-      } : next;
-      console.log({
-        filter
+      const parsed = {};
+      if (mergeFilters) {
+        Object.assign(parsed, prev, next);
+      } else {
+        for (const key in next) {
+          parsed[key] = prev[key] === next[key] ? "" : next[key];
+        }
+      }
+      console.dir({
+        filters: parsed
       });
-      return filter;
+      return parsed;
     });
     return (() => {
       var _el$ = _tmpl$10();
       insert(_el$, createComponent(ProductFilters, {
         get loading() {
-          return products.loading;
+          return listings.loading;
         },
         get filterState() {
           return filters();
@@ -16550,7 +16463,7 @@
           return createComponent(Loading, {});
         },
         get children() {
-          return products()?.map(({
+          return listings()?.map(({
             title,
             description,
             links,
@@ -16578,11 +16491,24 @@
               }), _el$13);
               return _el$12;
             })()));
-            insert(_el$11, () => tags.map((tag) => createComponent(Tag, mergeProps(tag, {
-              onTagClick: () => handleFilterChange({
-                tag: tag.key
-              })
-            }))));
+            insert(_el$11, () => tags.map((tag) => (() => {
+              var _el$14 = _tmpl$42();
+              addEventListener(_el$14, "click", () => {
+                handleFilterChange(
+                  {
+                    tag: tag.key
+                  },
+                  true
+                  /* Use merge to keep in listing */
+                );
+              });
+              _el$14.style.setProperty("cursor", "pointer");
+              _el$14.variant = "primary";
+              _el$14.size = "small";
+              _el$14._$owner = getOwner();
+              insert(_el$14, () => tag.name);
+              return _el$14;
+            })()));
             createRenderEffect((_p$) => {
               var _v$ = css7.card, _v$2 = css7.cardHeader, _v$3 = css7.title, _v$4 = css7.cardBody;
               _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
