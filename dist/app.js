@@ -98,7 +98,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css8 = this.source;
+          let css7 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -111,7 +111,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css8.split(/\r?\n/);
+          let lines = css7.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1380,9 +1380,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css8, opts) {
+        constructor(css7, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css8);
+          this.loadAnnotation(css7);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1421,13 +1421,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css8) {
-          let comments = css8.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css7) {
+          let comments = css7.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css8.lastIndexOf(comments.pop());
-          let end = css8.indexOf("*/", start);
+          let start = css7.lastIndexOf(comments.pop());
+          let end = css7.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css8.substring(start, end));
+            this.annotation = this.getAnnotationURL(css7.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1500,11 +1500,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css8, opts = {}) {
-          if (css8 === null || typeof css8 === "undefined" || typeof css8 === "object" && !css8.toString) {
-            throw new Error(`PostCSS received ${css8} instead of CSS string`);
+        constructor(css7, opts = {}) {
+          if (css7 === null || typeof css7 === "undefined" || typeof css7 === "object" && !css7.toString) {
+            throw new Error(`PostCSS received ${css7} instead of CSS string`);
           }
-          this.css = css8.toString();
+          this.css = css7.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2231,11 +2231,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css8 = input.css.valueOf();
+        let css7 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n9, prev;
-        let length = css8.length;
+        let length = css7.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2252,7 +2252,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css8.charCodeAt(pos);
+          code = css7.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2262,9 +2262,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css8.charCodeAt(next);
+                code = css7.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css8.slice(pos, next)];
+              currentToken = ["space", css7.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2281,12 +2281,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n9 = css8.charCodeAt(pos + 1);
+              n9 = css7.charCodeAt(pos + 1);
               if (prev === "url" && n9 !== SINGLE_QUOTE && n9 !== DOUBLE_QUOTE && n9 !== SPACE && n9 !== NEWLINE && n9 !== TAB && n9 !== FEED && n9 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css8.indexOf(")", next + 1);
+                  next = css7.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2296,16 +2296,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css8.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css8.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css7.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css8.indexOf(")", pos + 1);
-                content = css8.slice(pos, next + 1);
+                next = css7.indexOf(")", pos + 1);
+                content = css7.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2321,7 +2321,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css8.indexOf(quote, next + 1);
+                next = css7.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2331,71 +2331,71 @@
                   }
                 }
                 escapePos = next;
-                while (css8.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css8.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css8);
+              RE_AT_END.test(css7);
               if (RE_AT_END.lastIndex === 0) {
-                next = css8.length - 1;
+                next = css7.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css8.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css8.charCodeAt(next + 1) === BACKSLASH) {
+              while (css7.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css8.charCodeAt(next + 1);
+              code = css7.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css8.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css8.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css7.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css7.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css8.charCodeAt(next + 1) === SPACE) {
+                  if (css7.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css8.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css7.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css8.charCodeAt(pos + 1) === ASTERISK) {
-                next = css8.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css7.charCodeAt(pos + 1) === ASTERISK) {
+                next = css7.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css8.length;
+                    next = css7.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css8.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css7.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css8);
+                RE_WORD_END.test(css7);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css8.length - 1;
+                  next = css7.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css8.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css7.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2957,8 +2957,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css8, opts) {
-        let input = new Input2(css8, opts);
+      function parse3(css7, opts) {
+        let input = new Input2(css7, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3171,18 +3171,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css8, opts) {
+        constructor(processor, css7, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css8 === "object" && css8 !== null && (css8.type === "root" || css8.type === "document")) {
-            root2 = cleanMarks(css8);
-          } else if (css8 instanceof _LazyResult || css8 instanceof Result2) {
-            root2 = cleanMarks(css8.root);
-            if (css8.map) {
+          if (typeof css7 === "object" && css7 !== null && (css7.type === "root" || css7.type === "document")) {
+            root2 = cleanMarks(css7);
+          } else if (css7 instanceof _LazyResult || css7 instanceof Result2) {
+            root2 = cleanMarks(css7.root);
+            if (css7.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css8.map;
+              opts.map.prev = css7.map;
             }
           } else {
             let parser2 = parse3;
@@ -3190,7 +3190,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css8, opts);
+              root2 = parser2(css7, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3558,24 +3558,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css8, opts) {
-          css8 = css8.toString();
+        constructor(processor, css7, opts) {
+          css7 = css7.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css8;
+          this._css = css7;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css8;
+          this.result.css = css7;
           let self2 = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self2.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css8);
+          let map = new MapGenerator(str, root2, this._opts, css7);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3703,11 +3703,11 @@
           }
           return normalized;
         }
-        process(css8, opts = {}) {
+        process(css7, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css8, opts);
+            return new NoWorkResult(this, css7, opts);
           } else {
-            return new LazyResult(this, css8, opts);
+            return new LazyResult(this, css7, opts);
           }
         }
         use(plugin2) {
@@ -3776,8 +3776,8 @@
             return cache;
           }
         });
-        creator.process = function(css8, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css8, processOpts);
+        creator.process = function(css7, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css7, processOpts);
         };
         return creator;
       };
@@ -6109,31 +6109,31 @@
         hex[hexChars.charCodeAt(i9)] = true;
       }
       var i9;
-      function consumeWord(css8, start) {
+      function consumeWord(css7, start) {
         var next = start;
         var code;
         do {
-          code = css8.charCodeAt(next);
+          code = css7.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t7.backslash) {
-            next = consumeEscape(css8, next) + 1;
+            next = consumeEscape(css7, next) + 1;
           } else {
             next++;
           }
-        } while (next < css8.length);
+        } while (next < css7.length);
         return next - 1;
       }
-      function consumeEscape(css8, start) {
+      function consumeEscape(css7, start) {
         var next = start;
-        var code = css8.charCodeAt(next + 1);
+        var code = css7.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css8.charCodeAt(next + 1);
+            code = css7.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t7.space) {
             next++;
@@ -6155,8 +6155,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css8 = input.css.valueOf();
-        var _css = css8, length = _css.length;
+        var css7 = input.css.valueOf();
+        var _css = css7, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6164,14 +6164,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css8 += fix;
-            next = css8.length - 1;
+            css7 += fix;
+            next = css7.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css8.charCodeAt(start);
+          code = css7.charCodeAt(start);
           if (code === t7.newline) {
             offset3 = start;
             line += 1;
@@ -6185,7 +6185,7 @@
               next = start;
               do {
                 next += 1;
-                code = css8.charCodeAt(next);
+                code = css7.charCodeAt(next);
                 if (code === t7.newline) {
                   offset3 = next;
                   line += 1;
@@ -6203,7 +6203,7 @@
               next = start;
               do {
                 next += 1;
-                code = css8.charCodeAt(next);
+                code = css7.charCodeAt(next);
               } while (code === t7.plus || code === t7.greaterThan || code === t7.tilde || code === t7.pipe);
               tokenType = t7.combinator;
               endLine = line;
@@ -6236,12 +6236,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css8.indexOf(quote, next + 1);
+                next = css7.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css8.charCodeAt(escapePos - 1) === t7.backslash) {
+                while (css7.charCodeAt(escapePos - 1) === t7.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6252,12 +6252,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t7.slash && css8.charCodeAt(start + 1) === t7.asterisk) {
-                next = css8.indexOf("*/", start + 2) + 1;
+              if (code === t7.slash && css7.charCodeAt(start + 1) === t7.asterisk) {
+                next = css7.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css8.slice(start, next + 1);
+                content = css7.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6278,7 +6278,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css8, start);
+                next = consumeWord(css7, start);
                 tokenType = t7.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -9542,7 +9542,7 @@
   var async = import_index.default.async;
   var sync = import_index.default.sync;
 
-  // src/ui/lib/styler.ts
+  // src/shared/lib/styler.ts
   var import_postcss_nested = __toESM(require_postcss_nested());
   var join = (...classnames) => {
     return classnames.join(" ");
@@ -9630,6 +9630,7 @@
         const resolvedDeclaration = typeof declaration === "function" ? declaration(this.context) : declaration;
         const wrappedStyles = { [`.${className2}`]: resolvedDeclaration };
         const result = postcss_default([import_postcss_nested.default]).process(wrappedStyles, {
+          //@ts-expect-error
           parser: postcss_js_default
         });
         styles.push(result.css);
@@ -9643,21 +9644,3250 @@
     document.fonts.add(font);
   };
 
-  // src/shared/services/_ServiceState.ts
-  var _ServiceState = class {
+  // node_modules/.pnpm/uuidv7@1.0.2/node_modules/uuidv7/dist/index.js
+  var DIGITS = "0123456789abcdef";
+  var UUID = class _UUID {
+    /** @param bytes - The 16-byte byte array representation. */
+    constructor(bytes) {
+      this.bytes = bytes;
+    }
+    /**
+     * Creates an object from the internal representation, a 16-byte byte array
+     * containing the binary UUID representation in the big-endian byte order.
+     *
+     * This method does NOT shallow-copy the argument, and thus the created object
+     * holds the reference to the underlying buffer.
+     *
+     * @throws TypeError if the length of the argument is not 16.
+     */
+    static ofInner(bytes) {
+      if (bytes.length !== 16) {
+        throw new TypeError("not 128-bit length");
+      } else {
+        return new _UUID(bytes);
+      }
+    }
+    /**
+     * Builds a byte array from UUIDv7 field values.
+     *
+     * @param unixTsMs - A 48-bit `unix_ts_ms` field value.
+     * @param randA - A 12-bit `rand_a` field value.
+     * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
+     * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
+     * @throws RangeError if any field value is out of the specified range.
+     */
+    static fromFieldsV7(unixTsMs, randA, randBHi, randBLo) {
+      if (!Number.isInteger(unixTsMs) || !Number.isInteger(randA) || !Number.isInteger(randBHi) || !Number.isInteger(randBLo) || unixTsMs < 0 || randA < 0 || randBHi < 0 || randBLo < 0 || unixTsMs > 281474976710655 || randA > 4095 || randBHi > 1073741823 || randBLo > 4294967295) {
+        throw new RangeError("invalid field value");
+      }
+      const bytes = new Uint8Array(16);
+      bytes[0] = unixTsMs / 2 ** 40;
+      bytes[1] = unixTsMs / 2 ** 32;
+      bytes[2] = unixTsMs / 2 ** 24;
+      bytes[3] = unixTsMs / 2 ** 16;
+      bytes[4] = unixTsMs / 2 ** 8;
+      bytes[5] = unixTsMs;
+      bytes[6] = 112 | randA >>> 8;
+      bytes[7] = randA;
+      bytes[8] = 128 | randBHi >>> 24;
+      bytes[9] = randBHi >>> 16;
+      bytes[10] = randBHi >>> 8;
+      bytes[11] = randBHi;
+      bytes[12] = randBLo >>> 24;
+      bytes[13] = randBLo >>> 16;
+      bytes[14] = randBLo >>> 8;
+      bytes[15] = randBLo;
+      return new _UUID(bytes);
+    }
+    /**
+     * Builds a byte array from a string representation.
+     *
+     * This method accepts the following formats:
+     *
+     * - 32-digit hexadecimal format without hyphens: `0189dcd553117d408db09496a2eef37b`
+     * - 8-4-4-4-12 hyphenated format: `0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     * - Hyphenated format with surrounding braces: `{0189dcd5-5311-7d40-8db0-9496a2eef37b}`
+     * - RFC 9562 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
+     *
+     * Leading and trailing whitespaces represents an error.
+     *
+     * @throws SyntaxError if the argument could not parse as a valid UUID string.
+     */
+    static parse(uuid) {
+      var _a, _b, _c, _d;
+      let hex = void 0;
+      switch (uuid.length) {
+        case 32:
+          hex = (_a = /^[0-9a-f]{32}$/i.exec(uuid)) === null || _a === void 0 ? void 0 : _a[0];
+          break;
+        case 36:
+          hex = (_b = /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i.exec(uuid)) === null || _b === void 0 ? void 0 : _b.slice(1, 6).join("");
+          break;
+        case 38:
+          hex = (_c = /^\{([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\}$/i.exec(uuid)) === null || _c === void 0 ? void 0 : _c.slice(1, 6).join("");
+          break;
+        case 45:
+          hex = (_d = /^urn:uuid:([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i.exec(uuid)) === null || _d === void 0 ? void 0 : _d.slice(1, 6).join("");
+          break;
+        default:
+          break;
+      }
+      if (hex) {
+        const inner = new Uint8Array(16);
+        for (let i9 = 0; i9 < 16; i9 += 4) {
+          const n9 = parseInt(hex.substring(2 * i9, 2 * i9 + 8), 16);
+          inner[i9 + 0] = n9 >>> 24;
+          inner[i9 + 1] = n9 >>> 16;
+          inner[i9 + 2] = n9 >>> 8;
+          inner[i9 + 3] = n9;
+        }
+        return new _UUID(inner);
+      } else {
+        throw new SyntaxError("could not parse UUID string");
+      }
+    }
+    /**
+     * @returns The 8-4-4-4-12 canonical hexadecimal string representation
+     * (`0189dcd5-5311-7d40-8db0-9496a2eef37b`).
+     */
+    toString() {
+      let text = "";
+      for (let i9 = 0; i9 < this.bytes.length; i9++) {
+        text += DIGITS.charAt(this.bytes[i9] >>> 4);
+        text += DIGITS.charAt(this.bytes[i9] & 15);
+        if (i9 === 3 || i9 === 5 || i9 === 7 || i9 === 9) {
+          text += "-";
+        }
+      }
+      return text;
+    }
+    /**
+     * @returns The 32-digit hexadecimal representation without hyphens
+     * (`0189dcd553117d408db09496a2eef37b`).
+     */
+    toHex() {
+      let text = "";
+      for (let i9 = 0; i9 < this.bytes.length; i9++) {
+        text += DIGITS.charAt(this.bytes[i9] >>> 4);
+        text += DIGITS.charAt(this.bytes[i9] & 15);
+      }
+      return text;
+    }
+    /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
+    toJSON() {
+      return this.toString();
+    }
+    /**
+     * Reports the variant field value of the UUID or, if appropriate, "NIL" or
+     * "MAX".
+     *
+     * For convenience, this method reports "NIL" or "MAX" if `this` represents
+     * the Nil or Max UUID, although the Nil and Max UUIDs are technically
+     * subsumed under the variants `0b0` and `0b111`, respectively.
+     */
+    getVariant() {
+      const n9 = this.bytes[8] >>> 4;
+      if (n9 < 0) {
+        throw new Error("unreachable");
+      } else if (n9 <= 7) {
+        return this.bytes.every((e13) => e13 === 0) ? "NIL" : "VAR_0";
+      } else if (n9 <= 11) {
+        return "VAR_10";
+      } else if (n9 <= 13) {
+        return "VAR_110";
+      } else if (n9 <= 15) {
+        return this.bytes.every((e13) => e13 === 255) ? "MAX" : "VAR_RESERVED";
+      } else {
+        throw new Error("unreachable");
+      }
+    }
+    /**
+     * Returns the version field value of the UUID or `undefined` if the UUID does
+     * not have the variant field value of `0b10`.
+     */
+    getVersion() {
+      return this.getVariant() === "VAR_10" ? this.bytes[6] >>> 4 : void 0;
+    }
+    /** Creates an object from `this`. */
+    clone() {
+      return new _UUID(this.bytes.slice(0));
+    }
+    /** Returns true if `this` is equivalent to `other`. */
+    equals(other) {
+      return this.compareTo(other) === 0;
+    }
+    /**
+     * Returns a negative integer, zero, or positive integer if `this` is less
+     * than, equal to, or greater than `other`, respectively.
+     */
+    compareTo(other) {
+      for (let i9 = 0; i9 < 16; i9++) {
+        const diff = this.bytes[i9] - other.bytes[i9];
+        if (diff !== 0) {
+          return Math.sign(diff);
+        }
+      }
+      return 0;
+    }
+  };
+  var V7Generator = class {
+    /**
+     * Creates a generator object with the default random number generator, or
+     * with the specified one if passed as an argument. The specified random
+     * number generator should be cryptographically strong and securely seeded.
+     */
+    constructor(randomNumberGenerator) {
+      this.timestamp = 0;
+      this.counter = 0;
+      this.random = randomNumberGenerator !== null && randomNumberGenerator !== void 0 ? randomNumberGenerator : getDefaultRandom();
+    }
+    /**
+     * Generates a new UUIDv7 object from the current timestamp, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method returns a monotonically increasing UUID by reusing the previous
+     * timestamp even if the up-to-date timestamp is smaller than the immediately
+     * preceding UUID's. However, when such a clock rollback is considered
+     * significant (i.e., by more than ten seconds), this method resets the
+     * generator and returns a new UUID based on the given timestamp, breaking the
+     * increasing order of UUIDs.
+     *
+     * See {@link generateOrAbort} for the other mode of generation and
+     * {@link generateOrResetCore} for the low-level primitive.
+     */
+    generate() {
+      return this.generateOrResetCore(Date.now(), 1e4);
+    }
+    /**
+     * Generates a new UUIDv7 object from the current timestamp, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method returns a monotonically increasing UUID by reusing the previous
+     * timestamp even if the up-to-date timestamp is smaller than the immediately
+     * preceding UUID's. However, when such a clock rollback is considered
+     * significant (i.e., by more than ten seconds), this method aborts and
+     * returns `undefined` immediately.
+     *
+     * See {@link generate} for the other mode of generation and
+     * {@link generateOrAbortCore} for the low-level primitive.
+     */
+    generateOrAbort() {
+      return this.generateOrAbortCore(Date.now(), 1e4);
+    }
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
+     * generator upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generate} except that it takes a custom
+     * timestamp and clock rollback allowance.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     */
+    generateOrResetCore(unixTsMs, rollbackAllowance) {
+      let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+      if (value === void 0) {
+        this.timestamp = 0;
+        value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
+      }
+      return value;
+    }
+    /**
+     * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
+     * `undefined` upon significant timestamp rollback.
+     *
+     * This method is equivalent to {@link generateOrAbort} except that it takes a
+     * custom timestamp and clock rollback allowance.
+     *
+     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
+     * considered significant. A suggested value is `10_000` (milliseconds).
+     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
+     */
+    generateOrAbortCore(unixTsMs, rollbackAllowance) {
+      const MAX_COUNTER = 4398046511103;
+      if (!Number.isInteger(unixTsMs) || unixTsMs < 1 || unixTsMs > 281474976710655) {
+        throw new RangeError("`unixTsMs` must be a 48-bit positive integer");
+      } else if (rollbackAllowance < 0 || rollbackAllowance > 281474976710655) {
+        throw new RangeError("`rollbackAllowance` out of reasonable range");
+      }
+      if (unixTsMs > this.timestamp) {
+        this.timestamp = unixTsMs;
+        this.resetCounter();
+      } else if (unixTsMs + rollbackAllowance >= this.timestamp) {
+        this.counter++;
+        if (this.counter > MAX_COUNTER) {
+          this.timestamp++;
+          this.resetCounter();
+        }
+      } else {
+        return void 0;
+      }
+      return UUID.fromFieldsV7(this.timestamp, Math.trunc(this.counter / 2 ** 30), this.counter & 2 ** 30 - 1, this.random.nextUint32());
+    }
+    /** Initializes the counter at a 42-bit random integer. */
+    resetCounter() {
+      this.counter = this.random.nextUint32() * 1024 + (this.random.nextUint32() & 1023);
+    }
+    /**
+     * Generates a new UUIDv4 object utilizing the random number generator inside.
+     *
+     * @internal
+     */
+    generateV4() {
+      const bytes = new Uint8Array(Uint32Array.of(this.random.nextUint32(), this.random.nextUint32(), this.random.nextUint32(), this.random.nextUint32()).buffer);
+      bytes[6] = 64 | bytes[6] >>> 4;
+      bytes[8] = 128 | bytes[8] >>> 2;
+      return UUID.ofInner(bytes);
+    }
+  };
+  var getDefaultRandom = () => {
+    if (typeof crypto !== "undefined" && typeof crypto.getRandomValues !== "undefined") {
+      return new BufferedCryptoRandom();
+    } else {
+      if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
+        throw new Error("no cryptographically strong RNG available");
+      }
+      return {
+        nextUint32: () => Math.trunc(Math.random() * 65536) * 65536 + Math.trunc(Math.random() * 65536)
+      };
+    }
+  };
+  var BufferedCryptoRandom = class {
+    constructor() {
+      this.buffer = new Uint32Array(8);
+      this.cursor = 65535;
+    }
+    nextUint32() {
+      if (this.cursor >= this.buffer.length) {
+        crypto.getRandomValues(this.buffer);
+        this.cursor = 0;
+      }
+      return this.buffer[this.cursor++];
+    }
+  };
+  var defaultGenerator;
+  var uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
+  var uuidv4obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
+
+  // node_modules/.pnpm/isows@1.0.6_ws@8.18.0/node_modules/isows/_esm/utils.js
+  function getNativeWebSocket() {
+    if (typeof WebSocket !== "undefined")
+      return WebSocket;
+    if (typeof global.WebSocket !== "undefined")
+      return global.WebSocket;
+    if (typeof window.WebSocket !== "undefined")
+      return window.WebSocket;
+    if (typeof self.WebSocket !== "undefined")
+      return self.WebSocket;
+    throw new Error("`WebSocket` is not supported in this environment");
+  }
+
+  // node_modules/.pnpm/isows@1.0.6_ws@8.18.0/node_modules/isows/_esm/native.js
+  var WebSocket2 = getNativeWebSocket();
+
+  // node_modules/.pnpm/surrealdb@1.1.0_tslib@2.8.1_typescript@5.7.2_ws@8.18.0/node_modules/surrealdb/dist/index.mjs
+  var __defProp2 = Object.defineProperty;
+  var __export = (target, all) => {
+    for (var name in all) __defProp2(target, name, { get: all[name], enumerable: true });
+  };
+  var Emitter = class {
+    collectable = {};
+    listeners = {};
+    interceptors;
+    constructor({ interceptors } = {}) {
+      this.interceptors = interceptors ?? {};
+    }
+    subscribe(event, listener, historic = false) {
+      if (this.listeners[event] || (this.listeners[event] = []), !this.isSubscribed(event, listener) && (this.listeners[event]?.push(listener), historic && this.collectable[event])) {
+        let buffer = this.collectable[event];
+        this.collectable[event] = [];
+        for (let args of buffer) listener(...args);
+      }
+    }
+    subscribeOnce(event, historic = false) {
+      return new Promise((resolve) => {
+        let resolved = false, listener = (...args) => {
+          resolved || (resolved = true, this.unSubscribe(event, listener), resolve(args));
+        };
+        this.subscribe(event, listener, historic);
+      });
+    }
+    unSubscribe(event, listener) {
+      if (this.listeners[event]) {
+        let index2 = this.listeners[event]?.findIndex((v3) => v3 === listener);
+        index2 && this.listeners[event]?.splice(index2, 1);
+      }
+    }
+    isSubscribed(event, listener) {
+      return !!this.listeners[event]?.includes(listener);
+    }
+    async emit(event, args, collectable = false) {
+      let interceptor = this.interceptors[event], computedArgs = interceptor ? await interceptor(...args) : args;
+      this.listeners[event]?.length === 0 && collectable && (this.collectable[event] || (this.collectable[event] = []), this.collectable[event]?.push(args));
+      for (let listener of this.listeners[event] ?? []) listener(...computedArgs);
+    }
+    reset({ collectable, listeners }) {
+      if (Array.isArray(collectable)) for (let k3 of collectable) delete this.collectable[k3];
+      else typeof collectable == "string" ? delete this.collectable[collectable] : collectable !== false && (this.collectable = {});
+      if (Array.isArray(listeners)) for (let k3 of listeners) delete this.listeners[k3];
+      else typeof listeners == "string" ? delete this.listeners[listeners] : listeners !== false && (this.listeners = {});
+    }
+    scanListeners(filter) {
+      let listeners = Object.keys(this.listeners);
+      return filter && (listeners = listeners.filter(filter)), listeners;
+    }
+  };
+  var Gap = class {
+    args = [];
+    constructor(...args) {
+      this.args = args;
+    }
+    fill(value) {
+      return [this, value];
+    }
+    hasDefault() {
+      return this.args.length === 1;
+    }
+    get default() {
+      return this.args[0];
+    }
+  };
+  var cbor_exports = {};
+  __export(cbor_exports, { CborBreak: () => CborBreak, CborError: () => CborError, CborFillMissing: () => CborFillMissing, CborInvalidMajorError: () => CborInvalidMajorError, CborNumberError: () => CborNumberError, CborPartialDisabled: () => CborPartialDisabled, CborRangeError: () => CborRangeError, Encoded: () => Encoded, Gap: () => Gap, POW_2_53: () => POW_2_53, POW_2_64: () => POW_2_64, PartiallyEncoded: () => PartiallyEncoded, Reader: () => Reader, Tagged: () => Tagged, Writer: () => Writer, decode: () => decode, encode: () => encode, infiniteBytes: () => infiniteBytes, partiallyEncodeObject: () => partiallyEncodeObject });
+  var POW_2_53 = 9007199254740992;
+  var POW_2_64 = BigInt(18446744073709552e3);
+  var Encoded = class {
+    constructor(encoded) {
+      this.encoded = encoded;
+    }
+  };
+  var SurrealDbError = class extends Error {
+  };
+  var NoActiveSocket = class extends SurrealDbError {
+    name = "NoActiveSocket";
+    message = "No socket is currently connected to a SurrealDB instance. Please call the .connect() method first!";
+  };
+  var EngineDisconnected = class extends SurrealDbError {
+    name = "EngineDisconnected";
+    message = "The engine reported the connection to SurrealDB has dropped";
+  };
+  var UnexpectedServerResponse = class extends SurrealDbError {
+    constructor(response) {
+      super();
+      this.response = response;
+      this.message = `${response}`;
+    }
+    name = "UnexpectedServerResponse";
+  };
+  var UnexpectedConnectionError = class extends SurrealDbError {
+    constructor(error) {
+      super();
+      this.error = error;
+      this.message = `${error}`;
+    }
+    name = "UnexpectedConnectionError";
+  };
+  var UnsupportedEngine = class extends SurrealDbError {
+    constructor(engine) {
+      super();
+      this.engine = engine;
+    }
+    name = "UnsupportedEngine";
+    message = "The engine you are trying to connect to is not supported or configured.";
+  };
+  var ConnectionUnavailable = class extends SurrealDbError {
+    name = "ConnectionUnavailable";
+    message = "There is no connection available at this moment.";
+  };
+  var MissingNamespaceDatabase = class extends SurrealDbError {
+    name = "MissingNamespaceDatabase";
+    message = "There is no namespace and/or database selected.";
+  };
+  var HttpConnectionError = class extends SurrealDbError {
+    constructor(message, status, statusText, buffer) {
+      super();
+      this.message = message;
+      this.status = status;
+      this.statusText = statusText;
+      this.buffer = buffer;
+    }
+    name = "HttpConnectionError";
+  };
+  var ResponseError = class extends SurrealDbError {
+    constructor(message) {
+      super();
+      this.message = message;
+    }
+    name = "ResponseError";
+  };
+  var NoNamespaceSpecified = class extends SurrealDbError {
+    name = "NoNamespaceSpecified";
+    message = "Please specify a namespace to use.";
+  };
+  var NoDatabaseSpecified = class extends SurrealDbError {
+    name = "NoDatabaseSpecified";
+    message = "Please specify a database to use.";
+  };
+  var NoTokenReturned = class extends SurrealDbError {
+    name = "NoTokenReturned";
+    message = "Did not receive an authentication token.";
+  };
+  var UnsupportedVersion = class extends SurrealDbError {
+    name = "UnsupportedVersion";
+    version;
+    supportedRange;
+    constructor(version, supportedRange) {
+      super(), this.version = version, this.supportedRange = supportedRange, this.message = `The version "${version}" reported by the engine is not supported by this library, expected a version that satisfies "${supportedRange}".`;
+    }
+  };
+  var VersionRetrievalFailure = class extends SurrealDbError {
+    constructor(error) {
+      super();
+      this.error = error;
+    }
+    name = "VersionRetrievalFailure";
+    message = "Failed to retrieve remote version. If the server is behind a proxy, make sure it's configured correctly.";
+  };
+  var CborError = class extends SurrealDbError {
+    message;
+    constructor(message) {
+      super(), this.message = message;
+    }
+  };
+  var CborNumberError = class extends CborError {
+    name = "CborNumberError";
+  };
+  var CborRangeError = class extends CborError {
+    name = "CborRangeError";
+  };
+  var CborInvalidMajorError = class extends CborError {
+    name = "CborInvalidMajorError";
+  };
+  var CborBreak = class extends CborError {
+    name = "CborBreak";
+    constructor() {
+      super("Came across a break which was not intercepted by the decoder");
+    }
+  };
+  var CborPartialDisabled = class extends CborError {
+    name = "CborPartialDisabled";
+    constructor() {
+      super("Tried to insert a Gap into a CBOR value, while partial mode is not enabled");
+    }
+  };
+  var CborFillMissing = class extends CborError {
+    name = "CborFillMissing";
+    constructor() {
+      super("Fill for a gap is missing, and gap has no default");
+    }
+  };
+  var Writer = class {
+    constructor(byteLength = 256) {
+      this.byteLength = byteLength;
+      this._buf = new ArrayBuffer(this.byteLength), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf);
+    }
+    _chunks = [];
+    _pos = 0;
+    _buf;
+    _view;
+    _byte;
+    chunk(gap) {
+      this._chunks.push([this._buf.slice(0, this._pos), gap]), this._buf = new ArrayBuffer(this.byteLength), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf), this._pos = 0;
+    }
+    get chunks() {
+      return this._chunks;
+    }
+    get buffer() {
+      return this._buf.slice(0, this._pos);
+    }
+    claim(length) {
+      let pos = this._pos;
+      if (this._pos += length, this._pos <= this._buf.byteLength) return pos;
+      let newLen = this._buf.byteLength << 1;
+      for (; newLen < this._pos; ) newLen <<= 1;
+      if (newLen > this._buf.byteLength) {
+        let oldb = this._byte;
+        this._buf = new ArrayBuffer(newLen), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf), this._byte.set(oldb);
+      }
+      return pos;
+    }
+    writeUint8(value) {
+      let pos = this.claim(1);
+      this._view.setUint8(pos, value);
+    }
+    writeUint16(value) {
+      let pos = this.claim(2);
+      this._view.setUint16(pos, value);
+    }
+    writeUint32(value) {
+      let pos = this.claim(4);
+      this._view.setUint32(pos, value);
+    }
+    writeUint64(value) {
+      let pos = this.claim(8);
+      this._view.setBigUint64(pos, value);
+    }
+    writeUint8Array(data) {
+      if (data.byteLength === 0) return;
+      let pos = this.claim(data.byteLength);
+      this._byte.set(data, pos);
+    }
+    writeArrayBuffer(data) {
+      data.byteLength !== 0 && this.writeUint8Array(new Uint8Array(data));
+    }
+    writePartiallyEncoded(data) {
+      for (let [buf, gap] of data.chunks) this.writeArrayBuffer(buf), this.chunk(gap);
+      this.writeArrayBuffer(data.end);
+    }
+    writeFloat32(value) {
+      let pos = this.claim(4);
+      this._view.setFloat32(pos, value);
+    }
+    writeFloat64(value) {
+      let pos = this.claim(8);
+      this._view.setFloat64(pos, value);
+    }
+    writeMajor(type, length) {
+      let base = type << 5;
+      length < 24 ? this.writeUint8(base + Number(length)) : length < 256 ? (this.writeUint8(base + 24), this.writeUint8(Number(length))) : length < 65536 ? (this.writeUint8(base + 25), this.writeUint16(Number(length))) : length < 4294967296 ? (this.writeUint8(base + 26), this.writeUint32(Number(length))) : (this.writeUint8(base + 27), this.writeUint64(BigInt(length)));
+    }
+    output(partial, replacer2) {
+      return partial ? new PartiallyEncoded(this._chunks, this.buffer, replacer2) : this.buffer;
+    }
+  };
+  var PartiallyEncoded = class {
+    constructor(chunks, end, replacer2) {
+      this.chunks = chunks;
+      this.end = end;
+      this.replacer = replacer2;
+    }
+    build(fills, partial) {
+      let writer = new Writer(), map = new Map(fills);
+      for (let [buffer, gap] of this.chunks) {
+        let hasValue = map.has(gap) || gap.hasDefault();
+        if (!partial && !hasValue) throw new CborFillMissing();
+        if (writer.writeArrayBuffer(buffer), hasValue) {
+          let data = map.get(gap) ?? gap.default;
+          encode(data, { writer, replacer: this.replacer });
+        } else writer.chunk(gap);
+      }
+      return writer.writeArrayBuffer(this.end), writer.output(!!partial, this.replacer);
+    }
+  };
+  function partiallyEncodeObject(object, options) {
+    return Object.fromEntries(Object.entries(object).map(([k3, v3]) => [k3, encode(v3, { ...options, partial: true })]));
+  }
+  var Tagged = class {
+    constructor(tag, value) {
+      this.tag = tag;
+      this.value = value;
+    }
+  };
+  var textEncoder;
+  function encode(input, options = {}) {
+    let w3 = options.writer ?? new Writer(), fillsMap = new Map(options.fills ?? []);
+    function inner(input2) {
+      let value = options.replacer ? options.replacer(input2) : input2;
+      if (value === void 0) return w3.writeUint8(247);
+      if (value === null) return w3.writeUint8(246);
+      if (value === true) return w3.writeUint8(245);
+      if (value === false) return w3.writeUint8(244);
+      switch (typeof value) {
+        case "number": {
+          if (Number.isInteger(value)) if (value >= 0 && value <= 9007199254740992) w3.writeMajor(0, value);
+          else if (value < 0 && value >= -9007199254740992) w3.writeMajor(1, -(value + 1));
+          else throw new CborNumberError("Number too big to be encoded");
+          else w3.writeUint8(251), w3.writeFloat64(value);
+          return;
+        }
+        case "bigint": {
+          if (value >= 0 && value < POW_2_64) w3.writeMajor(0, value);
+          else if (value <= 0 && value >= -POW_2_64) w3.writeMajor(1, -(value + 1n));
+          else throw new CborNumberError("BigInt too big to be encoded");
+          return;
+        }
+        case "string": {
+          textEncoder ??= new TextEncoder();
+          let encoded = textEncoder.encode(value);
+          w3.writeMajor(3, encoded.byteLength), w3.writeUint8Array(encoded);
+          return;
+        }
+        default: {
+          if (Array.isArray(value)) {
+            w3.writeMajor(4, value.length);
+            for (let v3 of value) inner(v3);
+            return;
+          }
+          if (value instanceof Tagged) {
+            w3.writeMajor(6, value.tag), inner(value.value);
+            return;
+          }
+          if (value instanceof Encoded) {
+            w3.writeArrayBuffer(value.encoded);
+            return;
+          }
+          if (value instanceof Gap) {
+            if (fillsMap.has(value)) inner(fillsMap.get(value));
+            else {
+              if (!options.partial) throw new CborPartialDisabled();
+              w3.chunk(value);
+            }
+            return;
+          }
+          if (value instanceof PartiallyEncoded) {
+            let res = value.build(options.fills ?? [], options.partial);
+            options.partial ? w3.writePartiallyEncoded(res) : w3.writeArrayBuffer(res);
+            return;
+          }
+          if (value instanceof Uint8Array || value instanceof Uint16Array || value instanceof Uint32Array || value instanceof Int8Array || value instanceof Int16Array || value instanceof Int32Array || value instanceof Float32Array || value instanceof Float64Array || value instanceof ArrayBuffer) {
+            let v3 = new Uint8Array(value);
+            w3.writeMajor(2, v3.byteLength), w3.writeUint8Array(v3);
+            return;
+          }
+          let entries = value instanceof Map ? Array.from(value.entries()) : Object.entries(value);
+          w3.writeMajor(5, entries.length);
+          for (let v3 of entries.flat()) inner(v3);
+        }
+      }
+    }
+    return inner(input), w3.output(!!options.partial, options.replacer);
+  }
+  var Reader = class {
+    _buf;
+    _view;
+    _byte;
+    _pos = 0;
+    constructor(buffer) {
+      this._buf = new ArrayBuffer(buffer.byteLength), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf), this._byte.set(new Uint8Array(buffer));
+    }
+    read(amount, res) {
+      return this._pos += amount, res;
+    }
+    readUint8() {
+      try {
+        return this.read(1, this._view.getUint8(this._pos));
+      } catch (e13) {
+        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
+      }
+    }
+    readUint16() {
+      try {
+        return this.read(2, this._view.getUint16(this._pos));
+      } catch (e13) {
+        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
+      }
+    }
+    readUint32() {
+      try {
+        return this.read(4, this._view.getUint32(this._pos));
+      } catch (e13) {
+        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
+      }
+    }
+    readUint64() {
+      try {
+        return this.read(8, this._view.getBigUint64(this._pos));
+      } catch (e13) {
+        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
+      }
+    }
+    readFloat16() {
+      let bytes = this.readUint16(), s22 = (bytes & 32768) >> 15, e13 = (bytes & 31744) >> 10, f22 = bytes & 1023;
+      return e13 === 0 ? (s22 ? -1 : 1) * 2 ** -14 * (f22 / 2 ** 10) : e13 === 31 ? f22 ? Number.NaN : (s22 ? -1 : 1) * Number.POSITIVE_INFINITY : (s22 ? -1 : 1) * 2 ** (e13 - 15) * (1 + f22 / 2 ** 10);
+    }
+    readFloat32() {
+      try {
+        return this.read(4, this._view.getFloat32(this._pos));
+      } catch (e13) {
+        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
+      }
+    }
+    readFloat64() {
+      try {
+        return this.read(8, this._view.getFloat64(this._pos));
+      } catch (e13) {
+        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
+      }
+    }
+    readBytes(amount) {
+      let available = this._byte.length - this._pos;
+      if (available < amount) throw new CborRangeError(`The argument must be between 0 and ${available}`);
+      return this.read(amount, this._byte.slice(this._pos, this._pos + amount));
+    }
+    readMajor() {
+      let byte = this.readUint8(), major = byte >> 5;
+      if (major < 0 || major > 7) throw new CborInvalidMajorError("Received invalid major type");
+      return [major, byte & 31];
+    }
+    readMajorLength(length) {
+      if (length <= 23) return length;
+      switch (length) {
+        case 24:
+          return this.readUint8();
+        case 25:
+          return this.readUint16();
+        case 26:
+          return this.readUint32();
+        case 27: {
+          let read = this.readUint64();
+          return read > 9007199254740992 ? read : Number(read);
+        }
+      }
+      throw new CborRangeError("Expected a final length");
+    }
+  };
+  function infiniteBytes(r22, forMajor) {
+    let w3 = new Writer();
+    for (; ; ) {
+      let [major, len] = r22.readMajor();
+      if (major === 7 && len === 31) break;
+      if (major !== forMajor) throw new CborInvalidMajorError(`Expected a resource of the same major (${forMajor}) while processing an infinite resource`);
+      if (len === 31) throw new CborRangeError("Expected a finite resource while processing an infinite resource");
+      w3.writeUint8Array(r22.readBytes(Number(r22.readMajorLength(len))));
+    }
+    return w3.buffer;
+  }
+  var textDecoder;
+  function decode(input, options = {}) {
+    let r22 = input instanceof Reader ? input : new Reader(input);
+    function inner() {
+      let [major, len] = r22.readMajor();
+      switch (major) {
+        case 0:
+          return r22.readMajorLength(len);
+        case 1: {
+          let l6 = r22.readMajorLength(len);
+          return typeof l6 == "bigint" ? -(l6 + 1n) : -(l6 + 1);
+        }
+        case 2:
+          return len === 31 ? infiniteBytes(r22, 2) : r22.readBytes(Number(r22.readMajorLength(len))).buffer;
+        case 3: {
+          let encoded = len === 31 ? infiniteBytes(r22, 3) : r22.readBytes(Number(r22.readMajorLength(len)));
+          return textDecoder ??= new TextDecoder(), textDecoder.decode(encoded);
+        }
+        case 4: {
+          if (len === 31) {
+            let arr2 = [];
+            for (; ; ) try {
+              arr2.push(decode2());
+            } catch (e13) {
+              if (e13 instanceof CborBreak) break;
+              throw e13;
+            }
+            return arr2;
+          }
+          let l6 = r22.readMajorLength(len), arr = Array(l6);
+          for (let i9 = 0; i9 < l6; i9++) arr[i9] = decode2();
+          return arr;
+        }
+        case 5: {
+          let entries = [];
+          if (len === 31) for (; ; ) {
+            let key;
+            try {
+              key = decode2();
+            } catch (e13) {
+              if (e13 instanceof CborBreak) break;
+              throw e13;
+            }
+            let value = decode2();
+            entries.push([key, value]);
+          }
+          else {
+            let l6 = r22.readMajorLength(len);
+            for (let i9 = 0; i9 < l6; i9++) {
+              let key = decode2(), value = decode2();
+              entries[i9] = [key, value];
+            }
+          }
+          return options.map === "map" ? new Map(entries) : Object.fromEntries(entries);
+        }
+        case 6: {
+          let tag = r22.readMajorLength(len), value = decode2();
+          return new Tagged(tag, value);
+        }
+        case 7:
+          switch (len) {
+            case 20:
+              return false;
+            case 21:
+              return true;
+            case 22:
+              return null;
+            case 23:
+              return;
+            case 25:
+              return r22.readFloat16();
+            case 26:
+              return r22.readFloat32();
+            case 27:
+              return r22.readFloat64();
+            case 31:
+              throw new CborBreak();
+          }
+      }
+      throw new CborInvalidMajorError(`Unable to decode value with major tag ${major}`);
+    }
+    function decode2() {
+      return options.replacer ? options.replacer(inner()) : inner();
+    }
+    return decode2();
+  }
+  function dateToCborCustomDate(date) {
+    let s22 = Math.floor(date.getTime() / 1e3), ms = date.getTime() - s22 * 1e3;
+    return [s22, ms * 1e6];
+  }
+  function cborCustomDateToDate([s22, ns]) {
+    let date = /* @__PURE__ */ new Date(0);
+    return date.setUTCSeconds(Number(s22)), date.setMilliseconds(Math.floor(Number(ns) / 1e6)), date;
+  }
+  var Value = class {
+  };
+  var Decimal = class _Decimal extends Value {
+    decimal;
+    constructor(decimal) {
+      super(), this.decimal = decimal.toString();
+    }
+    equals(other) {
+      return other instanceof _Decimal ? this.decimal === other.decimal : false;
+    }
+    toString() {
+      return this.decimal;
+    }
+    toJSON() {
+      return this.decimal;
+    }
+  };
+  var millisecond = 1;
+  var microsecond = millisecond / 1e3;
+  var nanosecond = microsecond / 1e3;
+  var second = 1e3 * millisecond;
+  var minute = 60 * second;
+  var hour = 60 * minute;
+  var day = 24 * hour;
+  var week = 7 * day;
+  var units = /* @__PURE__ */ new Map([["ns", nanosecond], ["\xB5s", microsecond], ["\u03BCs", microsecond], ["us", microsecond], ["ms", millisecond], ["s", second], ["m", minute], ["h", hour], ["d", day], ["w", week]]);
+  var unitsReverse = Array.from(units).reduce((map, [unit, size3]) => (map.set(size3, unit), map), /* @__PURE__ */ new Map());
+  var durationPartRegex = new RegExp(`^(\\d+)(${Array.from(units.keys()).join("|")})`);
+  var Duration = class _Duration extends Value {
+    _milliseconds;
+    constructor(input) {
+      super(), input instanceof _Duration ? this._milliseconds = input._milliseconds : typeof input == "string" ? this._milliseconds = _Duration.parseString(input) : this._milliseconds = input;
+    }
+    static fromCompact([s22, ns]) {
+      s22 = s22 ?? 0, ns = ns ?? 0;
+      let ms = s22 * 1e3 + ns / 1e6;
+      return new _Duration(ms);
+    }
+    equals(other) {
+      return other instanceof _Duration ? this._milliseconds === other._milliseconds : false;
+    }
+    toCompact() {
+      let s22 = Math.floor(this._milliseconds / 1e3), ns = Math.floor((this._milliseconds - s22 * 1e3) * 1e6);
+      return ns > 0 ? [s22, ns] : s22 > 0 ? [s22] : [];
+    }
+    toString() {
+      let left = this._milliseconds, result = "";
+      function scrap(size3) {
+        let num = Math.floor(left / size3);
+        return num > 0 && (left = left % size3), num;
+      }
+      for (let [size3, unit] of Array.from(unitsReverse).reverse()) {
+        let scrapped = scrap(size3);
+        scrapped > 0 && (result += `${scrapped}${unit}`);
+      }
+      return result;
+    }
+    toJSON() {
+      return this.toString();
+    }
+    static parseString(input) {
+      let ms = 0, left = input;
+      for (; left !== ""; ) {
+        let match = left.match(durationPartRegex);
+        if (match) {
+          let amount = Number.parseInt(match[1]), factor = units.get(match[2]);
+          if (factor === void 0) throw new SurrealDbError(`Invalid duration unit: ${match[2]}`);
+          ms += amount * factor, left = left.slice(match[0].length);
+          continue;
+        }
+        throw new SurrealDbError("Could not match a next duration part");
+      }
+      return ms;
+    }
+    static nanoseconds(nanoseconds) {
+      return new _Duration(Math.floor(nanoseconds * nanosecond));
+    }
+    static microseconds(microseconds) {
+      return new _Duration(Math.floor(microseconds * microsecond));
+    }
+    static milliseconds(milliseconds) {
+      return new _Duration(milliseconds);
+    }
+    static seconds(seconds) {
+      return new _Duration(seconds * second);
+    }
+    static minutes(minutes) {
+      return new _Duration(minutes * minute);
+    }
+    static hours(hours) {
+      return new _Duration(hours * hour);
+    }
+    static days(days) {
+      return new _Duration(days * day);
+    }
+    static weeks(weeks) {
+      return new _Duration(weeks * week);
+    }
+    get microseconds() {
+      return Math.floor(this._milliseconds / microsecond);
+    }
+    get nanoseconds() {
+      return Math.floor(this._milliseconds / nanosecond);
+    }
+    get milliseconds() {
+      return Math.floor(this._milliseconds);
+    }
+    get seconds() {
+      return Math.floor(this._milliseconds / second);
+    }
+    get minutes() {
+      return Math.floor(this._milliseconds / minute);
+    }
+    get hours() {
+      return Math.floor(this._milliseconds / hour);
+    }
+    get days() {
+      return Math.floor(this._milliseconds / day);
+    }
+    get weeks() {
+      return Math.floor(this._milliseconds / week);
+    }
+  };
+  var Future = class _Future extends Value {
+    constructor(inner) {
+      super();
+      this.inner = inner;
+    }
+    equals(other) {
+      return other instanceof _Future ? this.inner === other.inner : false;
+    }
+    toJSON() {
+      return this.toString();
+    }
+    toString() {
+      return `<future> ${this.inner}`;
+    }
+  };
+  var Geometry = class _Geometry extends Value {
+    equals(other) {
+      return other instanceof _Geometry ? this.is(other) : false;
+    }
+    toString() {
+      return JSON.stringify(this.toJSON());
+    }
+  };
+  function f(num) {
+    return num instanceof Decimal ? Number.parseFloat(num.decimal) : num;
+  }
+  var GeometryPoint = class _GeometryPoint extends Geometry {
+    point;
+    constructor(point) {
+      super(), point instanceof _GeometryPoint ? this.point = point.clone().point : this.point = [f(point[0]), f(point[1])];
+    }
+    toJSON() {
+      return { type: "Point", coordinates: this.coordinates };
+    }
+    get coordinates() {
+      return this.point;
+    }
+    is(geometry) {
+      return geometry instanceof _GeometryPoint ? this.point[0] === geometry.point[0] && this.point[1] === geometry.point[1] : false;
+    }
+    clone() {
+      return new _GeometryPoint([...this.point]);
+    }
+  };
+  var GeometryLine = class _GeometryLine extends Geometry {
+    line;
+    constructor(line) {
+      super(), this.line = line instanceof _GeometryLine ? line.clone().line : line;
+    }
+    toJSON() {
+      return { type: "LineString", coordinates: this.coordinates };
+    }
+    get coordinates() {
+      return this.line.map((g3) => g3.coordinates);
+    }
+    close() {
+      this.line[0].is(this.line.at(-1)) || this.line.push(this.line[0]);
+    }
+    is(geometry) {
+      if (!(geometry instanceof _GeometryLine) || this.line.length !== geometry.line.length) return false;
+      for (let i9 = 0; i9 < this.line.length; i9++) if (!this.line[i9].is(geometry.line[i9])) return false;
+      return true;
+    }
+    clone() {
+      return new _GeometryLine(this.line.map((p4) => p4.clone()));
+    }
+  };
+  var GeometryPolygon = class _GeometryPolygon extends Geometry {
+    polygon;
+    constructor(polygon) {
+      super(), this.polygon = polygon instanceof _GeometryPolygon ? polygon.clone().polygon : polygon.map((l6) => {
+        let line = l6.clone();
+        return line.close(), line;
+      });
+    }
+    toJSON() {
+      return { type: "Polygon", coordinates: this.coordinates };
+    }
+    get coordinates() {
+      return this.polygon.map((g3) => g3.coordinates);
+    }
+    is(geometry) {
+      if (!(geometry instanceof _GeometryPolygon) || this.polygon.length !== geometry.polygon.length) return false;
+      for (let i9 = 0; i9 < this.polygon.length; i9++) if (!this.polygon[i9].is(geometry.polygon[i9])) return false;
+      return true;
+    }
+    clone() {
+      return new _GeometryPolygon(this.polygon.map((p4) => p4.clone()));
+    }
+  };
+  var GeometryMultiPoint = class _GeometryMultiPoint extends Geometry {
+    points;
+    constructor(points) {
+      super(), this.points = points instanceof _GeometryMultiPoint ? points.points : points;
+    }
+    toJSON() {
+      return { type: "MultiPoint", coordinates: this.coordinates };
+    }
+    get coordinates() {
+      return this.points.map((g3) => g3.coordinates);
+    }
+    is(geometry) {
+      if (!(geometry instanceof _GeometryMultiPoint) || this.points.length !== geometry.points.length) return false;
+      for (let i9 = 0; i9 < this.points.length; i9++) if (!this.points[i9].is(geometry.points[i9])) return false;
+      return true;
+    }
+    clone() {
+      return new _GeometryMultiPoint(this.points.map((p4) => p4.clone()));
+    }
+  };
+  var GeometryMultiLine = class _GeometryMultiLine extends Geometry {
+    lines;
+    constructor(lines) {
+      super(), this.lines = lines instanceof _GeometryMultiLine ? lines.lines : lines;
+    }
+    toJSON() {
+      return { type: "MultiLineString", coordinates: this.coordinates };
+    }
+    get coordinates() {
+      return this.lines.map((g3) => g3.coordinates);
+    }
+    is(geometry) {
+      if (!(geometry instanceof _GeometryMultiLine) || this.lines.length !== geometry.lines.length) return false;
+      for (let i9 = 0; i9 < this.lines.length; i9++) if (!this.lines[i9].is(geometry.lines[i9])) return false;
+      return true;
+    }
+    clone() {
+      return new _GeometryMultiLine(this.lines.map((p4) => p4.clone()));
+    }
+  };
+  var GeometryMultiPolygon = class _GeometryMultiPolygon extends Geometry {
+    polygons;
+    constructor(polygons) {
+      super(), this.polygons = polygons instanceof _GeometryMultiPolygon ? polygons.polygons : polygons;
+    }
+    toJSON() {
+      return { type: "MultiPolygon", coordinates: this.coordinates };
+    }
+    get coordinates() {
+      return this.polygons.map((g3) => g3.coordinates);
+    }
+    is(geometry) {
+      if (!(geometry instanceof _GeometryMultiPolygon) || this.polygons.length !== geometry.polygons.length) return false;
+      for (let i9 = 0; i9 < this.polygons.length; i9++) if (!this.polygons[i9].is(geometry.polygons[i9])) return false;
+      return true;
+    }
+    clone() {
+      return new _GeometryMultiPolygon(this.polygons.map((p4) => p4.clone()));
+    }
+  };
+  var GeometryCollection = class _GeometryCollection extends Geometry {
+    collection;
+    constructor(collection) {
+      super(), this.collection = collection instanceof _GeometryCollection ? collection.collection : collection;
+    }
+    toJSON() {
+      return { type: "GeometryCollection", geometries: this.geometries };
+    }
+    get geometries() {
+      return this.collection.map((g3) => g3.toJSON());
+    }
+    is(geometry) {
+      if (!(geometry instanceof _GeometryCollection) || this.collection.length !== geometry.collection.length) return false;
+      for (let i9 = 0; i9 < this.collection.length; i9++) if (!this.collection[i9].is(geometry.collection[i9])) return false;
+      return true;
+    }
+    clone() {
+      return new _GeometryCollection(this.collection.map((p4) => p4.clone()));
+    }
+  };
+  function equals(x3, y4) {
+    if (Object.is(x3, y4)) return true;
+    if (x3 instanceof Date && y4 instanceof Date) return x3.getTime() === y4.getTime();
+    if (x3 instanceof RegExp && y4 instanceof RegExp) return x3.toString() === y4.toString();
+    if (x3 instanceof Value && y4 instanceof Value) return x3.equals(y4);
+    if (typeof x3 != "object" || x3 === null || typeof y4 != "object" || y4 === null) return false;
+    let keysX = Reflect.ownKeys(x3), keysY = Reflect.ownKeys(y4);
+    if (keysX.length !== keysY.length) return false;
+    for (let i9 = 0; i9 < keysX.length; i9++) if (!Reflect.has(y4, keysX[i9]) || !equals(x3[keysX[i9]], y4[keysX[i9]])) return false;
+    return true;
+  }
+  var MAX_i64 = 9223372036854775807n;
+  function escapeIdent(str) {
+    if (isOnlyNumbers(str)) return `\u27E8${str}\u27E9`;
+    let code, i9, len;
+    for (i9 = 0, len = str.length; i9 < len; i9++) if (code = str.charCodeAt(i9), !(code > 47 && code < 58) && !(code > 64 && code < 91) && !(code > 96 && code < 123) && code !== 95) return `\u27E8${str.replaceAll("\u27E9", "\\\u27E9")}\u27E9`;
+    return str;
+  }
+  function escapeNumber(num) {
+    return num <= MAX_i64 ? num.toString() : `\u27E8${num}\u27E9`;
+  }
+  function isOnlyNumbers(str) {
+    let stripped = str.replace("_", ""), parsed = Number.parseInt(stripped);
+    return !Number.isNaN(parsed) && parsed.toString() === stripped;
+  }
+  var Uuid = class _Uuid extends Value {
+    inner;
+    constructor(uuid) {
+      super(), uuid instanceof ArrayBuffer ? this.inner = UUID.ofInner(new Uint8Array(uuid)) : uuid instanceof Uint8Array ? this.inner = UUID.ofInner(uuid) : uuid instanceof _Uuid ? this.inner = uuid.inner : uuid instanceof UUID ? this.inner = uuid : this.inner = UUID.parse(uuid);
+    }
+    equals(other) {
+      return other instanceof _Uuid ? this.inner.equals(other.inner) : false;
+    }
+    toString() {
+      return this.inner.toString();
+    }
+    toJSON() {
+      return this.inner.toString();
+    }
+    toUint8Array() {
+      return this.inner.bytes;
+    }
+    toBuffer() {
+      return this.inner.bytes.buffer;
+    }
+    static v4() {
+      return new _Uuid(uuidv4obj());
+    }
+    static v7() {
+      return new _Uuid(uuidv7obj());
+    }
+  };
+  var RecordId = class _RecordId extends Value {
+    tb;
+    id;
+    constructor(tb, id22) {
+      if (super(), typeof tb != "string") throw new SurrealDbError("TB part is not valid");
+      if (!isValidIdPart(id22)) throw new SurrealDbError("ID part is not valid");
+      this.tb = tb, this.id = id22;
+    }
+    equals(other) {
+      return other instanceof _RecordId ? this.tb === other.tb && equals(this.id, other.id) : false;
+    }
+    toJSON() {
+      return this.toString();
+    }
+    toString() {
+      let tb = escapeIdent(this.tb), id22 = escapeIdPart(this.id);
+      return `${tb}:${id22}`;
+    }
+  };
+  var StringRecordId = class _StringRecordId extends Value {
+    rid;
+    constructor(rid) {
+      if (super(), rid instanceof _StringRecordId) this.rid = rid.rid;
+      else if (rid instanceof RecordId) this.rid = rid.toString();
+      else if (typeof rid == "string") this.rid = rid;
+      else throw new SurrealDbError("String Record ID must be a string");
+    }
+    equals(other) {
+      return other instanceof _StringRecordId ? this.rid === other.rid : false;
+    }
+    toJSON() {
+      return this.rid;
+    }
+    toString() {
+      return this.rid;
+    }
+  };
+  function isValidIdPart(v3) {
+    if (v3 instanceof Uuid) return true;
+    switch (typeof v3) {
+      case "string":
+      case "number":
+      case "bigint":
+        return true;
+      case "object":
+        return Array.isArray(v3) || v3 !== null;
+      default:
+        return false;
+    }
+  }
+  function escapeIdPart(id22) {
+    return id22 instanceof Uuid ? `u"${id22}"` : typeof id22 == "string" ? escapeIdent(id22) : typeof id22 == "bigint" || typeof id22 == "number" ? escapeNumber(id22) : toSurrealqlString(id22);
+  }
+  var Table = class _Table extends Value {
+    tb;
+    constructor(tb) {
+      if (super(), typeof tb != "string") throw new SurrealDbError("Table must be a string");
+      this.tb = tb;
+    }
+    equals(other) {
+      return other instanceof _Table ? this.tb === other.tb : false;
+    }
+    toJSON() {
+      return this.tb;
+    }
+    toString() {
+      return this.tb;
+    }
+  };
+  function toSurrealqlString(input) {
+    if (typeof input == "string") return `s${JSON.stringify(input)}`;
+    if (input === null) return "NULL";
+    if (input === void 0) return "NONE";
+    if (typeof input == "object") {
+      if (input instanceof Date) return `d${JSON.stringify(input.toISOString())}`;
+      if (input instanceof Uuid) return `u${JSON.stringify(input.toString())}`;
+      if (input instanceof RecordId || input instanceof StringRecordId) return `r${JSON.stringify(input.toString())}`;
+      if (input instanceof Geometry) return toSurrealqlString(input.toJSON());
+      if (input instanceof Decimal || input instanceof Duration || input instanceof Future || input instanceof Range || input instanceof Table) return input.toJSON();
+      switch (Object.getPrototypeOf(input)) {
+        case Object.prototype: {
+          let output2 = "{ ", entries = Object.entries(input);
+          for (let [i9, [k3, v3]] of entries.entries()) output2 += `${JSON.stringify(k3)}: ${toSurrealqlString(v3)}`, i9 < entries.length - 1 && (output2 += ", ");
+          return output2 += " }", output2;
+        }
+        case Map.prototype: {
+          let output2 = "{ ", entries = Array.from(input.entries());
+          for (let [i9, [k3, v3]] of entries.entries()) output2 += `${JSON.stringify(k3)}: ${toSurrealqlString(v3)}`, i9 < entries.length - 1 && (output2 += ", ");
+          return output2 += " }", output2;
+        }
+        case Array.prototype:
+          return `[ ${input.map(toSurrealqlString).join(", ")} ]`;
+        case Set.prototype:
+          return `[ ${[...new Set([...input].map(toSurrealqlString))].join(", ")} ]`;
+      }
+    }
+    return `${input}`;
+  }
+  var Range = class _Range extends Value {
+    constructor(beg, end) {
+      super();
+      this.beg = beg;
+      this.end = end;
+    }
+    equals(other) {
+      return !(other instanceof _Range) || this.beg?.constructor !== other.beg?.constructor || this.end?.constructor !== other.end?.constructor ? false : equals(this.beg?.value, other.beg?.value) && equals(this.end?.value, other.end?.value);
+    }
+    toJSON() {
+      return this.toString();
+    }
+    toString() {
+      let beg = escapeRangeBound(this.beg), end = escapeRangeBound(this.end);
+      return `${beg}${getRangeJoin(this.beg, this.end)}${end}`;
+    }
+  };
+  var BoundIncluded = class {
+    constructor(value) {
+      this.value = value;
+    }
+  };
+  var BoundExcluded = class {
+    constructor(value) {
+      this.value = value;
+    }
+  };
+  var RecordIdRange = class _RecordIdRange extends Value {
+    constructor(tb, beg, end) {
+      super();
+      this.tb = tb;
+      this.beg = beg;
+      this.end = end;
+      if (typeof tb != "string") throw new SurrealDbError("TB part is not valid");
+      if (!isValidIdBound(beg)) throw new SurrealDbError("Beg part is not valid");
+      if (!isValidIdBound(end)) throw new SurrealDbError("End part is not valid");
+    }
+    equals(other) {
+      return !(other instanceof _RecordIdRange) || this.beg?.constructor !== other.beg?.constructor || this.end?.constructor !== other.end?.constructor ? false : this.tb === other.tb && equals(this.beg?.value, other.beg?.value) && equals(this.end?.value, other.end?.value);
+    }
+    toJSON() {
+      return this.toString();
+    }
+    toString() {
+      let tb = escapeIdent(this.tb), beg = escapeIdBound(this.beg), end = escapeIdBound(this.end);
+      return `${tb}:${beg}${getRangeJoin(this.beg, this.end)}${end}`;
+    }
+  };
+  function getRangeJoin(beg, end) {
+    let output2 = "";
+    return beg instanceof BoundExcluded && (output2 += ">"), output2 += "..", end instanceof BoundIncluded && (output2 += "="), output2;
+  }
+  function isValidIdBound(bound) {
+    return bound instanceof BoundIncluded || bound instanceof BoundExcluded ? isValidIdPart(bound.value) : true;
+  }
+  function escapeIdBound(bound) {
+    return bound instanceof BoundIncluded || bound instanceof BoundExcluded ? escapeIdPart(bound.value) : "";
+  }
+  function escapeRangeBound(bound) {
+    if (bound === void 0) return "";
+    let value = bound.value;
+    return bound instanceof Range ? `(${toSurrealqlString(value)})` : toSurrealqlString(value);
+  }
+  function rangeToCbor([beg, end]) {
+    function encodeBound(bound) {
+      return bound instanceof BoundIncluded ? new Tagged(TAG_BOUND_INCLUDED, bound.value) : bound instanceof BoundExcluded ? new Tagged(TAG_BOUND_EXCLUDED, bound.value) : null;
+    }
+    return [encodeBound(beg), encodeBound(end)];
+  }
+  function cborToRange(range) {
+    function decodeBound(bound) {
+      if (bound !== null) {
+        if (bound.tag === TAG_BOUND_INCLUDED) return new BoundIncluded(bound.value);
+        if (bound.tag === TAG_BOUND_EXCLUDED) return new BoundExcluded(bound.value);
+        throw new SurrealDbError("Invalid bound tag");
+      }
+    }
+    return [decodeBound(range[0]), decodeBound(range[1])];
+  }
+  var TAG_SPEC_DATETIME = 0;
+  var TAG_SPEC_UUID = 37;
+  var TAG_NONE = 6;
+  var TAG_TABLE = 7;
+  var TAG_RECORDID = 8;
+  var TAG_STRING_UUID = 9;
+  var TAG_STRING_DECIMAL = 10;
+  var TAG_CUSTOM_DATETIME = 12;
+  var TAG_STRING_DURATION = 13;
+  var TAG_CUSTOM_DURATION = 14;
+  var TAG_FUTURE = 15;
+  var TAG_RANGE = 49;
+  var TAG_BOUND_INCLUDED = 50;
+  var TAG_BOUND_EXCLUDED = 51;
+  var TAG_GEOMETRY_POINT = 88;
+  var TAG_GEOMETRY_LINE = 89;
+  var TAG_GEOMETRY_POLYGON = 90;
+  var TAG_GEOMETRY_MULTIPOINT = 91;
+  var TAG_GEOMETRY_MULTILINE = 92;
+  var TAG_GEOMETRY_MULTIPOLYGON = 93;
+  var TAG_GEOMETRY_COLLECTION = 94;
+  var replacer = { encode(v3) {
+    return v3 instanceof Date ? new Tagged(TAG_CUSTOM_DATETIME, dateToCborCustomDate(v3)) : v3 === void 0 ? new Tagged(TAG_NONE, null) : v3 instanceof Uuid ? new Tagged(TAG_SPEC_UUID, v3.toBuffer()) : v3 instanceof Decimal ? new Tagged(TAG_STRING_DECIMAL, v3.toString()) : v3 instanceof Duration ? new Tagged(TAG_CUSTOM_DURATION, v3.toCompact()) : v3 instanceof RecordId ? new Tagged(TAG_RECORDID, [v3.tb, v3.id]) : v3 instanceof StringRecordId ? new Tagged(TAG_RECORDID, v3.rid) : v3 instanceof RecordIdRange ? new Tagged(TAG_RECORDID, [v3.tb, new Tagged(TAG_RANGE, rangeToCbor([v3.beg, v3.end]))]) : v3 instanceof Table ? new Tagged(TAG_TABLE, v3.tb) : v3 instanceof Future ? new Tagged(TAG_FUTURE, v3.inner) : v3 instanceof Range ? new Tagged(TAG_RANGE, rangeToCbor([v3.beg, v3.end])) : v3 instanceof GeometryPoint ? new Tagged(TAG_GEOMETRY_POINT, v3.point) : v3 instanceof GeometryLine ? new Tagged(TAG_GEOMETRY_LINE, v3.line) : v3 instanceof GeometryPolygon ? new Tagged(TAG_GEOMETRY_POLYGON, v3.polygon) : v3 instanceof GeometryMultiPoint ? new Tagged(TAG_GEOMETRY_MULTIPOINT, v3.points) : v3 instanceof GeometryMultiLine ? new Tagged(TAG_GEOMETRY_MULTILINE, v3.lines) : v3 instanceof GeometryMultiPolygon ? new Tagged(TAG_GEOMETRY_MULTIPOLYGON, v3.polygons) : v3 instanceof GeometryCollection ? new Tagged(TAG_GEOMETRY_COLLECTION, v3.collection) : v3;
+  }, decode(v3) {
+    if (!(v3 instanceof Tagged)) return v3;
+    switch (v3.tag) {
+      case TAG_SPEC_DATETIME:
+        return new Date(v3.value);
+      case TAG_SPEC_UUID:
+      case TAG_STRING_UUID:
+        return new Uuid(v3.value);
+      case TAG_CUSTOM_DATETIME:
+        return cborCustomDateToDate(v3.value);
+      case TAG_NONE:
+        return;
+      case TAG_STRING_DECIMAL:
+        return new Decimal(v3.value);
+      case TAG_STRING_DURATION:
+        return new Duration(v3.value);
+      case TAG_CUSTOM_DURATION:
+        return Duration.fromCompact(v3.value);
+      case TAG_TABLE:
+        return new Table(v3.value);
+      case TAG_FUTURE:
+        return new Future(v3.value);
+      case TAG_RANGE:
+        return new Range(...cborToRange(v3.value));
+      case TAG_RECORDID:
+        return v3.value[1] instanceof Range ? new RecordIdRange(v3.value[0], v3.value[1].beg, v3.value[1].end) : new RecordId(v3.value[0], v3.value[1]);
+      case TAG_GEOMETRY_POINT:
+        return new GeometryPoint(v3.value);
+      case TAG_GEOMETRY_LINE:
+        return new GeometryLine(v3.value);
+      case TAG_GEOMETRY_POLYGON:
+        return new GeometryPolygon(v3.value);
+      case TAG_GEOMETRY_MULTIPOINT:
+        return new GeometryMultiPoint(v3.value);
+      case TAG_GEOMETRY_MULTILINE:
+        return new GeometryMultiLine(v3.value);
+      case TAG_GEOMETRY_MULTIPOLYGON:
+        return new GeometryMultiPolygon(v3.value);
+      case TAG_GEOMETRY_COLLECTION:
+        return new GeometryCollection(v3.value);
+    }
+  } };
+  Object.freeze(replacer);
+  function encodeCbor(data) {
+    return encode(data, { replacer: replacer.encode });
+  }
+  function decodeCbor(data) {
+    return decode(data, { replacer: replacer.decode });
+  }
+  var textEncoder2;
+  var PreparedQuery = class {
+    _query;
+    _bindings;
+    length;
+    constructor(query, bindings) {
+      textEncoder2 ??= new TextEncoder(), this._query = textEncoder2.encode(query), this._bindings = partiallyEncodeObject(bindings ?? {}, { replacer: replacer.encode }), this.length = Object.keys(this._bindings).length;
+    }
+    get query() {
+      let w3 = new Writer(this._query.byteLength + 9);
+      return w3.writeMajor(3, this._query.byteLength), w3.writeUint8Array(this._query), new Encoded(w3.output(false));
+    }
+    get bindings() {
+      return this._bindings;
+    }
+    build(fills) {
+      return encode([this.query, this.bindings], { fills });
+    }
+    append(query_raw, ...values) {
+      let base = this.length;
+      this.length += values.length;
+      let reused = 0, gaps = /* @__PURE__ */ new Map(), mapped_bindings = values.map((v3, i9) => {
+        if (v3 instanceof Gap) {
+          let index2 = gaps.get(v3);
+          if (index2 !== void 0) return reused++, [`bind___${index2}`, v3];
+          gaps.set(v3, i9 - reused);
+        }
+        return [`bind___${base + i9 - reused}`, v3];
+      });
+      for (let [k3, v3] of mapped_bindings) this._bindings[k3] = encode(v3, { replacer: replacer.encode, partial: true });
+      let query = query_raw.flatMap((segment, i9) => {
+        let variable = mapped_bindings[i9]?.[0];
+        return [segment, ...variable ? [`$${variable}`] : []];
+      }).join("");
+      textEncoder2 ??= new TextEncoder();
+      let current = new Uint8Array(this._query), added = textEncoder2.encode(query);
+      return this._query = new Uint8Array(current.byteLength + added.byteLength), this._query.set(current), this._query.set(added, current.byteLength), this;
+    }
+  };
+  function convertAuth(params) {
+    let result = {}, convertString = (a5, b4, optional) => {
+      if (a5 in params) result[b4] = `${params[a5]}`, delete result[a5];
+      else if (optional !== true) throw new SurrealDbError(`Key ${a5} is missing from the authentication parameters`);
+    };
+    return "scope" in params ? (result = { ...params }, convertString("scope", "sc"), convertString("namespace", "ns"), convertString("database", "db")) : "variables" in params ? (result = { ...params.variables }, convertString("access", "ac"), convertString("namespace", "ns"), convertString("database", "db")) : (convertString("access", "ac", true), convertString("database", "db", true), convertString("namespace", "ns", !("database" in params)), convertString("username", "user"), convertString("password", "pass")), result;
+  }
+  var liveActions = ["CREATE", "UPDATE", "DELETE"];
+  function isLiveResult(v3) {
+    return !(typeof v3 != "object" || v3 === null || !("id" in v3 && "action" in v3 && "result" in v3) || !(v3.id instanceof Uuid) || !liveActions.includes(v3.action) || typeof v3.result != "object" || v3.result === null);
+  }
+  var defaultVersionCheckTimeout = 5e3;
+  var supportedSurrealDbVersionMin = "1.4.2";
+  var supportedSurrealDbVersionUntil = "3.0.0";
+  var supportedSurrealDbVersionRange = `>= ${supportedSurrealDbVersionMin} < ${supportedSurrealDbVersionUntil}`;
+  function versionCheck(version, min2 = supportedSurrealDbVersionMin, until = supportedSurrealDbVersionUntil) {
+    if (!isVersionSupported(version, min2, until)) throw new UnsupportedVersion(version, `>= ${min2} < ${until}`);
+    return true;
+  }
+  function isVersionSupported(version, min2 = supportedSurrealDbVersionMin, until = supportedSurrealDbVersionUntil) {
+    return min2.localeCompare(version, void 0, { numeric: true }) <= 0 && until.localeCompare(version, void 0, { numeric: true }) === 1;
+  }
+  async function retrieveRemoteVersion(url, timeout2) {
+    let protocol = { "ws:": "http:", "wss:": "https:", "http:": "http:", "https:": "https:" }[url.protocol];
+    if (protocol) {
+      let basepath = url.pathname.slice(0, -4);
+      url = new URL(url), url.pathname = `${basepath}/version`, url.protocol = protocol;
+      let controller = new AbortController(), id22 = setTimeout(() => controller.abort(), timeout2 ?? defaultVersionCheckTimeout), versionPrefix = "surrealdb-";
+      return await fetch(url, { signal: controller.signal }).then((res) => res.text()).then((version2) => version2.slice(versionPrefix.length)).catch((e13) => {
+        throw new VersionRetrievalFailure(e13);
+      }).finally(() => {
+        clearTimeout(id22);
+      });
+    }
+    throw new VersionRetrievalFailure();
+  }
+  var id = 0;
+  function getIncrementalID() {
+    return id = (id + 1) % Number.MAX_SAFE_INTEGER, id.toString();
+  }
+  var ConnectionStatus = ((ConnectionStatus2) => (ConnectionStatus2.Disconnected = "disconnected", ConnectionStatus2.Connecting = "connecting", ConnectionStatus2.Connected = "connected", ConnectionStatus2.Error = "error", ConnectionStatus2))(ConnectionStatus || {});
+  var EngineContext = class {
+    emitter;
+    encodeCbor;
+    decodeCbor;
+    constructor({ emitter, encodeCbor: encodeCbor2, decodeCbor: decodeCbor2 }) {
+      this.emitter = emitter, this.encodeCbor = encodeCbor2, this.decodeCbor = decodeCbor2;
+    }
+  };
+  var AbstractEngine = class {
+    context;
+    ready;
+    status = "disconnected";
+    connection = { url: void 0, namespace: void 0, database: void 0, token: void 0 };
+    constructor(context) {
+      this.context = context;
+    }
+    get emitter() {
+      return this.context.emitter;
+    }
+    get encodeCbor() {
+      return this.context.encodeCbor;
+    }
+    get decodeCbor() {
+      return this.context.decodeCbor;
+    }
+    async req_post(body, url, headers_) {
+      let headers = { "Content-Type": "application/cbor", Accept: "application/cbor", ...headers_ };
+      this.connection.namespace && (headers["Surreal-NS"] = this.connection.namespace), this.connection.database && (headers["Surreal-DB"] = this.connection.database), this.connection.token && (headers.Authorization = `Bearer ${this.connection.token}`);
+      let raw = await fetch(`${url ?? this.connection.url}`, { method: "POST", headers, body: this.encodeCbor(body) }), buffer = await raw.arrayBuffer();
+      if (raw.status === 200) return buffer;
+      let dec = new TextDecoder("utf-8");
+      throw new HttpConnectionError(dec.decode(buffer), raw.status, raw.statusText, buffer);
+    }
+  };
+  function processAuthVars(vars, fallback2) {
+    if ("scope" in vars || "access" in vars && "variables" in vars && vars.variables) {
+      if (!vars.namespace) {
+        if (!fallback2?.namespace) throw new NoNamespaceSpecified();
+        vars.namespace = fallback2.namespace;
+      }
+      if (!vars.database) {
+        if (!fallback2?.database) throw new NoDatabaseSpecified();
+        vars.database = fallback2.database;
+      }
+    }
+    return vars;
+  }
+  var ALWAYS_ALLOW = /* @__PURE__ */ new Set(["signin", "signup", "authenticate", "invalidate", "version", "use", "let", "unset", "query"]);
+  var HttpEngine = class extends AbstractEngine {
+    connection = { url: void 0, namespace: void 0, database: void 0, token: void 0, variables: {} };
+    setStatus(status, ...args) {
+      this.status = status, this.emitter.emit(status, args);
+    }
+    version(url, timeout2) {
+      return retrieveRemoteVersion(url, timeout2);
+    }
+    connect(url) {
+      return this.setStatus("connecting"), this.connection.url = url, this.setStatus("connected"), this.ready = new Promise((r22) => r22()), this.ready;
+    }
+    disconnect() {
+      return this.connection = { url: void 0, namespace: void 0, database: void 0, token: void 0, variables: {} }, this.ready = void 0, this.setStatus("disconnected"), new Promise((r22) => r22());
+    }
+    async rpc(request) {
+      if (await this.ready, !this.connection.url) throw new ConnectionUnavailable();
+      if ((!this.connection.namespace || !this.connection.database) && !ALWAYS_ALLOW.has(request.method)) throw new MissingNamespaceDatabase();
+      if (request.method === "use") {
+        let [ns, db] = request.params;
+        return ns === null && (this.connection.namespace = void 0), db === null && (this.connection.database = void 0), ns && (this.connection.namespace = ns), db && (this.connection.database = db), { result: true };
+      }
+      if (request.method === "let") {
+        let [key, value] = request.params;
+        return this.connection.variables[key] = value, { result: true };
+      }
+      if (request.method === "unset") {
+        let [key] = request.params;
+        return delete this.connection.variables[key], { result: true };
+      }
+      request.method === "query" && (request.params = [request.params?.[0], { ...this.connection.variables, ...request.params?.[1] ?? {} }]);
+      let id22 = getIncrementalID(), buffer = await this.req_post({ id: id22, ...request }), response = this.decodeCbor(buffer);
+      if ("result" in response) switch (request.method) {
+        case "signin":
+        case "signup": {
+          this.connection.token = response.result;
+          break;
+        }
+        case "authenticate": {
+          let [token] = request.params;
+          this.connection.token = token;
+          break;
+        }
+        case "invalidate": {
+          this.connection.token = void 0;
+          break;
+        }
+      }
+      return this.emitter.emit(`rpc-${id22}`, [response]), response;
+    }
+    get connected() {
+      return !!this.connection.url;
+    }
+    async export(options) {
+      if (!this.connection.url) throw new ConnectionUnavailable();
+      let url = new URL(this.connection.url), basepath = url.pathname.slice(0, -4);
+      url.pathname = `${basepath}/export`;
+      let buffer = await this.req_post(options ?? {}, url, { Accept: "plain/text" });
+      return new TextDecoder("utf-8").decode(buffer);
+    }
+  };
+  var WebsocketEngine = class extends AbstractEngine {
+    pinger;
+    socket;
+    constructor(context) {
+      super(context), this.emitter.subscribe("disconnected", () => this.pinger?.stop());
+    }
+    setStatus(status, ...args) {
+      this.status = status, this.emitter.emit(status, args);
+    }
+    async requireStatus(status) {
+      return this.status !== status && await this.emitter.subscribeOnce(status), true;
+    }
+    version(url, timeout2) {
+      return retrieveRemoteVersion(url, timeout2);
+    }
+    async connect(url) {
+      this.connection.url = url, this.setStatus("connecting");
+      let socket = new WebSocket2(url.toString(), "cbor"), ready = new Promise((resolve, reject) => {
+        socket.addEventListener("open", () => {
+          this.setStatus("connected"), resolve();
+        }), socket.addEventListener("error", (e13) => {
+          let error = new UnexpectedConnectionError("detail" in e13 ? e13.detail : "error" in e13 ? e13.error : "An unexpected error occurred");
+          this.setStatus("error", error), reject(error);
+        }), socket.addEventListener("close", () => {
+          this.setStatus("disconnected");
+        }), socket.addEventListener("message", async ({ data }) => {
+          try {
+            let decoded = this.decodeCbor(data instanceof ArrayBuffer ? data : data instanceof Blob ? await data.arrayBuffer() : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+            if (typeof decoded == "object" && decoded != null && Object.getPrototypeOf(decoded) === Object.prototype) this.handleRpcResponse(decoded);
+            else throw new UnexpectedServerResponse(decoded);
+          } catch (detail) {
+            socket.dispatchEvent(new CustomEvent("error", { detail }));
+          }
+        });
+      });
+      return this.ready = ready, await ready.then(() => {
+        this.socket = socket, this.pinger?.stop(), this.pinger = new Pinger(3e4), this.pinger.start(() => this.rpc({ method: "ping" }));
+      });
+    }
+    async disconnect() {
+      this.connection = { url: void 0, namespace: void 0, database: void 0, token: void 0 }, await this.ready?.catch(() => {
+      }), this.socket?.close(), this.ready = void 0, this.socket = void 0, await Promise.any([this.requireStatus("disconnected"), this.requireStatus("error")]);
+    }
+    async rpc(request) {
+      if (await this.ready, !this.socket) throw new ConnectionUnavailable();
+      let id22 = getIncrementalID(), response = this.emitter.subscribeOnce(`rpc-${id22}`);
+      this.socket.send(this.encodeCbor({ id: id22, ...request }));
+      let [res] = await response;
+      if (res instanceof EngineDisconnected) throw res;
+      if ("result" in res) switch (request.method) {
+        case "use": {
+          let [ns, db] = request.params;
+          ns === null && (this.connection.namespace = void 0), db === null && (this.connection.database = void 0), ns && (this.connection.namespace = ns), db && (this.connection.database = db);
+          break;
+        }
+        case "signin":
+        case "signup": {
+          this.connection.token = res.result;
+          break;
+        }
+        case "authenticate": {
+          let [token] = request.params;
+          this.connection.token = token;
+          break;
+        }
+        case "invalidate": {
+          this.connection.token = void 0;
+          break;
+        }
+      }
+      return res;
+    }
+    handleRpcResponse({ id: id22, ...res }) {
+      if (id22) this.emitter.emit(`rpc-${id22}`, [res]);
+      else if (res.error) this.setStatus("error", new ResponseError(res.error));
+      else if (isLiveResult(res.result)) {
+        let { id: id32, action, result } = res.result;
+        this.emitter.emit(`live-${id32}`, [action, result], true);
+      } else this.setStatus("error", new UnexpectedServerResponse({ id: id22, ...res }));
+    }
+    get connected() {
+      return !!this.socket;
+    }
+    async export(options) {
+      if (!this.connection.url) throw new ConnectionUnavailable();
+      let url = new URL(this.connection.url), basepath = url.pathname.slice(0, -4);
+      url.protocol = url.protocol.replace("ws", "http"), url.pathname = `${basepath}/export`;
+      let buffer = await this.req_post(options ?? {}, url, { Accept: "plain/text" });
+      return new TextDecoder("utf-8").decode(buffer);
+    }
+  };
+  var Pinger = class {
+    pinger;
+    interval;
+    constructor(interval = 3e4) {
+      this.interval = interval;
+    }
+    start(callback) {
+      this.pinger = setInterval(callback, this.interval);
+    }
+    stop() {
+      clearInterval(this.pinger);
+    }
+  };
+  var Surreal = class {
+    connection;
+    ready;
+    emitter;
+    engines = { ws: WebsocketEngine, wss: WebsocketEngine, http: HttpEngine, https: HttpEngine };
+    constructor({ engines } = {}) {
+      this.emitter = new Emitter(), this.emitter.subscribe("disconnected", () => this.clean()), this.emitter.subscribe("error", () => this.close()), engines && (this.engines = { ...this.engines, ...engines });
+    }
+    async connect(url, opts = {}) {
+      url = new URL(url), url.pathname.endsWith("/rpc") || (url.pathname.endsWith("/") || (url.pathname += "/"), url.pathname += "rpc");
+      let engineName = url.protocol.slice(0, -1), engine = this.engines[engineName];
+      if (!engine) throw new UnsupportedEngine(engineName);
+      let { prepare, auth, namespace, database } = opts;
+      await this.close();
+      let context = new EngineContext({ emitter: this.emitter, encodeCbor, decodeCbor }), connection = new engine(context);
+      if (opts.versionCheck !== false) {
+        let version = await connection.version(url, opts.versionCheckTimeout);
+        versionCheck(version);
+      }
+      return this.connection = connection, this.ready = new Promise((resolve, reject) => connection.connect(url).then(async () => {
+        (namespace || database) && await this.use({ namespace, database }), typeof auth == "string" ? await this.authenticate(auth) : auth && await this.signin(auth), await prepare?.(this), resolve();
+      }).catch(reject)), await this.ready, true;
+    }
+    async close() {
+      return this.clean(), await this.connection?.disconnect(), true;
+    }
+    clean() {
+      let pending = this.emitter.scanListeners((k3) => k3.startsWith("rpc-"));
+      pending.map((k3) => this.emitter.emit(k3, [new EngineDisconnected()]));
+      let live = this.emitter.scanListeners((k3) => k3.startsWith("live-"));
+      live.map((k3) => this.emitter.emit(k3, ["CLOSE", "disconnected"])), this.emitter.reset({ collectable: true, listeners: [...pending, ...live] });
+    }
+    get status() {
+      return this.connection?.status ?? "disconnected";
+    }
+    async ping() {
+      let { error } = await this.rpc("ping");
+      if (error) throw new ResponseError(error.message);
+      return true;
+    }
+    async use({ namespace, database }) {
+      if (!this.connection) throw new NoActiveSocket();
+      if (namespace === null && database !== null) throw new SurrealDbError("Cannot unset namespace without unsetting database");
+      let { error } = await this.rpc("use", [namespace, database]);
+      if (error) throw new ResponseError(error.message);
+      return true;
+    }
+    async info() {
+      await this.ready;
+      let res = await this.rpc("info");
+      if (res.error) throw new ResponseError(res.error.message);
+      return res.result ?? void 0;
+    }
+    async signup(vars) {
+      if (!this.connection) throw new NoActiveSocket();
+      let parsed = processAuthVars(vars, this.connection.connection), converted = convertAuth(parsed), res = await this.rpc("signup", [converted]);
+      if (res.error) throw new ResponseError(res.error.message);
+      if (!res.result) throw new NoTokenReturned();
+      return res.result;
+    }
+    async signin(vars) {
+      if (!this.connection) throw new NoActiveSocket();
+      let parsed = processAuthVars(vars, this.connection.connection), converted = convertAuth(parsed), res = await this.rpc("signin", [converted]);
+      if (res.error) throw new ResponseError(res.error.message);
+      if (!res.result) throw new NoTokenReturned();
+      return res.result;
+    }
+    async authenticate(token) {
+      let res = await this.rpc("authenticate", [token]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return true;
+    }
+    async invalidate() {
+      let res = await this.rpc("invalidate");
+      if (res.error) throw new ResponseError(res.error.message);
+      return true;
+    }
+    async let(variable, value) {
+      let res = await this.rpc("let", [variable, value]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return true;
+    }
+    async unset(variable) {
+      let res = await this.rpc("unset", [variable]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return true;
+    }
+    async live(table, callback, diff) {
+      await this.ready;
+      let res = await this.rpc("live", [table, diff]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return callback && this.subscribeLive(res.result, callback), res.result;
+    }
+    async subscribeLive(queryUuid, callback) {
+      if (await this.ready, !this.connection) throw new NoActiveSocket();
+      this.connection.emitter.subscribe(`live-${queryUuid}`, callback, true);
+    }
+    async unSubscribeLive(queryUuid, callback) {
+      if (await this.ready, !this.connection) throw new NoActiveSocket();
+      this.connection.emitter.unSubscribe(`live-${queryUuid}`, callback);
+    }
+    async kill(queryUuid) {
+      if (await this.ready, !this.connection) throw new NoActiveSocket();
+      if (Array.isArray(queryUuid)) {
+        await Promise.all(queryUuid.map((u22) => this.rpc("kill", [u22])));
+        let toBeKilled = queryUuid.map((u22) => `live-${u22}`);
+        toBeKilled.map((k3) => this.emitter.emit(k3, ["CLOSE", "killed"])), this.connection.emitter.reset({ collectable: toBeKilled, listeners: toBeKilled });
+      } else await this.rpc("kill", [queryUuid]), this.emitter.emit(`live-${queryUuid}`, ["CLOSE", "killed"]), this.connection.emitter.reset({ collectable: `live-${queryUuid}`, listeners: `live-${queryUuid}` });
+    }
+    async query(...args) {
+      return (await this.queryRaw(...args)).map(({ status, result }) => {
+        if (status === "ERR") throw new ResponseError(result);
+        return result;
+      });
+    }
+    async queryRaw(...[q2, b4]) {
+      let params = q2 instanceof PreparedQuery ? [q2.query, partiallyEncodeObject(q2.bindings, { fills: b4, replacer: replacer.encode })] : [q2, b4];
+      await this.ready;
+      let res = await this.rpc("query", params);
+      if (res.error) throw new ResponseError(res.error.message);
+      return res.result;
+    }
+    async query_raw(...args) {
+      return this.queryRaw(...args);
+    }
+    async select(thing) {
+      await this.ready;
+      let res = await this.rpc("select", [thing]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    async create(thing, data) {
+      await this.ready;
+      let res = await this.rpc("create", [thing, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    async insert(arg1, arg2) {
+      await this.ready;
+      let [table, data] = typeof arg1 == "string" || arg1 instanceof Table ? [arg1, arg2] : [void 0, arg1], res = await this.rpc("insert", [table, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return res.result;
+    }
+    async insertRelation(arg1, arg2) {
+      await this.ready;
+      let [table, data] = typeof arg1 == "string" || arg1 instanceof Table ? [arg1, arg2] : [void 0, arg1], res = await this.rpc("insert_relation", [table, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return res.result;
+    }
+    async insert_relation(arg1, arg2) {
+      return arg1 instanceof Table || typeof arg1 == "string" ? this.insertRelation(arg1, arg2) : this.insertRelation(arg1);
+    }
+    async update(thing, data) {
+      await this.ready;
+      let res = await this.rpc("update", [thing, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    async upsert(thing, data) {
+      await this.ready;
+      let res = await this.rpc("upsert", [thing, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    async merge(thing, data) {
+      await this.ready;
+      let res = await this.rpc("merge", [thing, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    async patch(thing, data, diff) {
+      await this.ready;
+      let res = await this.rpc("patch", [thing, data, diff]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return diff ? res.result : output(thing, res.result);
+    }
+    async delete(thing) {
+      await this.ready;
+      let res = await this.rpc("delete", [thing]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    async version() {
+      await this.ready;
+      let res = await this.rpc("version");
+      if (res.error) throw new ResponseError(res.error.message);
+      return res.result;
+    }
+    async run(name, arg2, arg3) {
+      await this.ready;
+      let [version, args] = Array.isArray(arg2) ? [void 0, arg2] : [arg2, arg3], res = await this.rpc("run", [name, version, args]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return res.result;
+    }
+    async relate(from, thing, to, data) {
+      await this.ready;
+      let res = await this.rpc("relate", [from, thing, to, data]);
+      if (res.error) throw new ResponseError(res.error.message);
+      return output(thing, res.result);
+    }
+    rpc(method, params) {
+      if (!this.connection) throw new NoActiveSocket();
+      return this.connection.rpc({ method, params });
+    }
+    async export(options) {
+      if (await this.ready, !this.connection) throw new NoActiveSocket();
+      return this.connection.export(options);
+    }
+  };
+  function output(subject, input) {
+    return subject instanceof RecordId || subject instanceof StringRecordId ? Array.isArray(input) ? input[0] : input : Array.isArray(input) ? input : [input];
+  }
+
+  // src/domains/database/infrastructure/SurrealDbAdapter.ts
+  var pop = (data, count = 1) => {
+    let tmp = data;
+    while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
+      tmp = tmp[0];
+      count--;
+    }
+    return tmp;
+  };
+  var SurrealDbAdapter = class {
+    config;
+    client = new Surreal();
+    constructor(config) {
+      const { namespace, database, url } = config;
+      this.config = {
+        namespace,
+        database,
+        url
+      };
+      Object.freeze(this.config);
+    }
+    async initialize() {
+      const { url, namespace, database } = this.config;
+      try {
+        await this.client.connect(url, {
+          namespace,
+          database
+        });
+      } catch (err) {
+        console.error(
+          "Failed to connect to SurrealDB:",
+          err instanceof Error ? err.message : String(err)
+        );
+        await this.client.close();
+        throw err;
+      }
+    }
+    async getListings(filters) {
+      let whereClause = "";
+      const conditions = [];
+      if (filters?.indexLetter) {
+        conditions.push(
+          `string::starts_with(string::lowercase(title), '${filters.indexLetter.toLocaleLowerCase()}')`
+        );
+      }
+      if (filters?.tagKeys?.length) {
+        const tagstr = filters.tagKeys.map((key) => key).join("', '");
+        conditions.push(`tags[WHERE key ALLINSIDE ['${tagstr}']]`);
+      }
+      if (conditions.length) {
+        whereClause = ` WHERE ${conditions.join(" AND ")}`;
+      }
+      const query = `SELECT *, tags.*.* FROM ${"listings" /* LISTINGS */}${whereClause};`;
+      console.log({ query });
+      const res = pop(await this.client.query(query));
+      return res;
+    }
+    async getIndexLetters() {
+      const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
+      const res = pop(await this.client.query(query));
+      return res;
+    }
+    async getTags() {
+      const query = `
+      SELECT *, count(
+        SELECT id
+        FROM listings
+        WHERE $parent.id INSIDE tags
+      ) as usageCount
+      FROM tags;
+    `;
+      const res = pop(await this.client.query(query));
+      return res;
+    }
+    async authenticate(token, failSilently) {
+      let res = false;
+      try {
+        res = await this.client.authenticate(token);
+      } catch (err) {
+        if (!failSilently) {
+          console.error(err.message);
+        }
+      }
+      return res;
+    }
+    async getUserData() {
+      const query = `SELECT * FROM ${"user" /* USER */};`;
+      const res = pop(await this.client.query(query), 2);
+      return res;
+    }
+  };
+
+  // src/domains/database/createDatabaseAdapter.ts
+  var createDatabaseAdapter = async (surrealConfig) => {
+    const instance = new SurrealDbAdapter(surrealConfig);
+    await instance.initialize();
+    return instance;
+  };
+
+  // src/shared/lib/utils.ts
+  var timeout = async (ms = 600, fn) => {
+    return new Promise(
+      (resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms)
+    );
+  };
+
+  // src/domains/configs/ConfigsService.ts
+  var ConfigsService = class {
+    configsUrl;
+    constructor(configsUrl) {
+      this.configsUrl = configsUrl;
+    }
+    async loadConfigs() {
+      console.log({ configsUrl: this.configsUrl });
+      await timeout();
+      return {
+        auth0: {
+          domain: "intergate.eu.auth0.com",
+          clientId: "d63m36lvjcGcQZoYjF06IIgczFdIHGqN",
+          authorizationParams: {
+            audience: "https://surrealdb.com/",
+            redirect_uri: window.location.origin
+          }
+        },
+        surreal: {
+          namespace: "intergate",
+          database: "gul-info",
+          url: "https://127.0.0.1:7999/rpc"
+        }
+      };
+    }
+  };
+
+  // src/solid-js/application/createConfigsServiceAdaper.ts
+  var createConfigsServiceAdaper = async (url) => {
+    const adapter = new ConfigsService(url);
+    const configs = await adapter.loadConfigs();
+    return configs;
+  };
+
+  // src/solid-js/ui/providers/CoreProvider.tsx
+  var SystemContext = createContext();
+  var CoreProvider = (props) => {
+    const [resolved, setResolved] = createSignal();
+    createEffect(async () => {
+      const configs = await createConfigsServiceAdaper("https://intergate.io/configs/gul-info-hurdal");
+      const db = await createDatabaseAdapter(configs.surreal);
+      setResolved({
+        configs: () => configs,
+        db: () => db
+      });
+    });
+    const [system] = createResource(() => resolved(), (resolved2) => resolved2);
+    return createComponent(Show, {
+      get when() {
+        return system();
+      },
+      get children() {
+        return createComponent(SystemContext.Provider, {
+          get value() {
+            return system();
+          },
+          get children() {
+            return props.children;
+          }
+        });
+      }
+    });
+  };
+  var useSystem = () => {
+    const context = useContext(SystemContext);
+    if (!context) {
+      throw new Error("useSystem must be used within an CoreProvider");
+    }
+    return context;
+  };
+
+  // node_modules/.pnpm/@auth0+auth0-spa-js@2.1.3/node_modules/@auth0/auth0-spa-js/dist/auth0-spa-js.production.esm.js
+  function e(e13, t7) {
+    var i9 = {};
+    for (var o11 in e13) Object.prototype.hasOwnProperty.call(e13, o11) && t7.indexOf(o11) < 0 && (i9[o11] = e13[o11]);
+    if (null != e13 && "function" == typeof Object.getOwnPropertySymbols) {
+      var n9 = 0;
+      for (o11 = Object.getOwnPropertySymbols(e13); n9 < o11.length; n9++) t7.indexOf(o11[n9]) < 0 && Object.prototype.propertyIsEnumerable.call(e13, o11[n9]) && (i9[o11[n9]] = e13[o11[n9]]);
+    }
+    return i9;
+  }
+  var t = "undefined" != typeof globalThis ? globalThis : "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : {};
+  function i(e13) {
+    return e13 && e13.__esModule && Object.prototype.hasOwnProperty.call(e13, "default") ? e13.default : e13;
+  }
+  function o(e13, t7) {
+    return e13(t7 = { exports: {} }, t7.exports), t7.exports;
+  }
+  var n = o(function(e13, t7) {
+    Object.defineProperty(t7, "__esModule", { value: true });
+    var i9 = function() {
+      function e14() {
+        var e15 = this;
+        this.locked = /* @__PURE__ */ new Map(), this.addToLocked = function(t8, i10) {
+          var o11 = e15.locked.get(t8);
+          void 0 === o11 ? void 0 === i10 ? e15.locked.set(t8, []) : e15.locked.set(t8, [i10]) : void 0 !== i10 && (o11.unshift(i10), e15.locked.set(t8, o11));
+        }, this.isLocked = function(t8) {
+          return e15.locked.has(t8);
+        }, this.lock = function(t8) {
+          return new Promise(function(i10, o11) {
+            e15.isLocked(t8) ? e15.addToLocked(t8, i10) : (e15.addToLocked(t8), i10());
+          });
+        }, this.unlock = function(t8) {
+          var i10 = e15.locked.get(t8);
+          if (void 0 !== i10 && 0 !== i10.length) {
+            var o11 = i10.pop();
+            e15.locked.set(t8, i10), void 0 !== o11 && setTimeout(o11, 0);
+          } else e15.locked.delete(t8);
+        };
+      }
+      return e14.getInstance = function() {
+        return void 0 === e14.instance && (e14.instance = new e14()), e14.instance;
+      }, e14;
+    }();
+    t7.default = function() {
+      return i9.getInstance();
+    };
+  });
+  i(n);
+  var a = i(o(function(e13, i9) {
+    var o11 = t && t.__awaiter || function(e14, t7, i10, o12) {
+      return new (i10 || (i10 = Promise))(function(n9, a6) {
+        function r11(e15) {
+          try {
+            c8(o12.next(e15));
+          } catch (e16) {
+            a6(e16);
+          }
+        }
+        function s6(e15) {
+          try {
+            c8(o12.throw(e15));
+          } catch (e16) {
+            a6(e16);
+          }
+        }
+        function c8(e15) {
+          e15.done ? n9(e15.value) : new i10(function(t8) {
+            t8(e15.value);
+          }).then(r11, s6);
+        }
+        c8((o12 = o12.apply(e14, t7 || [])).next());
+      });
+    }, a5 = t && t.__generator || function(e14, t7) {
+      var i10, o12, n9, a6, r11 = { label: 0, sent: function() {
+        if (1 & n9[0]) throw n9[1];
+        return n9[1];
+      }, trys: [], ops: [] };
+      return a6 = { next: s6(0), throw: s6(1), return: s6(2) }, "function" == typeof Symbol && (a6[Symbol.iterator] = function() {
+        return this;
+      }), a6;
+      function s6(a7) {
+        return function(s7) {
+          return function(a8) {
+            if (i10) throw new TypeError("Generator is already executing.");
+            for (; r11; ) try {
+              if (i10 = 1, o12 && (n9 = 2 & a8[0] ? o12.return : a8[0] ? o12.throw || ((n9 = o12.return) && n9.call(o12), 0) : o12.next) && !(n9 = n9.call(o12, a8[1])).done) return n9;
+              switch (o12 = 0, n9 && (a8 = [2 & a8[0], n9.value]), a8[0]) {
+                case 0:
+                case 1:
+                  n9 = a8;
+                  break;
+                case 4:
+                  return r11.label++, { value: a8[1], done: false };
+                case 5:
+                  r11.label++, o12 = a8[1], a8 = [0];
+                  continue;
+                case 7:
+                  a8 = r11.ops.pop(), r11.trys.pop();
+                  continue;
+                default:
+                  if (!(n9 = r11.trys, (n9 = n9.length > 0 && n9[n9.length - 1]) || 6 !== a8[0] && 2 !== a8[0])) {
+                    r11 = 0;
+                    continue;
+                  }
+                  if (3 === a8[0] && (!n9 || a8[1] > n9[0] && a8[1] < n9[3])) {
+                    r11.label = a8[1];
+                    break;
+                  }
+                  if (6 === a8[0] && r11.label < n9[1]) {
+                    r11.label = n9[1], n9 = a8;
+                    break;
+                  }
+                  if (n9 && r11.label < n9[2]) {
+                    r11.label = n9[2], r11.ops.push(a8);
+                    break;
+                  }
+                  n9[2] && r11.ops.pop(), r11.trys.pop();
+                  continue;
+              }
+              a8 = t7.call(e14, r11);
+            } catch (e15) {
+              a8 = [6, e15], o12 = 0;
+            } finally {
+              i10 = n9 = 0;
+            }
+            if (5 & a8[0]) throw a8[1];
+            return { value: a8[0] ? a8[1] : void 0, done: true };
+          }([a7, s7]);
+        };
+      }
+    }, r10 = t;
+    Object.defineProperty(i9, "__esModule", { value: true });
+    var s5 = "browser-tabs-lock-key", c7 = { key: function(e14) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, getItem: function(e14) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, clear: function() {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e14) {
+          return [2, window.localStorage.clear()];
+        });
+      });
+    }, removeItem: function(e14) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, setItem: function(e14, t7) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, keySync: function(e14) {
+      return window.localStorage.key(e14);
+    }, getItemSync: function(e14) {
+      return window.localStorage.getItem(e14);
+    }, clearSync: function() {
+      return window.localStorage.clear();
+    }, removeItemSync: function(e14) {
+      return window.localStorage.removeItem(e14);
+    }, setItemSync: function(e14, t7) {
+      return window.localStorage.setItem(e14, t7);
+    } };
+    function d4(e14) {
+      return new Promise(function(t7) {
+        return setTimeout(t7, e14);
+      });
+    }
+    function u6(e14) {
+      for (var t7 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz", i10 = "", o12 = 0; o12 < e14; o12++) {
+        i10 += t7[Math.floor(Math.random() * t7.length)];
+      }
+      return i10;
+    }
+    var l6 = function() {
+      function e14(t7) {
+        this.acquiredIatSet = /* @__PURE__ */ new Set(), this.storageHandler = void 0, this.id = Date.now().toString() + u6(15), this.acquireLock = this.acquireLock.bind(this), this.releaseLock = this.releaseLock.bind(this), this.releaseLock__private__ = this.releaseLock__private__.bind(this), this.waitForSomethingToChange = this.waitForSomethingToChange.bind(this), this.refreshLockWhileAcquired = this.refreshLockWhileAcquired.bind(this), this.storageHandler = t7, void 0 === e14.waiters && (e14.waiters = []);
+      }
+      return e14.prototype.acquireLock = function(t7, i10) {
+        return void 0 === i10 && (i10 = 5e3), o11(this, void 0, void 0, function() {
+          var o12, n9, r11, l7, h6, p4, m4;
+          return a5(this, function(a6) {
+            switch (a6.label) {
+              case 0:
+                o12 = Date.now() + u6(4), n9 = Date.now() + i10, r11 = s5 + "-" + t7, l7 = void 0 === this.storageHandler ? c7 : this.storageHandler, a6.label = 1;
+              case 1:
+                return Date.now() < n9 ? [4, d4(30)] : [3, 8];
+              case 2:
+                return a6.sent(), null !== l7.getItemSync(r11) ? [3, 5] : (h6 = this.id + "-" + t7 + "-" + o12, [4, d4(Math.floor(25 * Math.random()))]);
+              case 3:
+                return a6.sent(), l7.setItemSync(r11, JSON.stringify({ id: this.id, iat: o12, timeoutKey: h6, timeAcquired: Date.now(), timeRefreshed: Date.now() })), [4, d4(30)];
+              case 4:
+                return a6.sent(), null !== (p4 = l7.getItemSync(r11)) && (m4 = JSON.parse(p4)).id === this.id && m4.iat === o12 ? (this.acquiredIatSet.add(o12), this.refreshLockWhileAcquired(r11, o12), [2, true]) : [3, 7];
+              case 5:
+                return e14.lockCorrector(void 0 === this.storageHandler ? c7 : this.storageHandler), [4, this.waitForSomethingToChange(n9)];
+              case 6:
+                a6.sent(), a6.label = 7;
+              case 7:
+                return o12 = Date.now() + u6(4), [3, 1];
+              case 8:
+                return [2, false];
+            }
+          });
+        });
+      }, e14.prototype.refreshLockWhileAcquired = function(e15, t7) {
+        return o11(this, void 0, void 0, function() {
+          var i10 = this;
+          return a5(this, function(r11) {
+            return setTimeout(function() {
+              return o11(i10, void 0, void 0, function() {
+                var i11, o12, r12;
+                return a5(this, function(a6) {
+                  switch (a6.label) {
+                    case 0:
+                      return [4, n.default().lock(t7)];
+                    case 1:
+                      return a6.sent(), this.acquiredIatSet.has(t7) ? (i11 = void 0 === this.storageHandler ? c7 : this.storageHandler, null === (o12 = i11.getItemSync(e15)) ? (n.default().unlock(t7), [2]) : ((r12 = JSON.parse(o12)).timeRefreshed = Date.now(), i11.setItemSync(e15, JSON.stringify(r12)), n.default().unlock(t7), this.refreshLockWhileAcquired(e15, t7), [2])) : (n.default().unlock(t7), [2]);
+                  }
+                });
+              });
+            }, 1e3), [2];
+          });
+        });
+      }, e14.prototype.waitForSomethingToChange = function(t7) {
+        return o11(this, void 0, void 0, function() {
+          return a5(this, function(i10) {
+            switch (i10.label) {
+              case 0:
+                return [4, new Promise(function(i11) {
+                  var o12 = false, n9 = Date.now(), a6 = false;
+                  function r11() {
+                    if (a6 || (window.removeEventListener("storage", r11), e14.removeFromWaiting(r11), clearTimeout(s6), a6 = true), !o12) {
+                      o12 = true;
+                      var t8 = 50 - (Date.now() - n9);
+                      t8 > 0 ? setTimeout(i11, t8) : i11(null);
+                    }
+                  }
+                  window.addEventListener("storage", r11), e14.addToWaiting(r11);
+                  var s6 = setTimeout(r11, Math.max(0, t7 - Date.now()));
+                })];
+              case 1:
+                return i10.sent(), [2];
+            }
+          });
+        });
+      }, e14.addToWaiting = function(t7) {
+        this.removeFromWaiting(t7), void 0 !== e14.waiters && e14.waiters.push(t7);
+      }, e14.removeFromWaiting = function(t7) {
+        void 0 !== e14.waiters && (e14.waiters = e14.waiters.filter(function(e15) {
+          return e15 !== t7;
+        }));
+      }, e14.notifyWaiters = function() {
+        void 0 !== e14.waiters && e14.waiters.slice().forEach(function(e15) {
+          return e15();
+        });
+      }, e14.prototype.releaseLock = function(e15) {
+        return o11(this, void 0, void 0, function() {
+          return a5(this, function(t7) {
+            switch (t7.label) {
+              case 0:
+                return [4, this.releaseLock__private__(e15)];
+              case 1:
+                return [2, t7.sent()];
+            }
+          });
+        });
+      }, e14.prototype.releaseLock__private__ = function(t7) {
+        return o11(this, void 0, void 0, function() {
+          var i10, o12, r11, d5;
+          return a5(this, function(a6) {
+            switch (a6.label) {
+              case 0:
+                return i10 = void 0 === this.storageHandler ? c7 : this.storageHandler, o12 = s5 + "-" + t7, null === (r11 = i10.getItemSync(o12)) ? [2] : (d5 = JSON.parse(r11)).id !== this.id ? [3, 2] : [4, n.default().lock(d5.iat)];
+              case 1:
+                a6.sent(), this.acquiredIatSet.delete(d5.iat), i10.removeItemSync(o12), n.default().unlock(d5.iat), e14.notifyWaiters(), a6.label = 2;
+              case 2:
+                return [2];
+            }
+          });
+        });
+      }, e14.lockCorrector = function(t7) {
+        for (var i10 = Date.now() - 5e3, o12 = t7, n9 = [], a6 = 0; ; ) {
+          var r11 = o12.keySync(a6);
+          if (null === r11) break;
+          n9.push(r11), a6++;
+        }
+        for (var c8 = false, d5 = 0; d5 < n9.length; d5++) {
+          var u7 = n9[d5];
+          if (u7.includes(s5)) {
+            var l7 = o12.getItemSync(u7);
+            if (null !== l7) {
+              var h6 = JSON.parse(l7);
+              (void 0 === h6.timeRefreshed && h6.timeAcquired < i10 || void 0 !== h6.timeRefreshed && h6.timeRefreshed < i10) && (o12.removeItemSync(u7), c8 = true);
+            }
+          }
+        }
+        c8 && e14.notifyWaiters();
+      }, e14.waiters = void 0, e14;
+    }();
+    i9.default = l6;
+  }));
+  var r = { timeoutInSeconds: 60 };
+  var s = { name: "auth0-spa-js", version: "2.1.3" };
+  var c = () => Date.now();
+  var d = class _d extends Error {
+    constructor(e13, t7) {
+      super(t7), this.error = e13, this.error_description = t7, Object.setPrototypeOf(this, _d.prototype);
+    }
+    static fromPayload({ error: e13, error_description: t7 }) {
+      return new _d(e13, t7);
+    }
+  };
+  var u = class _u extends d {
+    constructor(e13, t7, i9, o11 = null) {
+      super(e13, t7), this.state = i9, this.appState = o11, Object.setPrototypeOf(this, _u.prototype);
+    }
+  };
+  var l = class _l extends d {
+    constructor() {
+      super("timeout", "Timeout"), Object.setPrototypeOf(this, _l.prototype);
+    }
+  };
+  var h = class _h extends l {
+    constructor(e13) {
+      super(), this.popup = e13, Object.setPrototypeOf(this, _h.prototype);
+    }
+  };
+  var p = class _p extends d {
+    constructor(e13) {
+      super("cancelled", "Popup closed"), this.popup = e13, Object.setPrototypeOf(this, _p.prototype);
+    }
+  };
+  var m = class _m extends d {
+    constructor(e13, t7, i9) {
+      super(e13, t7), this.mfa_token = i9, Object.setPrototypeOf(this, _m.prototype);
+    }
+  };
+  var f2 = class _f extends d {
+    constructor(e13, t7) {
+      super("missing_refresh_token", `Missing Refresh Token (audience: '${g(e13, ["default"])}', scope: '${g(t7)}')`), this.audience = e13, this.scope = t7, Object.setPrototypeOf(this, _f.prototype);
+    }
+  };
+  function g(e13, t7 = []) {
+    return e13 && !t7.includes(e13) ? e13 : "";
+  }
+  var w = () => window.crypto;
+  var y = () => {
+    const e13 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.";
+    let t7 = "";
+    return Array.from(w().getRandomValues(new Uint8Array(43))).forEach((i9) => t7 += e13[i9 % e13.length]), t7;
+  };
+  var k = (e13) => btoa(e13);
+  var v = (t7) => {
+    var { clientId: i9 } = t7, o11 = e(t7, ["clientId"]);
+    return new URLSearchParams(((e13) => Object.keys(e13).filter((t8) => void 0 !== e13[t8]).reduce((t8, i10) => Object.assign(Object.assign({}, t8), { [i10]: e13[i10] }), {}))(Object.assign({ client_id: i9 }, o11))).toString();
+  };
+  var b = (e13) => ((e14) => decodeURIComponent(atob(e14).split("").map((e15) => "%" + ("00" + e15.charCodeAt(0).toString(16)).slice(-2)).join("")))(e13.replace(/_/g, "/").replace(/-/g, "+"));
+  var _ = async (e13, t7) => {
+    const i9 = await fetch(e13, t7);
+    return { ok: i9.ok, json: await i9.json() };
+  };
+  var I = async (e13, t7, i9) => {
+    const o11 = new AbortController();
+    let n9;
+    return t7.signal = o11.signal, Promise.race([_(e13, t7), new Promise((e14, t8) => {
+      n9 = setTimeout(() => {
+        o11.abort(), t8(new Error("Timeout when executing 'fetch'"));
+      }, i9);
+    })]).finally(() => {
+      clearTimeout(n9);
+    });
+  };
+  var S = async (e13, t7, i9, o11, n9, a5, r10) => {
+    return s5 = { auth: { audience: t7, scope: i9 }, timeout: n9, fetchUrl: e13, fetchOptions: o11, useFormData: r10 }, c7 = a5, new Promise(function(e14, t8) {
+      const i10 = new MessageChannel();
+      i10.port1.onmessage = function(o12) {
+        o12.data.error ? t8(new Error(o12.data.error)) : e14(o12.data), i10.port1.close();
+      }, c7.postMessage(s5, [i10.port2]);
+    });
+    var s5, c7;
+  };
+  var O = async (e13, t7, i9, o11, n9, a5, r10 = 1e4) => n9 ? S(e13, t7, i9, o11, r10, n9, a5) : I(e13, o11, r10);
+  async function T(t7, i9) {
+    var { baseUrl: o11, timeout: n9, audience: a5, scope: r10, auth0Client: c7, useFormData: u6 } = t7, l6 = e(t7, ["baseUrl", "timeout", "audience", "scope", "auth0Client", "useFormData"]);
+    const h6 = u6 ? v(l6) : JSON.stringify(l6);
+    return await async function(t8, i10, o12, n10, a6, r11, s5) {
+      let c8, u7 = null;
+      for (let e13 = 0; e13 < 3; e13++) try {
+        c8 = await O(t8, o12, n10, a6, r11, s5, i10), u7 = null;
+        break;
+      } catch (e14) {
+        u7 = e14;
+      }
+      if (u7) throw u7;
+      const l7 = c8.json, { error: h7, error_description: p4 } = l7, g3 = e(l7, ["error", "error_description"]), { ok: w3 } = c8;
+      if (!w3) {
+        const e13 = p4 || `HTTP error. Unable to fetch ${t8}`;
+        if ("mfa_required" === h7) throw new m(h7, e13, g3.mfa_token);
+        if ("missing_refresh_token" === h7) throw new f2(o12, n10);
+        throw new d(h7 || "request_error", e13);
+      }
+      return g3;
+    }(`${o11}/oauth/token`, n9, a5 || "default", r10, { method: "POST", body: h6, headers: { "Content-Type": u6 ? "application/x-www-form-urlencoded" : "application/json", "Auth0-Client": btoa(JSON.stringify(c7 || s)) } }, i9, u6);
+  }
+  var j = (...e13) => {
+    return (t7 = e13.filter(Boolean).join(" ").trim().split(/\s+/), Array.from(new Set(t7))).join(" ");
+    var t7;
+  };
+  var C = class _C {
+    constructor(e13, t7 = "@@auth0spajs@@", i9) {
+      this.prefix = t7, this.suffix = i9, this.clientId = e13.clientId, this.scope = e13.scope, this.audience = e13.audience;
+    }
+    toKey() {
+      return [this.prefix, this.clientId, this.audience, this.scope, this.suffix].filter(Boolean).join("::");
+    }
+    static fromKey(e13) {
+      const [t7, i9, o11, n9] = e13.split("::");
+      return new _C({ clientId: i9, scope: n9, audience: o11 }, t7);
+    }
+    static fromCacheEntry(e13) {
+      const { scope: t7, audience: i9, client_id: o11 } = e13;
+      return new _C({ scope: t7, audience: i9, clientId: o11 });
+    }
+  };
+  var z = class {
+    set(e13, t7) {
+      localStorage.setItem(e13, JSON.stringify(t7));
+    }
+    get(e13) {
+      const t7 = window.localStorage.getItem(e13);
+      if (t7) try {
+        return JSON.parse(t7);
+      } catch (e14) {
+        return;
+      }
+    }
+    remove(e13) {
+      localStorage.removeItem(e13);
+    }
+    allKeys() {
+      return Object.keys(window.localStorage).filter((e13) => e13.startsWith("@@auth0spajs@@"));
+    }
+  };
+  var P = class {
+    constructor() {
+      this.enclosedCache = /* @__PURE__ */ function() {
+        let e13 = {};
+        return { set(t7, i9) {
+          e13[t7] = i9;
+        }, get(t7) {
+          const i9 = e13[t7];
+          if (i9) return i9;
+        }, remove(t7) {
+          delete e13[t7];
+        }, allKeys: () => Object.keys(e13) };
+      }();
+    }
+  };
+  var x = class {
+    constructor(e13, t7, i9) {
+      this.cache = e13, this.keyManifest = t7, this.nowProvider = i9 || c;
+    }
+    async setIdToken(e13, t7, i9) {
+      var o11;
+      const n9 = this.getIdTokenCacheKey(e13);
+      await this.cache.set(n9, { id_token: t7, decodedToken: i9 }), await (null === (o11 = this.keyManifest) || void 0 === o11 ? void 0 : o11.add(n9));
+    }
+    async getIdToken(e13) {
+      const t7 = await this.cache.get(this.getIdTokenCacheKey(e13.clientId));
+      if (!t7 && e13.scope && e13.audience) {
+        const t8 = await this.get(e13);
+        if (!t8) return;
+        if (!t8.id_token || !t8.decodedToken) return;
+        return { id_token: t8.id_token, decodedToken: t8.decodedToken };
+      }
+      if (t7) return { id_token: t7.id_token, decodedToken: t7.decodedToken };
+    }
+    async get(e13, t7 = 0) {
+      var i9;
+      let o11 = await this.cache.get(e13.toKey());
+      if (!o11) {
+        const t8 = await this.getCacheKeys();
+        if (!t8) return;
+        const i10 = this.matchExistingCacheKey(e13, t8);
+        i10 && (o11 = await this.cache.get(i10));
+      }
+      if (!o11) return;
+      const n9 = await this.nowProvider(), a5 = Math.floor(n9 / 1e3);
+      return o11.expiresAt - t7 < a5 ? o11.body.refresh_token ? (o11.body = { refresh_token: o11.body.refresh_token }, await this.cache.set(e13.toKey(), o11), o11.body) : (await this.cache.remove(e13.toKey()), void await (null === (i9 = this.keyManifest) || void 0 === i9 ? void 0 : i9.remove(e13.toKey()))) : o11.body;
+    }
+    async set(e13) {
+      var t7;
+      const i9 = new C({ clientId: e13.client_id, scope: e13.scope, audience: e13.audience }), o11 = await this.wrapCacheEntry(e13);
+      await this.cache.set(i9.toKey(), o11), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.add(i9.toKey()));
+    }
+    async clear(e13) {
+      var t7;
+      const i9 = await this.getCacheKeys();
+      i9 && (await i9.filter((t8) => !e13 || t8.includes(e13)).reduce(async (e14, t8) => {
+        await e14, await this.cache.remove(t8);
+      }, Promise.resolve()), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.clear()));
+    }
+    async wrapCacheEntry(e13) {
+      const t7 = await this.nowProvider();
+      return { body: e13, expiresAt: Math.floor(t7 / 1e3) + e13.expires_in };
+    }
+    async getCacheKeys() {
+      var e13;
+      return this.keyManifest ? null === (e13 = await this.keyManifest.get()) || void 0 === e13 ? void 0 : e13.keys : this.cache.allKeys ? this.cache.allKeys() : void 0;
+    }
+    getIdTokenCacheKey(e13) {
+      return new C({ clientId: e13 }, "@@auth0spajs@@", "@@user@@").toKey();
+    }
+    matchExistingCacheKey(e13, t7) {
+      return t7.filter((t8) => {
+        var i9;
+        const o11 = C.fromKey(t8), n9 = new Set(o11.scope && o11.scope.split(" ")), a5 = (null === (i9 = e13.scope) || void 0 === i9 ? void 0 : i9.split(" ")) || [], r10 = o11.scope && a5.reduce((e14, t9) => e14 && n9.has(t9), true);
+        return "@@auth0spajs@@" === o11.prefix && o11.clientId === e13.clientId && o11.audience === e13.audience && r10;
+      })[0];
+    }
+  };
+  var Z = class {
+    constructor(e13, t7, i9) {
+      this.storage = e13, this.clientId = t7, this.cookieDomain = i9, this.storageKey = `a0.spajs.txs.${this.clientId}`;
+    }
+    create(e13) {
+      this.storage.save(this.storageKey, e13, { daysUntilExpire: 1, cookieDomain: this.cookieDomain });
+    }
+    get() {
+      return this.storage.get(this.storageKey);
+    }
+    remove() {
+      this.storage.remove(this.storageKey, { cookieDomain: this.cookieDomain });
+    }
+  };
+  var K = (e13) => "number" == typeof e13;
+  var W = ["iss", "aud", "exp", "nbf", "iat", "jti", "azp", "nonce", "auth_time", "at_hash", "c_hash", "acr", "amr", "sub_jwk", "cnf", "sip_from_tag", "sip_date", "sip_callid", "sip_cseq_num", "sip_via_branch", "orig", "dest", "mky", "events", "toe", "txn", "rph", "sid", "vot", "vtm"];
+  var E = (e13) => {
+    if (!e13.id_token) throw new Error("ID token is required but missing");
+    const t7 = ((e14) => {
+      const t8 = e14.split("."), [i10, o12, n10] = t8;
+      if (3 !== t8.length || !i10 || !o12 || !n10) throw new Error("ID token could not be decoded");
+      const a5 = JSON.parse(b(o12)), r10 = { __raw: e14 }, s5 = {};
+      return Object.keys(a5).forEach((e15) => {
+        r10[e15] = a5[e15], W.includes(e15) || (s5[e15] = a5[e15]);
+      }), { encoded: { header: i10, payload: o12, signature: n10 }, header: JSON.parse(b(i10)), claims: r10, user: s5 };
+    })(e13.id_token);
+    if (!t7.claims.iss) throw new Error("Issuer (iss) claim must be a string present in the ID token");
+    if (t7.claims.iss !== e13.iss) throw new Error(`Issuer (iss) claim mismatch in the ID token; expected "${e13.iss}", found "${t7.claims.iss}"`);
+    if (!t7.user.sub) throw new Error("Subject (sub) claim must be a string present in the ID token");
+    if ("RS256" !== t7.header.alg) throw new Error(`Signature algorithm of "${t7.header.alg}" is not supported. Expected the ID token to be signed with "RS256".`);
+    if (!t7.claims.aud || "string" != typeof t7.claims.aud && !Array.isArray(t7.claims.aud)) throw new Error("Audience (aud) claim must be a string or array of strings present in the ID token");
+    if (Array.isArray(t7.claims.aud)) {
+      if (!t7.claims.aud.includes(e13.aud)) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but was not one of "${t7.claims.aud.join(", ")}"`);
+      if (t7.claims.aud.length > 1) {
+        if (!t7.claims.azp) throw new Error("Authorized Party (azp) claim must be a string present in the ID token when Audience (aud) claim has multiple values");
+        if (t7.claims.azp !== e13.aud) throw new Error(`Authorized Party (azp) claim mismatch in the ID token; expected "${e13.aud}", found "${t7.claims.azp}"`);
+      }
+    } else if (t7.claims.aud !== e13.aud) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but found "${t7.claims.aud}"`);
+    if (e13.nonce) {
+      if (!t7.claims.nonce) throw new Error("Nonce (nonce) claim must be a string present in the ID token");
+      if (t7.claims.nonce !== e13.nonce) throw new Error(`Nonce (nonce) claim mismatch in the ID token; expected "${e13.nonce}", found "${t7.claims.nonce}"`);
+    }
+    if (e13.max_age && !K(t7.claims.auth_time)) throw new Error("Authentication Time (auth_time) claim must be a number present in the ID token when Max Age (max_age) is specified");
+    if (null == t7.claims.exp || !K(t7.claims.exp)) throw new Error("Expiration Time (exp) claim must be a number present in the ID token");
+    if (!K(t7.claims.iat)) throw new Error("Issued At (iat) claim must be a number present in the ID token");
+    const i9 = e13.leeway || 60, o11 = new Date(e13.now || Date.now()), n9 = /* @__PURE__ */ new Date(0);
+    if (n9.setUTCSeconds(t7.claims.exp + i9), o11 > n9) throw new Error(`Expiration Time (exp) claim error in the ID token; current time (${o11}) is after expiration time (${n9})`);
+    if (null != t7.claims.nbf && K(t7.claims.nbf)) {
+      const e14 = /* @__PURE__ */ new Date(0);
+      if (e14.setUTCSeconds(t7.claims.nbf - i9), o11 < e14) throw new Error(`Not Before time (nbf) claim in the ID token indicates that this token can't be used just yet. Current time (${o11}) is before ${e14}`);
+    }
+    if (null != t7.claims.auth_time && K(t7.claims.auth_time)) {
+      const n10 = /* @__PURE__ */ new Date(0);
+      if (n10.setUTCSeconds(parseInt(t7.claims.auth_time) + e13.max_age + i9), o11 > n10) throw new Error(`Authentication Time (auth_time) claim in the ID token indicates that too much time has passed since the last end-user authentication. Current time (${o11}) is after last auth at ${n10}`);
+    }
+    if (e13.organization) {
+      const i10 = e13.organization.trim();
+      if (i10.startsWith("org_")) {
+        const e14 = i10;
+        if (!t7.claims.org_id) throw new Error("Organization ID (org_id) claim must be a string present in the ID token");
+        if (e14 !== t7.claims.org_id) throw new Error(`Organization ID (org_id) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_id}"`);
+      } else {
+        const e14 = i10.toLowerCase();
+        if (!t7.claims.org_name) throw new Error("Organization Name (org_name) claim must be a string present in the ID token");
+        if (e14 !== t7.claims.org_name) throw new Error(`Organization Name (org_name) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_name}"`);
+      }
+    }
+    return t7;
+  };
+  var R = o(function(e13, i9) {
+    var o11 = t && t.__assign || function() {
+      return o11 = Object.assign || function(e14) {
+        for (var t7, i10 = 1, o12 = arguments.length; i10 < o12; i10++) for (var n10 in t7 = arguments[i10]) Object.prototype.hasOwnProperty.call(t7, n10) && (e14[n10] = t7[n10]);
+        return e14;
+      }, o11.apply(this, arguments);
+    };
+    function n9(e14, t7) {
+      if (!t7) return "";
+      var i10 = "; " + e14;
+      return true === t7 ? i10 : i10 + "=" + t7;
+    }
+    function a5(e14, t7, i10) {
+      return encodeURIComponent(e14).replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent).replace(/\(/g, "%28").replace(/\)/g, "%29") + "=" + encodeURIComponent(t7).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent) + function(e15) {
+        if ("number" == typeof e15.expires) {
+          var t8 = /* @__PURE__ */ new Date();
+          t8.setMilliseconds(t8.getMilliseconds() + 864e5 * e15.expires), e15.expires = t8;
+        }
+        return n9("Expires", e15.expires ? e15.expires.toUTCString() : "") + n9("Domain", e15.domain) + n9("Path", e15.path) + n9("Secure", e15.secure) + n9("SameSite", e15.sameSite);
+      }(i10);
+    }
+    function r10(e14) {
+      for (var t7 = {}, i10 = e14 ? e14.split("; ") : [], o12 = /(%[\dA-F]{2})+/gi, n10 = 0; n10 < i10.length; n10++) {
+        var a6 = i10[n10].split("="), r11 = a6.slice(1).join("=");
+        '"' === r11.charAt(0) && (r11 = r11.slice(1, -1));
+        try {
+          t7[a6[0].replace(o12, decodeURIComponent)] = r11.replace(o12, decodeURIComponent);
+        } catch (e15) {
+        }
+      }
+      return t7;
+    }
+    function s5() {
+      return r10(document.cookie);
+    }
+    function c7(e14, t7, i10) {
+      document.cookie = a5(e14, t7, o11({ path: "/" }, i10));
+    }
+    i9.__esModule = true, i9.encode = a5, i9.parse = r10, i9.getAll = s5, i9.get = function(e14) {
+      return s5()[e14];
+    }, i9.set = c7, i9.remove = function(e14, t7) {
+      c7(e14, "", o11(o11({}, t7), { expires: -1 }));
+    };
+  });
+  i(R), R.encode, R.parse, R.getAll;
+  var U = R.get;
+  var L = R.set;
+  var D = R.remove;
+  var X = { get(e13) {
+    const t7 = U(e13);
+    if (void 0 !== t7) return JSON.parse(t7);
+  }, save(e13, t7, i9) {
+    let o11 = {};
+    "https:" === window.location.protocol && (o11 = { secure: true, sameSite: "none" }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(e13, JSON.stringify(t7), o11);
+  }, remove(e13, t7) {
+    let i9 = {};
+    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9);
+  } };
+  var N = { get(e13) {
+    const t7 = X.get(e13);
+    return t7 || X.get(`_legacy_${e13}`);
+  }, save(e13, t7, i9) {
+    let o11 = {};
+    "https:" === window.location.protocol && (o11 = { secure: true }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(`_legacy_${e13}`, JSON.stringify(t7), o11), X.save(e13, t7, i9);
+  }, remove(e13, t7) {
+    let i9 = {};
+    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9), X.remove(e13, t7), X.remove(`_legacy_${e13}`, t7);
+  } };
+  var J = { get(e13) {
+    if ("undefined" == typeof sessionStorage) return;
+    const t7 = sessionStorage.getItem(e13);
+    return null != t7 ? JSON.parse(t7) : void 0;
+  }, save(e13, t7) {
+    sessionStorage.setItem(e13, JSON.stringify(t7));
+  }, remove(e13) {
+    sessionStorage.removeItem(e13);
+  } };
+  function F(e13, t7, i9) {
+    var o11 = void 0 === t7 ? null : t7, n9 = function(e14, t8) {
+      var i10 = atob(e14);
+      if (t8) {
+        for (var o12 = new Uint8Array(i10.length), n10 = 0, a6 = i10.length; n10 < a6; ++n10) o12[n10] = i10.charCodeAt(n10);
+        return String.fromCharCode.apply(null, new Uint16Array(o12.buffer));
+      }
+      return i10;
+    }(e13, void 0 !== i9 && i9), a5 = n9.indexOf("\n", 10) + 1, r10 = n9.substring(a5) + (o11 ? "//# sourceMappingURL=" + o11 : ""), s5 = new Blob([r10], { type: "application/javascript" });
+    return URL.createObjectURL(s5);
+  }
+  var H;
+  var Y;
+  var G;
+  var V;
+  var M = (H = "Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwohZnVuY3Rpb24oKXsidXNlIHN0cmljdCI7Y2xhc3MgZSBleHRlbmRzIEVycm9ye2NvbnN0cnVjdG9yKHQscil7c3VwZXIociksdGhpcy5lcnJvcj10LHRoaXMuZXJyb3JfZGVzY3JpcHRpb249cixPYmplY3Quc2V0UHJvdG90eXBlT2YodGhpcyxlLnByb3RvdHlwZSl9c3RhdGljIGZyb21QYXlsb2FkKHtlcnJvcjp0LGVycm9yX2Rlc2NyaXB0aW9uOnJ9KXtyZXR1cm4gbmV3IGUodCxyKX19Y2xhc3MgdCBleHRlbmRzIGV7Y29uc3RydWN0b3IoZSxzKXtzdXBlcigibWlzc2luZ19yZWZyZXNoX3Rva2VuIixgTWlzc2luZyBSZWZyZXNoIFRva2VuIChhdWRpZW5jZTogJyR7cihlLFsiZGVmYXVsdCJdKX0nLCBzY29wZTogJyR7cihzKX0nKWApLHRoaXMuYXVkaWVuY2U9ZSx0aGlzLnNjb3BlPXMsT2JqZWN0LnNldFByb3RvdHlwZU9mKHRoaXMsdC5wcm90b3R5cGUpfX1mdW5jdGlvbiByKGUsdD1bXSl7cmV0dXJuIGUmJiF0LmluY2x1ZGVzKGUpP2U6IiJ9ImZ1bmN0aW9uIj09dHlwZW9mIFN1cHByZXNzZWRFcnJvciYmU3VwcHJlc3NlZEVycm9yO2NvbnN0IHM9ZT0+e3ZhcntjbGllbnRJZDp0fT1lLHI9ZnVuY3Rpb24oZSx0KXt2YXIgcj17fTtmb3IodmFyIHMgaW4gZSlPYmplY3QucHJvdG90eXBlLmhhc093blByb3BlcnR5LmNhbGwoZSxzKSYmdC5pbmRleE9mKHMpPDAmJihyW3NdPWVbc10pO2lmKG51bGwhPWUmJiJmdW5jdGlvbiI9PXR5cGVvZiBPYmplY3QuZ2V0T3duUHJvcGVydHlTeW1ib2xzKXt2YXIgbz0wO2ZvcihzPU9iamVjdC5nZXRPd25Qcm9wZXJ0eVN5bWJvbHMoZSk7bzxzLmxlbmd0aDtvKyspdC5pbmRleE9mKHNbb10pPDAmJk9iamVjdC5wcm90b3R5cGUucHJvcGVydHlJc0VudW1lcmFibGUuY2FsbChlLHNbb10pJiYocltzW29dXT1lW3Nbb11dKX1yZXR1cm4gcn0oZSxbImNsaWVudElkIl0pO3JldHVybiBuZXcgVVJMU2VhcmNoUGFyYW1zKChlPT5PYmplY3Qua2V5cyhlKS5maWx0ZXIoKHQ9PnZvaWQgMCE9PWVbdF0pKS5yZWR1Y2UoKCh0LHIpPT5PYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30sdCkse1tyXTplW3JdfSkpLHt9KSkoT2JqZWN0LmFzc2lnbih7Y2xpZW50X2lkOnR9LHIpKSkudG9TdHJpbmcoKX07bGV0IG89e307Y29uc3Qgbj0oZSx0KT0+YCR7ZX18JHt0fWA7YWRkRXZlbnRMaXN0ZW5lcigibWVzc2FnZSIsKGFzeW5jKHtkYXRhOnt0aW1lb3V0OmUsYXV0aDpyLGZldGNoVXJsOmksZmV0Y2hPcHRpb25zOmMsdXNlRm9ybURhdGE6YX0scG9ydHM6W3BdfSk9PntsZXQgZjtjb25zdHthdWRpZW5jZTp1LHNjb3BlOmx9PXJ8fHt9O3RyeXtjb25zdCByPWE/KGU9Pntjb25zdCB0PW5ldyBVUkxTZWFyY2hQYXJhbXMoZSkscj17fTtyZXR1cm4gdC5mb3JFYWNoKCgoZSx0KT0+e3JbdF09ZX0pKSxyfSkoYy5ib2R5KTpKU09OLnBhcnNlKGMuYm9keSk7aWYoIXIucmVmcmVzaF90b2tlbiYmInJlZnJlc2hfdG9rZW4iPT09ci5ncmFudF90eXBlKXtjb25zdCBlPSgoZSx0KT0+b1tuKGUsdCldKSh1LGwpO2lmKCFlKXRocm93IG5ldyB0KHUsbCk7Yy5ib2R5PWE/cyhPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKTpKU09OLnN0cmluZ2lmeShPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKX1sZXQgaCxnOyJmdW5jdGlvbiI9PXR5cGVvZiBBYm9ydENvbnRyb2xsZXImJihoPW5ldyBBYm9ydENvbnRyb2xsZXIsYy5zaWduYWw9aC5zaWduYWwpO3RyeXtnPWF3YWl0IFByb21pc2UucmFjZShbKGQ9ZSxuZXcgUHJvbWlzZSgoZT0+c2V0VGltZW91dChlLGQpKSkpLGZldGNoKGksT2JqZWN0LmFzc2lnbih7fSxjKSldKX1jYXRjaChlKXtyZXR1cm4gdm9pZCBwLnBvc3RNZXNzYWdlKHtlcnJvcjplLm1lc3NhZ2V9KX1pZighZylyZXR1cm4gaCYmaC5hYm9ydCgpLHZvaWQgcC5wb3N0TWVzc2FnZSh7ZXJyb3I6IlRpbWVvdXQgd2hlbiBleGVjdXRpbmcgJ2ZldGNoJyJ9KTtmPWF3YWl0IGcuanNvbigpLGYucmVmcmVzaF90b2tlbj8oKChlLHQscik9PntvW24odCxyKV09ZX0pKGYucmVmcmVzaF90b2tlbix1LGwpLGRlbGV0ZSBmLnJlZnJlc2hfdG9rZW4pOigoZSx0KT0+e2RlbGV0ZSBvW24oZSx0KV19KSh1LGwpLHAucG9zdE1lc3NhZ2Uoe29rOmcub2ssanNvbjpmfSl9Y2F0Y2goZSl7cC5wb3N0TWVzc2FnZSh7b2s6ITEsanNvbjp7ZXJyb3I6ZS5lcnJvcixlcnJvcl9kZXNjcmlwdGlvbjplLm1lc3NhZ2V9fSl9dmFyIGR9KSl9KCk7Cgo=", Y = null, G = false, function(e13) {
+    return V = V || F(H, Y, G), new Worker(V, e13);
+  });
+  var A = {};
+  var B = class {
+    constructor(e13, t7) {
+      this.cache = e13, this.clientId = t7, this.manifestKey = this.createManifestKeyFrom(this.clientId);
+    }
+    async add(e13) {
+      var t7;
+      const i9 = new Set((null === (t7 = await this.cache.get(this.manifestKey)) || void 0 === t7 ? void 0 : t7.keys) || []);
+      i9.add(e13), await this.cache.set(this.manifestKey, { keys: [...i9] });
+    }
+    async remove(e13) {
+      const t7 = await this.cache.get(this.manifestKey);
+      if (t7) {
+        const i9 = new Set(t7.keys);
+        return i9.delete(e13), i9.size > 0 ? await this.cache.set(this.manifestKey, { keys: [...i9] }) : await this.cache.remove(this.manifestKey);
+      }
+    }
+    get() {
+      return this.cache.get(this.manifestKey);
+    }
+    clear() {
+      return this.cache.remove(this.manifestKey);
+    }
+    createManifestKeyFrom(e13) {
+      return `@@auth0spajs@@::${e13}`;
+    }
+  };
+  var $ = { memory: () => new P().enclosedCache, localstorage: () => new z() };
+  var q = (e13) => $[e13];
+  var Q = (t7) => {
+    const { openUrl: i9, onRedirect: o11 } = t7, n9 = e(t7, ["openUrl", "onRedirect"]);
+    return Object.assign(Object.assign({}, n9), { openUrl: false === i9 || i9 ? i9 : o11 });
+  };
+  var ee = new a();
+  var te = class {
+    constructor(e13) {
+      let t7, i9;
+      if (this.userCache = new P().enclosedCache, this.defaultOptions = { authorizationParams: { scope: "openid profile email" }, useRefreshTokensFallback: false, useFormData: true }, this._releaseLockOnPageHide = async () => {
+        await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
+      }, this.options = Object.assign(Object.assign(Object.assign({}, this.defaultOptions), e13), { authorizationParams: Object.assign(Object.assign({}, this.defaultOptions.authorizationParams), e13.authorizationParams) }), "undefined" != typeof window && (() => {
+        if (!w()) throw new Error("For security reasons, `window.crypto` is required to run `auth0-spa-js`.");
+        if (void 0 === w().subtle) throw new Error("\n      auth0-spa-js must run on a secure origin. See https://github.com/auth0/auth0-spa-js/blob/main/FAQ.md#why-do-i-get-auth0-spa-js-must-run-on-a-secure-origin for more information.\n    ");
+      })(), e13.cache && e13.cacheLocation && console.warn("Both `cache` and `cacheLocation` options have been specified in the Auth0Client configuration; ignoring `cacheLocation` and using `cache`."), e13.cache) i9 = e13.cache;
+      else {
+        if (t7 = e13.cacheLocation || "memory", !q(t7)) throw new Error(`Invalid cache location "${t7}"`);
+        i9 = q(t7)();
+      }
+      this.httpTimeoutMs = e13.httpTimeoutInSeconds ? 1e3 * e13.httpTimeoutInSeconds : 1e4, this.cookieStorage = false === e13.legacySameSiteCookie ? X : N, this.orgHintCookieName = `auth0.${this.options.clientId}.organization_hint`, this.isAuthenticatedCookieName = ((e14) => `auth0.${e14}.is.authenticated`)(this.options.clientId), this.sessionCheckExpiryDays = e13.sessionCheckExpiryDays || 1;
+      const o11 = e13.useCookiesForTransactions ? this.cookieStorage : J;
+      var n9;
+      this.scope = j("openid", this.options.authorizationParams.scope, this.options.useRefreshTokens ? "offline_access" : ""), this.transactionManager = new Z(o11, this.options.clientId, this.options.cookieDomain), this.nowProvider = this.options.nowProvider || c, this.cacheManager = new x(i9, i9.allKeys ? void 0 : new B(i9, this.options.clientId), this.nowProvider), this.domainUrl = (n9 = this.options.domain, /^https?:\/\//.test(n9) ? n9 : `https://${n9}`), this.tokenIssuer = ((e14, t8) => e14 ? e14.startsWith("https://") ? e14 : `https://${e14}/` : `${t8}/`)(this.options.issuer, this.domainUrl), "undefined" != typeof window && window.Worker && this.options.useRefreshTokens && "memory" === t7 && (this.options.workerUrl ? this.worker = new Worker(this.options.workerUrl) : this.worker = new M());
+    }
+    _url(e13) {
+      const t7 = encodeURIComponent(btoa(JSON.stringify(this.options.auth0Client || s)));
+      return `${this.domainUrl}${e13}&auth0Client=${t7}`;
+    }
+    _authorizeUrl(e13) {
+      return this._url(`/authorize?${v(e13)}`);
+    }
+    async _verifyIdToken(e13, t7, i9) {
+      const o11 = await this.nowProvider();
+      return E({ iss: this.tokenIssuer, aud: this.options.clientId, id_token: e13, nonce: t7, organization: i9, leeway: this.options.leeway, max_age: (n9 = this.options.authorizationParams.max_age, "string" != typeof n9 ? n9 : parseInt(n9, 10) || void 0), now: o11 });
+      var n9;
+    }
+    _processOrgHint(e13) {
+      e13 ? this.cookieStorage.save(this.orgHintCookieName, e13, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }) : this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain });
+    }
+    async _prepareAuthorizeUrl(e13, t7, i9) {
+      const o11 = k(y()), n9 = k(y()), a5 = y(), r10 = ((e14) => {
+        const t8 = new Uint8Array(e14);
+        return ((e15) => {
+          const t9 = { "+": "-", "/": "_", "=": "" };
+          return e15.replace(/[+/=]/g, (e16) => t9[e16]);
+        })(window.btoa(String.fromCharCode(...Array.from(t8))));
+      })(await (async (e14) => {
+        const t8 = w().subtle.digest({ name: "SHA-256" }, new TextEncoder().encode(e14));
+        return await t8;
+      })(a5)), s5 = ((e14, t8, i10, o12, n10, a6, r11, s6) => Object.assign(Object.assign(Object.assign({ client_id: e14.clientId }, e14.authorizationParams), i10), { scope: j(t8, i10.scope), response_type: "code", response_mode: s6 || "query", state: o12, nonce: n10, redirect_uri: r11 || e14.authorizationParams.redirect_uri, code_challenge: a6, code_challenge_method: "S256" }))(this.options, this.scope, e13, o11, n9, r10, e13.redirect_uri || this.options.authorizationParams.redirect_uri || i9, null == t7 ? void 0 : t7.response_mode), c7 = this._authorizeUrl(s5);
+      return { nonce: n9, code_verifier: a5, scope: s5.scope, audience: s5.audience || "default", redirect_uri: s5.redirect_uri, state: o11, url: c7 };
+    }
+    async loginWithPopup(e13, t7) {
+      var i9;
+      if (e13 = e13 || {}, !(t7 = t7 || {}).popup && (t7.popup = ((e14) => {
+        const t8 = window.screenX + (window.innerWidth - 400) / 2, i10 = window.screenY + (window.innerHeight - 600) / 2;
+        return window.open(e14, "auth0:authorize:popup", `left=${t8},top=${i10},width=400,height=600,resizable,scrollbars=yes,status=1`);
+      })(""), !t7.popup)) throw new Error("Unable to open a popup for loginWithPopup - window.open returned `null`");
+      const o11 = await this._prepareAuthorizeUrl(e13.authorizationParams || {}, { response_mode: "web_message" }, window.location.origin);
+      t7.popup.location.href = o11.url;
+      const n9 = await ((e14) => new Promise((t8, i10) => {
+        let o12;
+        const n10 = setInterval(() => {
+          e14.popup && e14.popup.closed && (clearInterval(n10), clearTimeout(a6), window.removeEventListener("message", o12, false), i10(new p(e14.popup)));
+        }, 1e3), a6 = setTimeout(() => {
+          clearInterval(n10), i10(new h(e14.popup)), window.removeEventListener("message", o12, false);
+        }, 1e3 * (e14.timeoutInSeconds || 60));
+        o12 = function(r10) {
+          if (r10.data && "authorization_response" === r10.data.type) {
+            if (clearTimeout(a6), clearInterval(n10), window.removeEventListener("message", o12, false), e14.popup.close(), r10.data.response.error) return i10(d.fromPayload(r10.data.response));
+            t8(r10.data.response);
+          }
+        }, window.addEventListener("message", o12);
+      }))(Object.assign(Object.assign({}, t7), { timeoutInSeconds: t7.timeoutInSeconds || this.options.authorizeTimeoutInSeconds || 60 }));
+      if (o11.state !== n9.state) throw new d("state_mismatch", "Invalid state");
+      const a5 = (null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization;
+      await this._requestToken({ audience: o11.audience, scope: o11.scope, code_verifier: o11.code_verifier, grant_type: "authorization_code", code: n9.code, redirect_uri: o11.redirect_uri }, { nonceIn: o11.nonce, organization: a5 });
+    }
+    async getUser() {
+      var e13;
+      const t7 = await this._getIdTokenFromCache();
+      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.user;
+    }
+    async getIdTokenClaims() {
+      var e13;
+      const t7 = await this._getIdTokenFromCache();
+      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.claims;
+    }
+    async loginWithRedirect(t7 = {}) {
+      var i9;
+      const o11 = Q(t7), { openUrl: n9, fragment: a5, appState: r10 } = o11, s5 = e(o11, ["openUrl", "fragment", "appState"]), c7 = (null === (i9 = s5.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization, d4 = await this._prepareAuthorizeUrl(s5.authorizationParams || {}), { url: u6 } = d4, l6 = e(d4, ["url"]);
+      this.transactionManager.create(Object.assign(Object.assign(Object.assign({}, l6), { appState: r10 }), c7 && { organization: c7 }));
+      const h6 = a5 ? `${u6}#${a5}` : u6;
+      n9 ? await n9(h6) : window.location.assign(h6);
+    }
+    async handleRedirectCallback(e13 = window.location.href) {
+      const t7 = e13.split("?").slice(1);
+      if (0 === t7.length) throw new Error("There are no query params available for parsing.");
+      const { state: i9, code: o11, error: n9, error_description: a5 } = ((e14) => {
+        e14.indexOf("#") > -1 && (e14 = e14.substring(0, e14.indexOf("#")));
+        const t8 = new URLSearchParams(e14);
+        return { state: t8.get("state"), code: t8.get("code") || void 0, error: t8.get("error") || void 0, error_description: t8.get("error_description") || void 0 };
+      })(t7.join("")), r10 = this.transactionManager.get();
+      if (!r10) throw new d("missing_transaction", "Invalid state");
+      if (this.transactionManager.remove(), n9) throw new u(n9, a5 || n9, i9, r10.appState);
+      if (!r10.code_verifier || r10.state && r10.state !== i9) throw new d("state_mismatch", "Invalid state");
+      const s5 = r10.organization, c7 = r10.nonce, l6 = r10.redirect_uri;
+      return await this._requestToken(Object.assign({ audience: r10.audience, scope: r10.scope, code_verifier: r10.code_verifier, grant_type: "authorization_code", code: o11 }, l6 ? { redirect_uri: l6 } : {}), { nonceIn: c7, organization: s5 }), { appState: r10.appState };
+    }
+    async checkSession(e13) {
+      if (!this.cookieStorage.get(this.isAuthenticatedCookieName)) {
+        if (!this.cookieStorage.get("auth0.is.authenticated")) return;
+        this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove("auth0.is.authenticated");
+      }
+      try {
+        await this.getTokenSilently(e13);
+      } catch (e14) {
+      }
+    }
+    async getTokenSilently(e13 = {}) {
+      var t7;
+      const i9 = Object.assign(Object.assign({ cacheMode: "on" }, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (t7 = e13.authorizationParams) || void 0 === t7 ? void 0 : t7.scope) }) }), o11 = await ((e14, t8) => {
+        let i10 = A[t8];
+        return i10 || (i10 = e14().finally(() => {
+          delete A[t8], i10 = null;
+        }), A[t8] = i10), i10;
+      })(() => this._getTokenSilently(i9), `${this.options.clientId}::${i9.authorizationParams.audience}::${i9.authorizationParams.scope}`);
+      return e13.detailedResponse ? o11 : null == o11 ? void 0 : o11.access_token;
+    }
+    async _getTokenSilently(t7) {
+      const { cacheMode: i9 } = t7, o11 = e(t7, ["cacheMode"]);
+      if ("off" !== i9) {
+        const e13 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
+        if (e13) return e13;
+      }
+      if ("cache-only" !== i9) {
+        if (!await (async (e13, t8 = 3) => {
+          for (let i10 = 0; i10 < t8; i10++) if (await e13()) return true;
+          return false;
+        })(() => ee.acquireLock("auth0.lock.getTokenSilently", 5e3), 10)) throw new l();
+        try {
+          if (window.addEventListener("pagehide", this._releaseLockOnPageHide), "off" !== i9) {
+            const e14 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
+            if (e14) return e14;
+          }
+          const e13 = this.options.useRefreshTokens ? await this._getTokenUsingRefreshToken(o11) : await this._getTokenFromIFrame(o11), { id_token: t8, access_token: n9, oauthTokenScope: a5, expires_in: r10 } = e13;
+          return Object.assign(Object.assign({ id_token: t8, access_token: n9 }, a5 ? { scope: a5 } : null), { expires_in: r10 });
+        } finally {
+          await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
+        }
+      }
+    }
+    async getTokenWithPopup(e13 = {}, t7 = {}) {
+      var i9;
+      const o11 = Object.assign(Object.assign({}, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.scope) }) });
+      t7 = Object.assign(Object.assign({}, r), t7), await this.loginWithPopup(o11, t7);
+      return (await this.cacheManager.get(new C({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId }))).access_token;
+    }
+    async isAuthenticated() {
+      return !!await this.getUser();
+    }
+    _buildLogoutUrl(t7) {
+      null !== t7.clientId ? t7.clientId = t7.clientId || this.options.clientId : delete t7.clientId;
+      const i9 = t7.logoutParams || {}, { federated: o11 } = i9, n9 = e(i9, ["federated"]), a5 = o11 ? "&federated" : "";
+      return this._url(`/v2/logout?${v(Object.assign({ clientId: t7.clientId }, n9))}`) + a5;
+    }
+    async logout(t7 = {}) {
+      const i9 = Q(t7), { openUrl: o11 } = i9, n9 = e(i9, ["openUrl"]);
+      null === t7.clientId ? await this.cacheManager.clear() : await this.cacheManager.clear(t7.clientId || this.options.clientId), this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove(this.isAuthenticatedCookieName, { cookieDomain: this.options.cookieDomain }), this.userCache.remove("@@user@@");
+      const a5 = this._buildLogoutUrl(n9);
+      o11 ? await o11(a5) : false !== o11 && window.location.assign(a5);
+    }
+    async _getTokenFromIFrame(e13) {
+      const t7 = Object.assign(Object.assign({}, e13.authorizationParams), { prompt: "none" }), i9 = this.cookieStorage.get(this.orgHintCookieName);
+      i9 && !t7.organization && (t7.organization = i9);
+      const { url: o11, state: n9, nonce: a5, code_verifier: r10, redirect_uri: s5, scope: c7, audience: u6 } = await this._prepareAuthorizeUrl(t7, { response_mode: "web_message" }, window.location.origin);
+      try {
+        if (window.crossOriginIsolated) throw new d("login_required", "The application is running in a Cross-Origin Isolated context, silently retrieving a token without refresh token is not possible.");
+        const i10 = e13.timeoutInSeconds || this.options.authorizeTimeoutInSeconds, h6 = await ((e14, t8, i11 = 60) => new Promise((o12, n10) => {
+          const a6 = window.document.createElement("iframe");
+          a6.setAttribute("width", "0"), a6.setAttribute("height", "0"), a6.style.display = "none";
+          const r11 = () => {
+            window.document.body.contains(a6) && (window.document.body.removeChild(a6), window.removeEventListener("message", s6, false));
+          };
+          let s6;
+          const c8 = setTimeout(() => {
+            n10(new l()), r11();
+          }, 1e3 * i11);
+          s6 = function(e15) {
+            if (e15.origin != t8) return;
+            if (!e15.data || "authorization_response" !== e15.data.type) return;
+            const i12 = e15.source;
+            i12 && i12.close(), e15.data.response.error ? n10(d.fromPayload(e15.data.response)) : o12(e15.data.response), clearTimeout(c8), window.removeEventListener("message", s6, false), setTimeout(r11, 2e3);
+          }, window.addEventListener("message", s6, false), window.document.body.appendChild(a6), a6.setAttribute("src", e14);
+        }))(o11, this.domainUrl, i10);
+        if (n9 !== h6.state) throw new d("state_mismatch", "Invalid state");
+        const p4 = await this._requestToken(Object.assign(Object.assign({}, e13.authorizationParams), { code_verifier: r10, code: h6.code, grant_type: "authorization_code", redirect_uri: s5, timeout: e13.authorizationParams.timeout || this.httpTimeoutMs }), { nonceIn: a5, organization: t7.organization });
+        return Object.assign(Object.assign({}, p4), { scope: c7, oauthTokenScope: p4.scope, audience: u6 });
+      } catch (e14) {
+        throw "login_required" === e14.error && this.logout({ openUrl: false }), e14;
+      }
+    }
+    async _getTokenUsingRefreshToken(e13) {
+      const t7 = await this.cacheManager.get(new C({ scope: e13.authorizationParams.scope, audience: e13.authorizationParams.audience || "default", clientId: this.options.clientId }));
+      if (!(t7 && t7.refresh_token || this.worker)) {
+        if (this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
+        throw new f2(e13.authorizationParams.audience || "default", e13.authorizationParams.scope);
+      }
+      const i9 = e13.authorizationParams.redirect_uri || this.options.authorizationParams.redirect_uri || window.location.origin, o11 = "number" == typeof e13.timeoutInSeconds ? 1e3 * e13.timeoutInSeconds : null;
+      try {
+        const n9 = await this._requestToken(Object.assign(Object.assign(Object.assign({}, e13.authorizationParams), { grant_type: "refresh_token", refresh_token: t7 && t7.refresh_token, redirect_uri: i9 }), o11 && { timeout: o11 }));
+        return Object.assign(Object.assign({}, n9), { scope: e13.authorizationParams.scope, oauthTokenScope: n9.scope, audience: e13.authorizationParams.audience || "default" });
+      } catch (t8) {
+        if ((t8.message.indexOf("Missing Refresh Token") > -1 || t8.message && t8.message.indexOf("invalid refresh token") > -1) && this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
+        throw t8;
+      }
+    }
+    async _saveEntryInCache(t7) {
+      const { id_token: i9, decodedToken: o11 } = t7, n9 = e(t7, ["id_token", "decodedToken"]);
+      this.userCache.set("@@user@@", { id_token: i9, decodedToken: o11 }), await this.cacheManager.setIdToken(this.options.clientId, t7.id_token, t7.decodedToken), await this.cacheManager.set(n9);
+    }
+    async _getIdTokenFromCache() {
+      const e13 = this.options.authorizationParams.audience || "default", t7 = await this.cacheManager.getIdToken(new C({ clientId: this.options.clientId, audience: e13, scope: this.scope })), i9 = this.userCache.get("@@user@@");
+      return t7 && t7.id_token === (null == i9 ? void 0 : i9.id_token) ? i9 : (this.userCache.set("@@user@@", t7), t7);
+    }
+    async _getEntryFromCache({ scope: e13, audience: t7, clientId: i9 }) {
+      const o11 = await this.cacheManager.get(new C({ scope: e13, audience: t7, clientId: i9 }), 60);
+      if (o11 && o11.access_token) {
+        const { access_token: e14, oauthTokenScope: t8, expires_in: i10 } = o11, n9 = await this._getIdTokenFromCache();
+        return n9 && Object.assign(Object.assign({ id_token: n9.id_token, access_token: e14 }, t8 ? { scope: t8 } : null), { expires_in: i10 });
+      }
+    }
+    async _requestToken(e13, t7) {
+      const { nonceIn: i9, organization: o11 } = t7 || {}, n9 = await T(Object.assign({ baseUrl: this.domainUrl, client_id: this.options.clientId, auth0Client: this.options.auth0Client, useFormData: this.options.useFormData, timeout: this.httpTimeoutMs }, e13), this.worker), a5 = await this._verifyIdToken(n9.id_token, i9, o11);
+      return await this._saveEntryInCache(Object.assign(Object.assign(Object.assign(Object.assign({}, n9), { decodedToken: a5, scope: e13.scope, audience: e13.audience || "default" }), n9.scope ? { oauthTokenScope: n9.scope } : null), { client_id: this.options.clientId })), this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this._processOrgHint(o11 || a5.claims.org_id), Object.assign(Object.assign({}, n9), { decodedToken: a5 });
+    }
+  };
+  async function oe(e13) {
+    const t7 = new te(e13);
+    return await t7.checkSession(), t7;
+  }
+
+  // src/domains/authentication/infrastructure/Auth0Adapter.ts
+  var Auth0Adapter = class {
+    config;
+    client;
+    constructor(config) {
+      this.config = config;
+      Object.freeze(this.config);
+    }
+    async initialize() {
+      const { domain, clientId, authorizationParams } = this.config;
+      this.client = await oe({
+        domain,
+        clientId,
+        authorizationParams
+      });
+      if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
+        try {
+          const result = await this.client.handleRedirectCallback();
+          console.log({ result });
+        } catch (err) {
+          const { error, error_description } = err;
+          console.error("Error handling redirect callback:", {
+            error,
+            error_description
+          });
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+    async login() {
+      console.log("login");
+      return await this.client.loginWithRedirect();
+    }
+    async logout() {
+      this.client.logout({
+        openUrl(url) {
+          window.location.replace(url);
+        }
+      });
+    }
+    async isAuthenticated() {
+      return await this.client.isAuthenticated();
+    }
+    async getAuthData() {
+      const res = await this.client.isAuthenticated() ? await this.client.getIdTokenClaims() : void 0;
+      return res;
+    }
+    async getAccessToken() {
+      return await this.client.getTokenSilently();
+    }
+  };
+
+  // src/domains/authentication/createAuthenticationAdaper.ts
+  var createAuthenticationAdaper = async (auth0COnfig) => {
+    const instance = new Auth0Adapter(auth0COnfig);
+    await instance.initialize();
+    return instance;
+  };
+
+  // src/shared/application/_State.ts
+  var _State = class {
     _state;
     constructor(initialState) {
       this._state = initialState;
     }
     state() {
-      return this._state;
+      console.log("state()", this._state);
+      return { ...this._state };
     }
     setState(value) {
       this._state = typeof value === "function" ? value(this._state) : {
         ...this._state,
         ...value
       };
+      console.log("setState()", this._state);
     }
+  };
+
+  // src/solid-js/application/withReactiveState.ts
+  var withReactiveState = (instance) => {
+    if (!(instance instanceof _State)) {
+      throw new Error("Passed instanc must extend `_State`");
+    }
+    const [state, setState] = createSignal(instance.state());
+    const originalSetState = instance.setState.bind(instance);
+    instance.setState = (value) => {
+      originalSetState(value);
+      setState(instance.state());
+    };
+    const proxy = new Proxy(instance, {
+      get(target, prop) {
+        if (prop === "state") {
+          return state;
+        }
+        return target[prop];
+      },
+      set(target, prop, value) {
+        if (prop === "state" || prop === "setState") {
+          throw new Error(`Cannot overwrite ${String(prop)}.`);
+        }
+        target[prop] = value;
+        return true;
+      }
+    });
+    return proxy;
   };
 
   // node_modules/.pnpm/zod@3.24.1/node_modules/zod/lib/index.mjs
@@ -13587,7 +16817,7 @@
     date: (arg) => ZodDate.create({ ...arg, coerce: true })
   };
   var NEVER = INVALID;
-  var z = /* @__PURE__ */ Object.freeze({
+  var z2 = /* @__PURE__ */ Object.freeze({
     __proto__: null,
     defaultErrorMap: errorMap,
     setErrorMap,
@@ -13704,8 +16934,47 @@
     ZodError
   });
 
-  // src/shared/models/ExposePropsDecorator.ts
-  function ExposeSchemaProps(schema) {
+  // src/domains/directory/Filters.ts
+  var FilterStateSchema = z2.object({
+    text: z2.string().optional().default(""),
+    tagKeys: z2.array(z2.string()).optional().default([]),
+    indexLetter: z2.string().optional().default("")
+  });
+  var Filters = class _Filters extends _State {
+    constructor(data) {
+      super(data);
+    }
+    static from(data) {
+      const parsedData = FilterStateSchema.parse(data ?? {});
+      const instance = new _Filters(parsedData);
+      return instance;
+    }
+    setText(value) {
+      this.setState({ text: value });
+    }
+    setIndexLetter(value) {
+      const next = value != this.state().indexLetter ? value : "";
+      this.setState({ indexLetter: next });
+    }
+    setTag(tagKey, toggle = true) {
+      const prev = this.state().tagKeys;
+      const idx = prev.indexOf(tagKey);
+      const next = toggle ? idx < 0 ? prev.concat(tagKey) : [...prev.slice(0, idx), ...prev.slice(idx + 1)] : (
+        // No toggle, just replace
+        [tagKey]
+      );
+      this.setState({ tagKeys: next });
+    }
+    isActiveIndexLetter(letter) {
+      return this.state().indexLetter?.toLocaleLowerCase() === letter.toLocaleLowerCase();
+    }
+    hasTag(tagKey) {
+      return this.state().tagKeys.includes(tagKey);
+    }
+  };
+
+  // src/shared/models/ExposeDataAsSchemaProps.ts
+  function ExposeDataAsSchemaProps(schema) {
     return function(constructor) {
       const schemaKeys = Object.keys(schema.shape);
       return class extends constructor {
@@ -13728,49 +16997,11 @@
     };
   }
 
-  // src/features/directory/Filters.ts
-  var FiltersSchema = z.object({
-    text: z.string().optional().default(""),
-    tagKeys: z.array(z.string()).optional().default([]),
-    indexLetter: z.string().optional().default("")
-  });
-  var Filters = class {
-    data;
-    onChange;
-    constructor(data) {
-      this.data = data;
-    }
-    static from(data, onChange) {
-      const parsedData = FiltersSchema.parse(data);
-      const instance = new Filters(parsedData);
-      instance.onChange = onChange;
-      return instance;
-    }
-    setText(value) {
-      this.text = value;
-      this.onChange();
-    }
-    setIndexLetter(value) {
-      this.indexLetter = value.toLocaleLowerCase();
-      this.onChange();
-    }
-    setTag(key, toggle = true) {
-      const idx = this.tagKeys.indexOf(key);
-      if (idx >= 0) {
-      } else {
-      }
-      this.onChange();
-    }
-  };
-  Filters = __decorateClass([
-    ExposeSchemaProps(FiltersSchema)
-  ], Filters);
-
-  // src/features/directory/Tag.ts
-  var TagSchema = z.object({
-    key: z.string(),
-    name: z.string(),
-    usageCount: z.number()
+  // src/domains/directory/Tag.ts
+  var TagSchema = z2.object({
+    key: z2.string(),
+    name: z2.string(),
+    usageCount: z2.number()
   });
   var Tag = class {
     data;
@@ -13783,25 +17014,25 @@
     }
   };
   Tag = __decorateClass([
-    ExposeSchemaProps(TagSchema)
+    ExposeDataAsSchemaProps(TagSchema)
   ], Tag);
 
-  // src/features/directory/Listing.ts
-  var ListingSchema = z.object({
-    isActive: z.boolean(),
-    title: z.string(),
-    description: z.string(),
-    address: z.string(),
-    muncipiality: z.string(),
-    zip: z.string().regex(/^\d{4}$/),
-    phone: z.string(),
-    email: z.string().email(),
-    links: z.array(
-      z.object({
-        href: z.string()
+  // src/domains/directory/Listing.ts
+  var ListingSchema = z2.object({
+    isActive: z2.boolean(),
+    title: z2.string(),
+    description: z2.string(),
+    address: z2.string(),
+    muncipiality: z2.string(),
+    zip: z2.string().regex(/^\d{4}$/),
+    phone: z2.string(),
+    email: z2.string().email(),
+    links: z2.array(
+      z2.object({
+        href: z2.string()
       })
     ),
-    tags: z.array(TagSchema.omit({ usageCount: true }))
+    tags: z2.array(TagSchema.omit({ usageCount: true }))
   });
   var Listing = class {
     data;
@@ -13814,13 +17045,13 @@
     }
   };
   Listing = __decorateClass([
-    ExposeSchemaProps(ListingSchema)
+    ExposeDataAsSchemaProps(ListingSchema)
   ], Listing);
 
-  // src/features/directory/IndexLetter.ts
-  var IndexLetterSchema = z.object({
-    letter: z.string().length(1),
-    count: z.number()
+  // src/domains/directory/IndexLetter.ts
+  var IndexLetterSchema = z2.object({
+    letter: z2.string().length(1),
+    count: z2.number()
   });
   var IndexLetter = class {
     data;
@@ -13833,3344 +17064,72 @@
     }
   };
   IndexLetter = __decorateClass([
-    ExposeSchemaProps(IndexLetterSchema)
+    ExposeDataAsSchemaProps(IndexLetterSchema)
   ], IndexLetter);
 
-  // src/features/directory/DirectoryService.ts
-  var DirectoryService = class extends _ServiceState {
+  // src/domains/directory/DirectoryService.ts
+  var DirectoryService = class {
     db;
     constructor(db) {
-      super({
-        filters: Filters.from(FiltersSchema, async () => {
-          await this.loadListings();
-        }),
-        tags: [],
-        listings: [],
-        indexLetters: []
-      });
       this.db = db;
     }
-    async initialize() {
-      await Promise.all([this.loadIndex(), this.loadTags(), this.loadListings()]);
-    }
-    async loadIndex() {
+    async loadIndexLetters() {
       const details = await this.db.getIndexLetters();
       const res = details.sort((a5, b4) => a5.letter < b4.letter ? -1 : 1).map((data) => IndexLetter.from(data));
-      this.setState({ indexLetters: res });
+      return res;
     }
     async loadTags() {
       const details = await this.db.getTags();
       const res = details.filter(({ usageCount }) => usageCount).sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data) => Tag.from(data));
-      this.setState({ tags: res });
+      return res;
     }
-    async loadListings() {
-      const details = await this.db.getListings(this.state().filters);
+    async loadListings(filters) {
+      await timeout();
+      const details = await this.db.getListings(filters);
       const res = details.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data) => Listing.from(data));
-      this.setState({ listings: res });
-    }
-  };
-
-  // src/shared/services/withReactiveState.ts
-  var withReactiveState = (service, stateCreator) => {
-    const [state, setState] = stateCreator(service.state());
-    const originalSetState = service.setState.bind(service);
-    service.setState = (value) => {
-      originalSetState(value);
-      setState(service.state());
-    };
-    const proxy = new Proxy(service, {
-      get(target, prop) {
-        if (prop === "state") {
-          return state;
-        }
-        return target[prop];
-      },
-      set(target, prop, value) {
-        if (prop === "state" || prop === "setState") {
-          throw new Error(`Cannot overwrite ${String(prop)}.`);
-        }
-        target[prop] = value;
-        return true;
-      }
-    });
-    return proxy;
-  };
-
-  // src/features/configs/ConfigsService.ts
-  var ConfigsService = class extends _ServiceState {
-    configsUrl;
-    constructor(configsUrl) {
-      super({});
-      this.configsUrl = configsUrl;
-    }
-    async initialize() {
-      console.log({ configsUrl: this.configsUrl });
-      return await new Promise((resolve) => {
-        setTimeout(() => {
-          this.setState({
-            auth0: {
-              domain: "intergate.eu.auth0.com",
-              clientId: "d63m36lvjcGcQZoYjF06IIgczFdIHGqN",
-              authorizationParams: {
-                audience: "https://surrealdb.com/",
-                redirect_uri: window.location.origin
-              }
-            },
-            surreal: {
-              namespace: "intergate",
-              database: "gul-info",
-              url: "https://127.0.0.1:7999/rpc"
-            }
-          });
-          resolve();
-        }, 1200);
-      });
-    }
-  };
-
-  // node_modules/.pnpm/@auth0+auth0-spa-js@2.1.3/node_modules/@auth0/auth0-spa-js/dist/auth0-spa-js.production.esm.js
-  function e(e13, t7) {
-    var i9 = {};
-    for (var o11 in e13) Object.prototype.hasOwnProperty.call(e13, o11) && t7.indexOf(o11) < 0 && (i9[o11] = e13[o11]);
-    if (null != e13 && "function" == typeof Object.getOwnPropertySymbols) {
-      var n9 = 0;
-      for (o11 = Object.getOwnPropertySymbols(e13); n9 < o11.length; n9++) t7.indexOf(o11[n9]) < 0 && Object.prototype.propertyIsEnumerable.call(e13, o11[n9]) && (i9[o11[n9]] = e13[o11[n9]]);
-    }
-    return i9;
-  }
-  var t = "undefined" != typeof globalThis ? globalThis : "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : {};
-  function i(e13) {
-    return e13 && e13.__esModule && Object.prototype.hasOwnProperty.call(e13, "default") ? e13.default : e13;
-  }
-  function o(e13, t7) {
-    return e13(t7 = { exports: {} }, t7.exports), t7.exports;
-  }
-  var n = o(function(e13, t7) {
-    Object.defineProperty(t7, "__esModule", { value: true });
-    var i9 = function() {
-      function e14() {
-        var e15 = this;
-        this.locked = /* @__PURE__ */ new Map(), this.addToLocked = function(t8, i10) {
-          var o11 = e15.locked.get(t8);
-          void 0 === o11 ? void 0 === i10 ? e15.locked.set(t8, []) : e15.locked.set(t8, [i10]) : void 0 !== i10 && (o11.unshift(i10), e15.locked.set(t8, o11));
-        }, this.isLocked = function(t8) {
-          return e15.locked.has(t8);
-        }, this.lock = function(t8) {
-          return new Promise(function(i10, o11) {
-            e15.isLocked(t8) ? e15.addToLocked(t8, i10) : (e15.addToLocked(t8), i10());
-          });
-        }, this.unlock = function(t8) {
-          var i10 = e15.locked.get(t8);
-          if (void 0 !== i10 && 0 !== i10.length) {
-            var o11 = i10.pop();
-            e15.locked.set(t8, i10), void 0 !== o11 && setTimeout(o11, 0);
-          } else e15.locked.delete(t8);
-        };
-      }
-      return e14.getInstance = function() {
-        return void 0 === e14.instance && (e14.instance = new e14()), e14.instance;
-      }, e14;
-    }();
-    t7.default = function() {
-      return i9.getInstance();
-    };
-  });
-  i(n);
-  var a = i(o(function(e13, i9) {
-    var o11 = t && t.__awaiter || function(e14, t7, i10, o12) {
-      return new (i10 || (i10 = Promise))(function(n9, a6) {
-        function r11(e15) {
-          try {
-            c8(o12.next(e15));
-          } catch (e16) {
-            a6(e16);
-          }
-        }
-        function s6(e15) {
-          try {
-            c8(o12.throw(e15));
-          } catch (e16) {
-            a6(e16);
-          }
-        }
-        function c8(e15) {
-          e15.done ? n9(e15.value) : new i10(function(t8) {
-            t8(e15.value);
-          }).then(r11, s6);
-        }
-        c8((o12 = o12.apply(e14, t7 || [])).next());
-      });
-    }, a5 = t && t.__generator || function(e14, t7) {
-      var i10, o12, n9, a6, r11 = { label: 0, sent: function() {
-        if (1 & n9[0]) throw n9[1];
-        return n9[1];
-      }, trys: [], ops: [] };
-      return a6 = { next: s6(0), throw: s6(1), return: s6(2) }, "function" == typeof Symbol && (a6[Symbol.iterator] = function() {
-        return this;
-      }), a6;
-      function s6(a7) {
-        return function(s7) {
-          return function(a8) {
-            if (i10) throw new TypeError("Generator is already executing.");
-            for (; r11; ) try {
-              if (i10 = 1, o12 && (n9 = 2 & a8[0] ? o12.return : a8[0] ? o12.throw || ((n9 = o12.return) && n9.call(o12), 0) : o12.next) && !(n9 = n9.call(o12, a8[1])).done) return n9;
-              switch (o12 = 0, n9 && (a8 = [2 & a8[0], n9.value]), a8[0]) {
-                case 0:
-                case 1:
-                  n9 = a8;
-                  break;
-                case 4:
-                  return r11.label++, { value: a8[1], done: false };
-                case 5:
-                  r11.label++, o12 = a8[1], a8 = [0];
-                  continue;
-                case 7:
-                  a8 = r11.ops.pop(), r11.trys.pop();
-                  continue;
-                default:
-                  if (!(n9 = r11.trys, (n9 = n9.length > 0 && n9[n9.length - 1]) || 6 !== a8[0] && 2 !== a8[0])) {
-                    r11 = 0;
-                    continue;
-                  }
-                  if (3 === a8[0] && (!n9 || a8[1] > n9[0] && a8[1] < n9[3])) {
-                    r11.label = a8[1];
-                    break;
-                  }
-                  if (6 === a8[0] && r11.label < n9[1]) {
-                    r11.label = n9[1], n9 = a8;
-                    break;
-                  }
-                  if (n9 && r11.label < n9[2]) {
-                    r11.label = n9[2], r11.ops.push(a8);
-                    break;
-                  }
-                  n9[2] && r11.ops.pop(), r11.trys.pop();
-                  continue;
-              }
-              a8 = t7.call(e14, r11);
-            } catch (e15) {
-              a8 = [6, e15], o12 = 0;
-            } finally {
-              i10 = n9 = 0;
-            }
-            if (5 & a8[0]) throw a8[1];
-            return { value: a8[0] ? a8[1] : void 0, done: true };
-          }([a7, s7]);
-        };
-      }
-    }, r10 = t;
-    Object.defineProperty(i9, "__esModule", { value: true });
-    var s5 = "browser-tabs-lock-key", c7 = { key: function(e14) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, getItem: function(e14) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, clear: function() {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e14) {
-          return [2, window.localStorage.clear()];
-        });
-      });
-    }, removeItem: function(e14) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, setItem: function(e14, t7) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, keySync: function(e14) {
-      return window.localStorage.key(e14);
-    }, getItemSync: function(e14) {
-      return window.localStorage.getItem(e14);
-    }, clearSync: function() {
-      return window.localStorage.clear();
-    }, removeItemSync: function(e14) {
-      return window.localStorage.removeItem(e14);
-    }, setItemSync: function(e14, t7) {
-      return window.localStorage.setItem(e14, t7);
-    } };
-    function d4(e14) {
-      return new Promise(function(t7) {
-        return setTimeout(t7, e14);
-      });
-    }
-    function u6(e14) {
-      for (var t7 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz", i10 = "", o12 = 0; o12 < e14; o12++) {
-        i10 += t7[Math.floor(Math.random() * t7.length)];
-      }
-      return i10;
-    }
-    var l6 = function() {
-      function e14(t7) {
-        this.acquiredIatSet = /* @__PURE__ */ new Set(), this.storageHandler = void 0, this.id = Date.now().toString() + u6(15), this.acquireLock = this.acquireLock.bind(this), this.releaseLock = this.releaseLock.bind(this), this.releaseLock__private__ = this.releaseLock__private__.bind(this), this.waitForSomethingToChange = this.waitForSomethingToChange.bind(this), this.refreshLockWhileAcquired = this.refreshLockWhileAcquired.bind(this), this.storageHandler = t7, void 0 === e14.waiters && (e14.waiters = []);
-      }
-      return e14.prototype.acquireLock = function(t7, i10) {
-        return void 0 === i10 && (i10 = 5e3), o11(this, void 0, void 0, function() {
-          var o12, n9, r11, l7, h6, p4, m4;
-          return a5(this, function(a6) {
-            switch (a6.label) {
-              case 0:
-                o12 = Date.now() + u6(4), n9 = Date.now() + i10, r11 = s5 + "-" + t7, l7 = void 0 === this.storageHandler ? c7 : this.storageHandler, a6.label = 1;
-              case 1:
-                return Date.now() < n9 ? [4, d4(30)] : [3, 8];
-              case 2:
-                return a6.sent(), null !== l7.getItemSync(r11) ? [3, 5] : (h6 = this.id + "-" + t7 + "-" + o12, [4, d4(Math.floor(25 * Math.random()))]);
-              case 3:
-                return a6.sent(), l7.setItemSync(r11, JSON.stringify({ id: this.id, iat: o12, timeoutKey: h6, timeAcquired: Date.now(), timeRefreshed: Date.now() })), [4, d4(30)];
-              case 4:
-                return a6.sent(), null !== (p4 = l7.getItemSync(r11)) && (m4 = JSON.parse(p4)).id === this.id && m4.iat === o12 ? (this.acquiredIatSet.add(o12), this.refreshLockWhileAcquired(r11, o12), [2, true]) : [3, 7];
-              case 5:
-                return e14.lockCorrector(void 0 === this.storageHandler ? c7 : this.storageHandler), [4, this.waitForSomethingToChange(n9)];
-              case 6:
-                a6.sent(), a6.label = 7;
-              case 7:
-                return o12 = Date.now() + u6(4), [3, 1];
-              case 8:
-                return [2, false];
-            }
-          });
-        });
-      }, e14.prototype.refreshLockWhileAcquired = function(e15, t7) {
-        return o11(this, void 0, void 0, function() {
-          var i10 = this;
-          return a5(this, function(r11) {
-            return setTimeout(function() {
-              return o11(i10, void 0, void 0, function() {
-                var i11, o12, r12;
-                return a5(this, function(a6) {
-                  switch (a6.label) {
-                    case 0:
-                      return [4, n.default().lock(t7)];
-                    case 1:
-                      return a6.sent(), this.acquiredIatSet.has(t7) ? (i11 = void 0 === this.storageHandler ? c7 : this.storageHandler, null === (o12 = i11.getItemSync(e15)) ? (n.default().unlock(t7), [2]) : ((r12 = JSON.parse(o12)).timeRefreshed = Date.now(), i11.setItemSync(e15, JSON.stringify(r12)), n.default().unlock(t7), this.refreshLockWhileAcquired(e15, t7), [2])) : (n.default().unlock(t7), [2]);
-                  }
-                });
-              });
-            }, 1e3), [2];
-          });
-        });
-      }, e14.prototype.waitForSomethingToChange = function(t7) {
-        return o11(this, void 0, void 0, function() {
-          return a5(this, function(i10) {
-            switch (i10.label) {
-              case 0:
-                return [4, new Promise(function(i11) {
-                  var o12 = false, n9 = Date.now(), a6 = false;
-                  function r11() {
-                    if (a6 || (window.removeEventListener("storage", r11), e14.removeFromWaiting(r11), clearTimeout(s6), a6 = true), !o12) {
-                      o12 = true;
-                      var t8 = 50 - (Date.now() - n9);
-                      t8 > 0 ? setTimeout(i11, t8) : i11(null);
-                    }
-                  }
-                  window.addEventListener("storage", r11), e14.addToWaiting(r11);
-                  var s6 = setTimeout(r11, Math.max(0, t7 - Date.now()));
-                })];
-              case 1:
-                return i10.sent(), [2];
-            }
-          });
-        });
-      }, e14.addToWaiting = function(t7) {
-        this.removeFromWaiting(t7), void 0 !== e14.waiters && e14.waiters.push(t7);
-      }, e14.removeFromWaiting = function(t7) {
-        void 0 !== e14.waiters && (e14.waiters = e14.waiters.filter(function(e15) {
-          return e15 !== t7;
-        }));
-      }, e14.notifyWaiters = function() {
-        void 0 !== e14.waiters && e14.waiters.slice().forEach(function(e15) {
-          return e15();
-        });
-      }, e14.prototype.releaseLock = function(e15) {
-        return o11(this, void 0, void 0, function() {
-          return a5(this, function(t7) {
-            switch (t7.label) {
-              case 0:
-                return [4, this.releaseLock__private__(e15)];
-              case 1:
-                return [2, t7.sent()];
-            }
-          });
-        });
-      }, e14.prototype.releaseLock__private__ = function(t7) {
-        return o11(this, void 0, void 0, function() {
-          var i10, o12, r11, d5;
-          return a5(this, function(a6) {
-            switch (a6.label) {
-              case 0:
-                return i10 = void 0 === this.storageHandler ? c7 : this.storageHandler, o12 = s5 + "-" + t7, null === (r11 = i10.getItemSync(o12)) ? [2] : (d5 = JSON.parse(r11)).id !== this.id ? [3, 2] : [4, n.default().lock(d5.iat)];
-              case 1:
-                a6.sent(), this.acquiredIatSet.delete(d5.iat), i10.removeItemSync(o12), n.default().unlock(d5.iat), e14.notifyWaiters(), a6.label = 2;
-              case 2:
-                return [2];
-            }
-          });
-        });
-      }, e14.lockCorrector = function(t7) {
-        for (var i10 = Date.now() - 5e3, o12 = t7, n9 = [], a6 = 0; ; ) {
-          var r11 = o12.keySync(a6);
-          if (null === r11) break;
-          n9.push(r11), a6++;
-        }
-        for (var c8 = false, d5 = 0; d5 < n9.length; d5++) {
-          var u7 = n9[d5];
-          if (u7.includes(s5)) {
-            var l7 = o12.getItemSync(u7);
-            if (null !== l7) {
-              var h6 = JSON.parse(l7);
-              (void 0 === h6.timeRefreshed && h6.timeAcquired < i10 || void 0 !== h6.timeRefreshed && h6.timeRefreshed < i10) && (o12.removeItemSync(u7), c8 = true);
-            }
-          }
-        }
-        c8 && e14.notifyWaiters();
-      }, e14.waiters = void 0, e14;
-    }();
-    i9.default = l6;
-  }));
-  var r = { timeoutInSeconds: 60 };
-  var s = { name: "auth0-spa-js", version: "2.1.3" };
-  var c = () => Date.now();
-  var d = class _d extends Error {
-    constructor(e13, t7) {
-      super(t7), this.error = e13, this.error_description = t7, Object.setPrototypeOf(this, _d.prototype);
-    }
-    static fromPayload({ error: e13, error_description: t7 }) {
-      return new _d(e13, t7);
-    }
-  };
-  var u = class _u extends d {
-    constructor(e13, t7, i9, o11 = null) {
-      super(e13, t7), this.state = i9, this.appState = o11, Object.setPrototypeOf(this, _u.prototype);
-    }
-  };
-  var l = class _l extends d {
-    constructor() {
-      super("timeout", "Timeout"), Object.setPrototypeOf(this, _l.prototype);
-    }
-  };
-  var h = class _h extends l {
-    constructor(e13) {
-      super(), this.popup = e13, Object.setPrototypeOf(this, _h.prototype);
-    }
-  };
-  var p = class _p extends d {
-    constructor(e13) {
-      super("cancelled", "Popup closed"), this.popup = e13, Object.setPrototypeOf(this, _p.prototype);
-    }
-  };
-  var m = class _m extends d {
-    constructor(e13, t7, i9) {
-      super(e13, t7), this.mfa_token = i9, Object.setPrototypeOf(this, _m.prototype);
-    }
-  };
-  var f = class _f extends d {
-    constructor(e13, t7) {
-      super("missing_refresh_token", `Missing Refresh Token (audience: '${g(e13, ["default"])}', scope: '${g(t7)}')`), this.audience = e13, this.scope = t7, Object.setPrototypeOf(this, _f.prototype);
-    }
-  };
-  function g(e13, t7 = []) {
-    return e13 && !t7.includes(e13) ? e13 : "";
-  }
-  var w = () => window.crypto;
-  var y = () => {
-    const e13 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.";
-    let t7 = "";
-    return Array.from(w().getRandomValues(new Uint8Array(43))).forEach((i9) => t7 += e13[i9 % e13.length]), t7;
-  };
-  var k = (e13) => btoa(e13);
-  var v = (t7) => {
-    var { clientId: i9 } = t7, o11 = e(t7, ["clientId"]);
-    return new URLSearchParams(((e13) => Object.keys(e13).filter((t8) => void 0 !== e13[t8]).reduce((t8, i10) => Object.assign(Object.assign({}, t8), { [i10]: e13[i10] }), {}))(Object.assign({ client_id: i9 }, o11))).toString();
-  };
-  var b = (e13) => ((e14) => decodeURIComponent(atob(e14).split("").map((e15) => "%" + ("00" + e15.charCodeAt(0).toString(16)).slice(-2)).join("")))(e13.replace(/_/g, "/").replace(/-/g, "+"));
-  var _ = async (e13, t7) => {
-    const i9 = await fetch(e13, t7);
-    return { ok: i9.ok, json: await i9.json() };
-  };
-  var I = async (e13, t7, i9) => {
-    const o11 = new AbortController();
-    let n9;
-    return t7.signal = o11.signal, Promise.race([_(e13, t7), new Promise((e14, t8) => {
-      n9 = setTimeout(() => {
-        o11.abort(), t8(new Error("Timeout when executing 'fetch'"));
-      }, i9);
-    })]).finally(() => {
-      clearTimeout(n9);
-    });
-  };
-  var S = async (e13, t7, i9, o11, n9, a5, r10) => {
-    return s5 = { auth: { audience: t7, scope: i9 }, timeout: n9, fetchUrl: e13, fetchOptions: o11, useFormData: r10 }, c7 = a5, new Promise(function(e14, t8) {
-      const i10 = new MessageChannel();
-      i10.port1.onmessage = function(o12) {
-        o12.data.error ? t8(new Error(o12.data.error)) : e14(o12.data), i10.port1.close();
-      }, c7.postMessage(s5, [i10.port2]);
-    });
-    var s5, c7;
-  };
-  var O = async (e13, t7, i9, o11, n9, a5, r10 = 1e4) => n9 ? S(e13, t7, i9, o11, r10, n9, a5) : I(e13, o11, r10);
-  async function T(t7, i9) {
-    var { baseUrl: o11, timeout: n9, audience: a5, scope: r10, auth0Client: c7, useFormData: u6 } = t7, l6 = e(t7, ["baseUrl", "timeout", "audience", "scope", "auth0Client", "useFormData"]);
-    const h6 = u6 ? v(l6) : JSON.stringify(l6);
-    return await async function(t8, i10, o12, n10, a6, r11, s5) {
-      let c8, u7 = null;
-      for (let e13 = 0; e13 < 3; e13++) try {
-        c8 = await O(t8, o12, n10, a6, r11, s5, i10), u7 = null;
-        break;
-      } catch (e14) {
-        u7 = e14;
-      }
-      if (u7) throw u7;
-      const l7 = c8.json, { error: h7, error_description: p4 } = l7, g3 = e(l7, ["error", "error_description"]), { ok: w3 } = c8;
-      if (!w3) {
-        const e13 = p4 || `HTTP error. Unable to fetch ${t8}`;
-        if ("mfa_required" === h7) throw new m(h7, e13, g3.mfa_token);
-        if ("missing_refresh_token" === h7) throw new f(o12, n10);
-        throw new d(h7 || "request_error", e13);
-      }
-      return g3;
-    }(`${o11}/oauth/token`, n9, a5 || "default", r10, { method: "POST", body: h6, headers: { "Content-Type": u6 ? "application/x-www-form-urlencoded" : "application/json", "Auth0-Client": btoa(JSON.stringify(c7 || s)) } }, i9, u6);
-  }
-  var j = (...e13) => {
-    return (t7 = e13.filter(Boolean).join(" ").trim().split(/\s+/), Array.from(new Set(t7))).join(" ");
-    var t7;
-  };
-  var C = class _C {
-    constructor(e13, t7 = "@@auth0spajs@@", i9) {
-      this.prefix = t7, this.suffix = i9, this.clientId = e13.clientId, this.scope = e13.scope, this.audience = e13.audience;
-    }
-    toKey() {
-      return [this.prefix, this.clientId, this.audience, this.scope, this.suffix].filter(Boolean).join("::");
-    }
-    static fromKey(e13) {
-      const [t7, i9, o11, n9] = e13.split("::");
-      return new _C({ clientId: i9, scope: n9, audience: o11 }, t7);
-    }
-    static fromCacheEntry(e13) {
-      const { scope: t7, audience: i9, client_id: o11 } = e13;
-      return new _C({ scope: t7, audience: i9, clientId: o11 });
-    }
-  };
-  var z2 = class {
-    set(e13, t7) {
-      localStorage.setItem(e13, JSON.stringify(t7));
-    }
-    get(e13) {
-      const t7 = window.localStorage.getItem(e13);
-      if (t7) try {
-        return JSON.parse(t7);
-      } catch (e14) {
-        return;
-      }
-    }
-    remove(e13) {
-      localStorage.removeItem(e13);
-    }
-    allKeys() {
-      return Object.keys(window.localStorage).filter((e13) => e13.startsWith("@@auth0spajs@@"));
-    }
-  };
-  var P = class {
-    constructor() {
-      this.enclosedCache = /* @__PURE__ */ function() {
-        let e13 = {};
-        return { set(t7, i9) {
-          e13[t7] = i9;
-        }, get(t7) {
-          const i9 = e13[t7];
-          if (i9) return i9;
-        }, remove(t7) {
-          delete e13[t7];
-        }, allKeys: () => Object.keys(e13) };
-      }();
-    }
-  };
-  var x = class {
-    constructor(e13, t7, i9) {
-      this.cache = e13, this.keyManifest = t7, this.nowProvider = i9 || c;
-    }
-    async setIdToken(e13, t7, i9) {
-      var o11;
-      const n9 = this.getIdTokenCacheKey(e13);
-      await this.cache.set(n9, { id_token: t7, decodedToken: i9 }), await (null === (o11 = this.keyManifest) || void 0 === o11 ? void 0 : o11.add(n9));
-    }
-    async getIdToken(e13) {
-      const t7 = await this.cache.get(this.getIdTokenCacheKey(e13.clientId));
-      if (!t7 && e13.scope && e13.audience) {
-        const t8 = await this.get(e13);
-        if (!t8) return;
-        if (!t8.id_token || !t8.decodedToken) return;
-        return { id_token: t8.id_token, decodedToken: t8.decodedToken };
-      }
-      if (t7) return { id_token: t7.id_token, decodedToken: t7.decodedToken };
-    }
-    async get(e13, t7 = 0) {
-      var i9;
-      let o11 = await this.cache.get(e13.toKey());
-      if (!o11) {
-        const t8 = await this.getCacheKeys();
-        if (!t8) return;
-        const i10 = this.matchExistingCacheKey(e13, t8);
-        i10 && (o11 = await this.cache.get(i10));
-      }
-      if (!o11) return;
-      const n9 = await this.nowProvider(), a5 = Math.floor(n9 / 1e3);
-      return o11.expiresAt - t7 < a5 ? o11.body.refresh_token ? (o11.body = { refresh_token: o11.body.refresh_token }, await this.cache.set(e13.toKey(), o11), o11.body) : (await this.cache.remove(e13.toKey()), void await (null === (i9 = this.keyManifest) || void 0 === i9 ? void 0 : i9.remove(e13.toKey()))) : o11.body;
-    }
-    async set(e13) {
-      var t7;
-      const i9 = new C({ clientId: e13.client_id, scope: e13.scope, audience: e13.audience }), o11 = await this.wrapCacheEntry(e13);
-      await this.cache.set(i9.toKey(), o11), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.add(i9.toKey()));
-    }
-    async clear(e13) {
-      var t7;
-      const i9 = await this.getCacheKeys();
-      i9 && (await i9.filter((t8) => !e13 || t8.includes(e13)).reduce(async (e14, t8) => {
-        await e14, await this.cache.remove(t8);
-      }, Promise.resolve()), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.clear()));
-    }
-    async wrapCacheEntry(e13) {
-      const t7 = await this.nowProvider();
-      return { body: e13, expiresAt: Math.floor(t7 / 1e3) + e13.expires_in };
-    }
-    async getCacheKeys() {
-      var e13;
-      return this.keyManifest ? null === (e13 = await this.keyManifest.get()) || void 0 === e13 ? void 0 : e13.keys : this.cache.allKeys ? this.cache.allKeys() : void 0;
-    }
-    getIdTokenCacheKey(e13) {
-      return new C({ clientId: e13 }, "@@auth0spajs@@", "@@user@@").toKey();
-    }
-    matchExistingCacheKey(e13, t7) {
-      return t7.filter((t8) => {
-        var i9;
-        const o11 = C.fromKey(t8), n9 = new Set(o11.scope && o11.scope.split(" ")), a5 = (null === (i9 = e13.scope) || void 0 === i9 ? void 0 : i9.split(" ")) || [], r10 = o11.scope && a5.reduce((e14, t9) => e14 && n9.has(t9), true);
-        return "@@auth0spajs@@" === o11.prefix && o11.clientId === e13.clientId && o11.audience === e13.audience && r10;
-      })[0];
-    }
-  };
-  var Z = class {
-    constructor(e13, t7, i9) {
-      this.storage = e13, this.clientId = t7, this.cookieDomain = i9, this.storageKey = `a0.spajs.txs.${this.clientId}`;
-    }
-    create(e13) {
-      this.storage.save(this.storageKey, e13, { daysUntilExpire: 1, cookieDomain: this.cookieDomain });
-    }
-    get() {
-      return this.storage.get(this.storageKey);
-    }
-    remove() {
-      this.storage.remove(this.storageKey, { cookieDomain: this.cookieDomain });
-    }
-  };
-  var K = (e13) => "number" == typeof e13;
-  var W = ["iss", "aud", "exp", "nbf", "iat", "jti", "azp", "nonce", "auth_time", "at_hash", "c_hash", "acr", "amr", "sub_jwk", "cnf", "sip_from_tag", "sip_date", "sip_callid", "sip_cseq_num", "sip_via_branch", "orig", "dest", "mky", "events", "toe", "txn", "rph", "sid", "vot", "vtm"];
-  var E = (e13) => {
-    if (!e13.id_token) throw new Error("ID token is required but missing");
-    const t7 = ((e14) => {
-      const t8 = e14.split("."), [i10, o12, n10] = t8;
-      if (3 !== t8.length || !i10 || !o12 || !n10) throw new Error("ID token could not be decoded");
-      const a5 = JSON.parse(b(o12)), r10 = { __raw: e14 }, s5 = {};
-      return Object.keys(a5).forEach((e15) => {
-        r10[e15] = a5[e15], W.includes(e15) || (s5[e15] = a5[e15]);
-      }), { encoded: { header: i10, payload: o12, signature: n10 }, header: JSON.parse(b(i10)), claims: r10, user: s5 };
-    })(e13.id_token);
-    if (!t7.claims.iss) throw new Error("Issuer (iss) claim must be a string present in the ID token");
-    if (t7.claims.iss !== e13.iss) throw new Error(`Issuer (iss) claim mismatch in the ID token; expected "${e13.iss}", found "${t7.claims.iss}"`);
-    if (!t7.user.sub) throw new Error("Subject (sub) claim must be a string present in the ID token");
-    if ("RS256" !== t7.header.alg) throw new Error(`Signature algorithm of "${t7.header.alg}" is not supported. Expected the ID token to be signed with "RS256".`);
-    if (!t7.claims.aud || "string" != typeof t7.claims.aud && !Array.isArray(t7.claims.aud)) throw new Error("Audience (aud) claim must be a string or array of strings present in the ID token");
-    if (Array.isArray(t7.claims.aud)) {
-      if (!t7.claims.aud.includes(e13.aud)) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but was not one of "${t7.claims.aud.join(", ")}"`);
-      if (t7.claims.aud.length > 1) {
-        if (!t7.claims.azp) throw new Error("Authorized Party (azp) claim must be a string present in the ID token when Audience (aud) claim has multiple values");
-        if (t7.claims.azp !== e13.aud) throw new Error(`Authorized Party (azp) claim mismatch in the ID token; expected "${e13.aud}", found "${t7.claims.azp}"`);
-      }
-    } else if (t7.claims.aud !== e13.aud) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but found "${t7.claims.aud}"`);
-    if (e13.nonce) {
-      if (!t7.claims.nonce) throw new Error("Nonce (nonce) claim must be a string present in the ID token");
-      if (t7.claims.nonce !== e13.nonce) throw new Error(`Nonce (nonce) claim mismatch in the ID token; expected "${e13.nonce}", found "${t7.claims.nonce}"`);
-    }
-    if (e13.max_age && !K(t7.claims.auth_time)) throw new Error("Authentication Time (auth_time) claim must be a number present in the ID token when Max Age (max_age) is specified");
-    if (null == t7.claims.exp || !K(t7.claims.exp)) throw new Error("Expiration Time (exp) claim must be a number present in the ID token");
-    if (!K(t7.claims.iat)) throw new Error("Issued At (iat) claim must be a number present in the ID token");
-    const i9 = e13.leeway || 60, o11 = new Date(e13.now || Date.now()), n9 = /* @__PURE__ */ new Date(0);
-    if (n9.setUTCSeconds(t7.claims.exp + i9), o11 > n9) throw new Error(`Expiration Time (exp) claim error in the ID token; current time (${o11}) is after expiration time (${n9})`);
-    if (null != t7.claims.nbf && K(t7.claims.nbf)) {
-      const e14 = /* @__PURE__ */ new Date(0);
-      if (e14.setUTCSeconds(t7.claims.nbf - i9), o11 < e14) throw new Error(`Not Before time (nbf) claim in the ID token indicates that this token can't be used just yet. Current time (${o11}) is before ${e14}`);
-    }
-    if (null != t7.claims.auth_time && K(t7.claims.auth_time)) {
-      const n10 = /* @__PURE__ */ new Date(0);
-      if (n10.setUTCSeconds(parseInt(t7.claims.auth_time) + e13.max_age + i9), o11 > n10) throw new Error(`Authentication Time (auth_time) claim in the ID token indicates that too much time has passed since the last end-user authentication. Current time (${o11}) is after last auth at ${n10}`);
-    }
-    if (e13.organization) {
-      const i10 = e13.organization.trim();
-      if (i10.startsWith("org_")) {
-        const e14 = i10;
-        if (!t7.claims.org_id) throw new Error("Organization ID (org_id) claim must be a string present in the ID token");
-        if (e14 !== t7.claims.org_id) throw new Error(`Organization ID (org_id) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_id}"`);
-      } else {
-        const e14 = i10.toLowerCase();
-        if (!t7.claims.org_name) throw new Error("Organization Name (org_name) claim must be a string present in the ID token");
-        if (e14 !== t7.claims.org_name) throw new Error(`Organization Name (org_name) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_name}"`);
-      }
-    }
-    return t7;
-  };
-  var R = o(function(e13, i9) {
-    var o11 = t && t.__assign || function() {
-      return o11 = Object.assign || function(e14) {
-        for (var t7, i10 = 1, o12 = arguments.length; i10 < o12; i10++) for (var n10 in t7 = arguments[i10]) Object.prototype.hasOwnProperty.call(t7, n10) && (e14[n10] = t7[n10]);
-        return e14;
-      }, o11.apply(this, arguments);
-    };
-    function n9(e14, t7) {
-      if (!t7) return "";
-      var i10 = "; " + e14;
-      return true === t7 ? i10 : i10 + "=" + t7;
-    }
-    function a5(e14, t7, i10) {
-      return encodeURIComponent(e14).replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent).replace(/\(/g, "%28").replace(/\)/g, "%29") + "=" + encodeURIComponent(t7).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent) + function(e15) {
-        if ("number" == typeof e15.expires) {
-          var t8 = /* @__PURE__ */ new Date();
-          t8.setMilliseconds(t8.getMilliseconds() + 864e5 * e15.expires), e15.expires = t8;
-        }
-        return n9("Expires", e15.expires ? e15.expires.toUTCString() : "") + n9("Domain", e15.domain) + n9("Path", e15.path) + n9("Secure", e15.secure) + n9("SameSite", e15.sameSite);
-      }(i10);
-    }
-    function r10(e14) {
-      for (var t7 = {}, i10 = e14 ? e14.split("; ") : [], o12 = /(%[\dA-F]{2})+/gi, n10 = 0; n10 < i10.length; n10++) {
-        var a6 = i10[n10].split("="), r11 = a6.slice(1).join("=");
-        '"' === r11.charAt(0) && (r11 = r11.slice(1, -1));
-        try {
-          t7[a6[0].replace(o12, decodeURIComponent)] = r11.replace(o12, decodeURIComponent);
-        } catch (e15) {
-        }
-      }
-      return t7;
-    }
-    function s5() {
-      return r10(document.cookie);
-    }
-    function c7(e14, t7, i10) {
-      document.cookie = a5(e14, t7, o11({ path: "/" }, i10));
-    }
-    i9.__esModule = true, i9.encode = a5, i9.parse = r10, i9.getAll = s5, i9.get = function(e14) {
-      return s5()[e14];
-    }, i9.set = c7, i9.remove = function(e14, t7) {
-      c7(e14, "", o11(o11({}, t7), { expires: -1 }));
-    };
-  });
-  i(R), R.encode, R.parse, R.getAll;
-  var U = R.get;
-  var L = R.set;
-  var D = R.remove;
-  var X = { get(e13) {
-    const t7 = U(e13);
-    if (void 0 !== t7) return JSON.parse(t7);
-  }, save(e13, t7, i9) {
-    let o11 = {};
-    "https:" === window.location.protocol && (o11 = { secure: true, sameSite: "none" }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(e13, JSON.stringify(t7), o11);
-  }, remove(e13, t7) {
-    let i9 = {};
-    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9);
-  } };
-  var N = { get(e13) {
-    const t7 = X.get(e13);
-    return t7 || X.get(`_legacy_${e13}`);
-  }, save(e13, t7, i9) {
-    let o11 = {};
-    "https:" === window.location.protocol && (o11 = { secure: true }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(`_legacy_${e13}`, JSON.stringify(t7), o11), X.save(e13, t7, i9);
-  }, remove(e13, t7) {
-    let i9 = {};
-    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9), X.remove(e13, t7), X.remove(`_legacy_${e13}`, t7);
-  } };
-  var J = { get(e13) {
-    if ("undefined" == typeof sessionStorage) return;
-    const t7 = sessionStorage.getItem(e13);
-    return null != t7 ? JSON.parse(t7) : void 0;
-  }, save(e13, t7) {
-    sessionStorage.setItem(e13, JSON.stringify(t7));
-  }, remove(e13) {
-    sessionStorage.removeItem(e13);
-  } };
-  function F(e13, t7, i9) {
-    var o11 = void 0 === t7 ? null : t7, n9 = function(e14, t8) {
-      var i10 = atob(e14);
-      if (t8) {
-        for (var o12 = new Uint8Array(i10.length), n10 = 0, a6 = i10.length; n10 < a6; ++n10) o12[n10] = i10.charCodeAt(n10);
-        return String.fromCharCode.apply(null, new Uint16Array(o12.buffer));
-      }
-      return i10;
-    }(e13, void 0 !== i9 && i9), a5 = n9.indexOf("\n", 10) + 1, r10 = n9.substring(a5) + (o11 ? "//# sourceMappingURL=" + o11 : ""), s5 = new Blob([r10], { type: "application/javascript" });
-    return URL.createObjectURL(s5);
-  }
-  var H;
-  var Y;
-  var G;
-  var V;
-  var M = (H = "Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwohZnVuY3Rpb24oKXsidXNlIHN0cmljdCI7Y2xhc3MgZSBleHRlbmRzIEVycm9ye2NvbnN0cnVjdG9yKHQscil7c3VwZXIociksdGhpcy5lcnJvcj10LHRoaXMuZXJyb3JfZGVzY3JpcHRpb249cixPYmplY3Quc2V0UHJvdG90eXBlT2YodGhpcyxlLnByb3RvdHlwZSl9c3RhdGljIGZyb21QYXlsb2FkKHtlcnJvcjp0LGVycm9yX2Rlc2NyaXB0aW9uOnJ9KXtyZXR1cm4gbmV3IGUodCxyKX19Y2xhc3MgdCBleHRlbmRzIGV7Y29uc3RydWN0b3IoZSxzKXtzdXBlcigibWlzc2luZ19yZWZyZXNoX3Rva2VuIixgTWlzc2luZyBSZWZyZXNoIFRva2VuIChhdWRpZW5jZTogJyR7cihlLFsiZGVmYXVsdCJdKX0nLCBzY29wZTogJyR7cihzKX0nKWApLHRoaXMuYXVkaWVuY2U9ZSx0aGlzLnNjb3BlPXMsT2JqZWN0LnNldFByb3RvdHlwZU9mKHRoaXMsdC5wcm90b3R5cGUpfX1mdW5jdGlvbiByKGUsdD1bXSl7cmV0dXJuIGUmJiF0LmluY2x1ZGVzKGUpP2U6IiJ9ImZ1bmN0aW9uIj09dHlwZW9mIFN1cHByZXNzZWRFcnJvciYmU3VwcHJlc3NlZEVycm9yO2NvbnN0IHM9ZT0+e3ZhcntjbGllbnRJZDp0fT1lLHI9ZnVuY3Rpb24oZSx0KXt2YXIgcj17fTtmb3IodmFyIHMgaW4gZSlPYmplY3QucHJvdG90eXBlLmhhc093blByb3BlcnR5LmNhbGwoZSxzKSYmdC5pbmRleE9mKHMpPDAmJihyW3NdPWVbc10pO2lmKG51bGwhPWUmJiJmdW5jdGlvbiI9PXR5cGVvZiBPYmplY3QuZ2V0T3duUHJvcGVydHlTeW1ib2xzKXt2YXIgbz0wO2ZvcihzPU9iamVjdC5nZXRPd25Qcm9wZXJ0eVN5bWJvbHMoZSk7bzxzLmxlbmd0aDtvKyspdC5pbmRleE9mKHNbb10pPDAmJk9iamVjdC5wcm90b3R5cGUucHJvcGVydHlJc0VudW1lcmFibGUuY2FsbChlLHNbb10pJiYocltzW29dXT1lW3Nbb11dKX1yZXR1cm4gcn0oZSxbImNsaWVudElkIl0pO3JldHVybiBuZXcgVVJMU2VhcmNoUGFyYW1zKChlPT5PYmplY3Qua2V5cyhlKS5maWx0ZXIoKHQ9PnZvaWQgMCE9PWVbdF0pKS5yZWR1Y2UoKCh0LHIpPT5PYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30sdCkse1tyXTplW3JdfSkpLHt9KSkoT2JqZWN0LmFzc2lnbih7Y2xpZW50X2lkOnR9LHIpKSkudG9TdHJpbmcoKX07bGV0IG89e307Y29uc3Qgbj0oZSx0KT0+YCR7ZX18JHt0fWA7YWRkRXZlbnRMaXN0ZW5lcigibWVzc2FnZSIsKGFzeW5jKHtkYXRhOnt0aW1lb3V0OmUsYXV0aDpyLGZldGNoVXJsOmksZmV0Y2hPcHRpb25zOmMsdXNlRm9ybURhdGE6YX0scG9ydHM6W3BdfSk9PntsZXQgZjtjb25zdHthdWRpZW5jZTp1LHNjb3BlOmx9PXJ8fHt9O3RyeXtjb25zdCByPWE/KGU9Pntjb25zdCB0PW5ldyBVUkxTZWFyY2hQYXJhbXMoZSkscj17fTtyZXR1cm4gdC5mb3JFYWNoKCgoZSx0KT0+e3JbdF09ZX0pKSxyfSkoYy5ib2R5KTpKU09OLnBhcnNlKGMuYm9keSk7aWYoIXIucmVmcmVzaF90b2tlbiYmInJlZnJlc2hfdG9rZW4iPT09ci5ncmFudF90eXBlKXtjb25zdCBlPSgoZSx0KT0+b1tuKGUsdCldKSh1LGwpO2lmKCFlKXRocm93IG5ldyB0KHUsbCk7Yy5ib2R5PWE/cyhPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKTpKU09OLnN0cmluZ2lmeShPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKX1sZXQgaCxnOyJmdW5jdGlvbiI9PXR5cGVvZiBBYm9ydENvbnRyb2xsZXImJihoPW5ldyBBYm9ydENvbnRyb2xsZXIsYy5zaWduYWw9aC5zaWduYWwpO3RyeXtnPWF3YWl0IFByb21pc2UucmFjZShbKGQ9ZSxuZXcgUHJvbWlzZSgoZT0+c2V0VGltZW91dChlLGQpKSkpLGZldGNoKGksT2JqZWN0LmFzc2lnbih7fSxjKSldKX1jYXRjaChlKXtyZXR1cm4gdm9pZCBwLnBvc3RNZXNzYWdlKHtlcnJvcjplLm1lc3NhZ2V9KX1pZighZylyZXR1cm4gaCYmaC5hYm9ydCgpLHZvaWQgcC5wb3N0TWVzc2FnZSh7ZXJyb3I6IlRpbWVvdXQgd2hlbiBleGVjdXRpbmcgJ2ZldGNoJyJ9KTtmPWF3YWl0IGcuanNvbigpLGYucmVmcmVzaF90b2tlbj8oKChlLHQscik9PntvW24odCxyKV09ZX0pKGYucmVmcmVzaF90b2tlbix1LGwpLGRlbGV0ZSBmLnJlZnJlc2hfdG9rZW4pOigoZSx0KT0+e2RlbGV0ZSBvW24oZSx0KV19KSh1LGwpLHAucG9zdE1lc3NhZ2Uoe29rOmcub2ssanNvbjpmfSl9Y2F0Y2goZSl7cC5wb3N0TWVzc2FnZSh7b2s6ITEsanNvbjp7ZXJyb3I6ZS5lcnJvcixlcnJvcl9kZXNjcmlwdGlvbjplLm1lc3NhZ2V9fSl9dmFyIGR9KSl9KCk7Cgo=", Y = null, G = false, function(e13) {
-    return V = V || F(H, Y, G), new Worker(V, e13);
-  });
-  var A = {};
-  var B = class {
-    constructor(e13, t7) {
-      this.cache = e13, this.clientId = t7, this.manifestKey = this.createManifestKeyFrom(this.clientId);
-    }
-    async add(e13) {
-      var t7;
-      const i9 = new Set((null === (t7 = await this.cache.get(this.manifestKey)) || void 0 === t7 ? void 0 : t7.keys) || []);
-      i9.add(e13), await this.cache.set(this.manifestKey, { keys: [...i9] });
-    }
-    async remove(e13) {
-      const t7 = await this.cache.get(this.manifestKey);
-      if (t7) {
-        const i9 = new Set(t7.keys);
-        return i9.delete(e13), i9.size > 0 ? await this.cache.set(this.manifestKey, { keys: [...i9] }) : await this.cache.remove(this.manifestKey);
-      }
-    }
-    get() {
-      return this.cache.get(this.manifestKey);
-    }
-    clear() {
-      return this.cache.remove(this.manifestKey);
-    }
-    createManifestKeyFrom(e13) {
-      return `@@auth0spajs@@::${e13}`;
-    }
-  };
-  var $ = { memory: () => new P().enclosedCache, localstorage: () => new z2() };
-  var q = (e13) => $[e13];
-  var Q = (t7) => {
-    const { openUrl: i9, onRedirect: o11 } = t7, n9 = e(t7, ["openUrl", "onRedirect"]);
-    return Object.assign(Object.assign({}, n9), { openUrl: false === i9 || i9 ? i9 : o11 });
-  };
-  var ee = new a();
-  var te = class {
-    constructor(e13) {
-      let t7, i9;
-      if (this.userCache = new P().enclosedCache, this.defaultOptions = { authorizationParams: { scope: "openid profile email" }, useRefreshTokensFallback: false, useFormData: true }, this._releaseLockOnPageHide = async () => {
-        await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
-      }, this.options = Object.assign(Object.assign(Object.assign({}, this.defaultOptions), e13), { authorizationParams: Object.assign(Object.assign({}, this.defaultOptions.authorizationParams), e13.authorizationParams) }), "undefined" != typeof window && (() => {
-        if (!w()) throw new Error("For security reasons, `window.crypto` is required to run `auth0-spa-js`.");
-        if (void 0 === w().subtle) throw new Error("\n      auth0-spa-js must run on a secure origin. See https://github.com/auth0/auth0-spa-js/blob/main/FAQ.md#why-do-i-get-auth0-spa-js-must-run-on-a-secure-origin for more information.\n    ");
-      })(), e13.cache && e13.cacheLocation && console.warn("Both `cache` and `cacheLocation` options have been specified in the Auth0Client configuration; ignoring `cacheLocation` and using `cache`."), e13.cache) i9 = e13.cache;
-      else {
-        if (t7 = e13.cacheLocation || "memory", !q(t7)) throw new Error(`Invalid cache location "${t7}"`);
-        i9 = q(t7)();
-      }
-      this.httpTimeoutMs = e13.httpTimeoutInSeconds ? 1e3 * e13.httpTimeoutInSeconds : 1e4, this.cookieStorage = false === e13.legacySameSiteCookie ? X : N, this.orgHintCookieName = `auth0.${this.options.clientId}.organization_hint`, this.isAuthenticatedCookieName = ((e14) => `auth0.${e14}.is.authenticated`)(this.options.clientId), this.sessionCheckExpiryDays = e13.sessionCheckExpiryDays || 1;
-      const o11 = e13.useCookiesForTransactions ? this.cookieStorage : J;
-      var n9;
-      this.scope = j("openid", this.options.authorizationParams.scope, this.options.useRefreshTokens ? "offline_access" : ""), this.transactionManager = new Z(o11, this.options.clientId, this.options.cookieDomain), this.nowProvider = this.options.nowProvider || c, this.cacheManager = new x(i9, i9.allKeys ? void 0 : new B(i9, this.options.clientId), this.nowProvider), this.domainUrl = (n9 = this.options.domain, /^https?:\/\//.test(n9) ? n9 : `https://${n9}`), this.tokenIssuer = ((e14, t8) => e14 ? e14.startsWith("https://") ? e14 : `https://${e14}/` : `${t8}/`)(this.options.issuer, this.domainUrl), "undefined" != typeof window && window.Worker && this.options.useRefreshTokens && "memory" === t7 && (this.options.workerUrl ? this.worker = new Worker(this.options.workerUrl) : this.worker = new M());
-    }
-    _url(e13) {
-      const t7 = encodeURIComponent(btoa(JSON.stringify(this.options.auth0Client || s)));
-      return `${this.domainUrl}${e13}&auth0Client=${t7}`;
-    }
-    _authorizeUrl(e13) {
-      return this._url(`/authorize?${v(e13)}`);
-    }
-    async _verifyIdToken(e13, t7, i9) {
-      const o11 = await this.nowProvider();
-      return E({ iss: this.tokenIssuer, aud: this.options.clientId, id_token: e13, nonce: t7, organization: i9, leeway: this.options.leeway, max_age: (n9 = this.options.authorizationParams.max_age, "string" != typeof n9 ? n9 : parseInt(n9, 10) || void 0), now: o11 });
-      var n9;
-    }
-    _processOrgHint(e13) {
-      e13 ? this.cookieStorage.save(this.orgHintCookieName, e13, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }) : this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain });
-    }
-    async _prepareAuthorizeUrl(e13, t7, i9) {
-      const o11 = k(y()), n9 = k(y()), a5 = y(), r10 = ((e14) => {
-        const t8 = new Uint8Array(e14);
-        return ((e15) => {
-          const t9 = { "+": "-", "/": "_", "=": "" };
-          return e15.replace(/[+/=]/g, (e16) => t9[e16]);
-        })(window.btoa(String.fromCharCode(...Array.from(t8))));
-      })(await (async (e14) => {
-        const t8 = w().subtle.digest({ name: "SHA-256" }, new TextEncoder().encode(e14));
-        return await t8;
-      })(a5)), s5 = ((e14, t8, i10, o12, n10, a6, r11, s6) => Object.assign(Object.assign(Object.assign({ client_id: e14.clientId }, e14.authorizationParams), i10), { scope: j(t8, i10.scope), response_type: "code", response_mode: s6 || "query", state: o12, nonce: n10, redirect_uri: r11 || e14.authorizationParams.redirect_uri, code_challenge: a6, code_challenge_method: "S256" }))(this.options, this.scope, e13, o11, n9, r10, e13.redirect_uri || this.options.authorizationParams.redirect_uri || i9, null == t7 ? void 0 : t7.response_mode), c7 = this._authorizeUrl(s5);
-      return { nonce: n9, code_verifier: a5, scope: s5.scope, audience: s5.audience || "default", redirect_uri: s5.redirect_uri, state: o11, url: c7 };
-    }
-    async loginWithPopup(e13, t7) {
-      var i9;
-      if (e13 = e13 || {}, !(t7 = t7 || {}).popup && (t7.popup = ((e14) => {
-        const t8 = window.screenX + (window.innerWidth - 400) / 2, i10 = window.screenY + (window.innerHeight - 600) / 2;
-        return window.open(e14, "auth0:authorize:popup", `left=${t8},top=${i10},width=400,height=600,resizable,scrollbars=yes,status=1`);
-      })(""), !t7.popup)) throw new Error("Unable to open a popup for loginWithPopup - window.open returned `null`");
-      const o11 = await this._prepareAuthorizeUrl(e13.authorizationParams || {}, { response_mode: "web_message" }, window.location.origin);
-      t7.popup.location.href = o11.url;
-      const n9 = await ((e14) => new Promise((t8, i10) => {
-        let o12;
-        const n10 = setInterval(() => {
-          e14.popup && e14.popup.closed && (clearInterval(n10), clearTimeout(a6), window.removeEventListener("message", o12, false), i10(new p(e14.popup)));
-        }, 1e3), a6 = setTimeout(() => {
-          clearInterval(n10), i10(new h(e14.popup)), window.removeEventListener("message", o12, false);
-        }, 1e3 * (e14.timeoutInSeconds || 60));
-        o12 = function(r10) {
-          if (r10.data && "authorization_response" === r10.data.type) {
-            if (clearTimeout(a6), clearInterval(n10), window.removeEventListener("message", o12, false), e14.popup.close(), r10.data.response.error) return i10(d.fromPayload(r10.data.response));
-            t8(r10.data.response);
-          }
-        }, window.addEventListener("message", o12);
-      }))(Object.assign(Object.assign({}, t7), { timeoutInSeconds: t7.timeoutInSeconds || this.options.authorizeTimeoutInSeconds || 60 }));
-      if (o11.state !== n9.state) throw new d("state_mismatch", "Invalid state");
-      const a5 = (null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization;
-      await this._requestToken({ audience: o11.audience, scope: o11.scope, code_verifier: o11.code_verifier, grant_type: "authorization_code", code: n9.code, redirect_uri: o11.redirect_uri }, { nonceIn: o11.nonce, organization: a5 });
-    }
-    async getUser() {
-      var e13;
-      const t7 = await this._getIdTokenFromCache();
-      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.user;
-    }
-    async getIdTokenClaims() {
-      var e13;
-      const t7 = await this._getIdTokenFromCache();
-      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.claims;
-    }
-    async loginWithRedirect(t7 = {}) {
-      var i9;
-      const o11 = Q(t7), { openUrl: n9, fragment: a5, appState: r10 } = o11, s5 = e(o11, ["openUrl", "fragment", "appState"]), c7 = (null === (i9 = s5.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization, d4 = await this._prepareAuthorizeUrl(s5.authorizationParams || {}), { url: u6 } = d4, l6 = e(d4, ["url"]);
-      this.transactionManager.create(Object.assign(Object.assign(Object.assign({}, l6), { appState: r10 }), c7 && { organization: c7 }));
-      const h6 = a5 ? `${u6}#${a5}` : u6;
-      n9 ? await n9(h6) : window.location.assign(h6);
-    }
-    async handleRedirectCallback(e13 = window.location.href) {
-      const t7 = e13.split("?").slice(1);
-      if (0 === t7.length) throw new Error("There are no query params available for parsing.");
-      const { state: i9, code: o11, error: n9, error_description: a5 } = ((e14) => {
-        e14.indexOf("#") > -1 && (e14 = e14.substring(0, e14.indexOf("#")));
-        const t8 = new URLSearchParams(e14);
-        return { state: t8.get("state"), code: t8.get("code") || void 0, error: t8.get("error") || void 0, error_description: t8.get("error_description") || void 0 };
-      })(t7.join("")), r10 = this.transactionManager.get();
-      if (!r10) throw new d("missing_transaction", "Invalid state");
-      if (this.transactionManager.remove(), n9) throw new u(n9, a5 || n9, i9, r10.appState);
-      if (!r10.code_verifier || r10.state && r10.state !== i9) throw new d("state_mismatch", "Invalid state");
-      const s5 = r10.organization, c7 = r10.nonce, l6 = r10.redirect_uri;
-      return await this._requestToken(Object.assign({ audience: r10.audience, scope: r10.scope, code_verifier: r10.code_verifier, grant_type: "authorization_code", code: o11 }, l6 ? { redirect_uri: l6 } : {}), { nonceIn: c7, organization: s5 }), { appState: r10.appState };
-    }
-    async checkSession(e13) {
-      if (!this.cookieStorage.get(this.isAuthenticatedCookieName)) {
-        if (!this.cookieStorage.get("auth0.is.authenticated")) return;
-        this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove("auth0.is.authenticated");
-      }
-      try {
-        await this.getTokenSilently(e13);
-      } catch (e14) {
-      }
-    }
-    async getTokenSilently(e13 = {}) {
-      var t7;
-      const i9 = Object.assign(Object.assign({ cacheMode: "on" }, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (t7 = e13.authorizationParams) || void 0 === t7 ? void 0 : t7.scope) }) }), o11 = await ((e14, t8) => {
-        let i10 = A[t8];
-        return i10 || (i10 = e14().finally(() => {
-          delete A[t8], i10 = null;
-        }), A[t8] = i10), i10;
-      })(() => this._getTokenSilently(i9), `${this.options.clientId}::${i9.authorizationParams.audience}::${i9.authorizationParams.scope}`);
-      return e13.detailedResponse ? o11 : null == o11 ? void 0 : o11.access_token;
-    }
-    async _getTokenSilently(t7) {
-      const { cacheMode: i9 } = t7, o11 = e(t7, ["cacheMode"]);
-      if ("off" !== i9) {
-        const e13 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
-        if (e13) return e13;
-      }
-      if ("cache-only" !== i9) {
-        if (!await (async (e13, t8 = 3) => {
-          for (let i10 = 0; i10 < t8; i10++) if (await e13()) return true;
-          return false;
-        })(() => ee.acquireLock("auth0.lock.getTokenSilently", 5e3), 10)) throw new l();
-        try {
-          if (window.addEventListener("pagehide", this._releaseLockOnPageHide), "off" !== i9) {
-            const e14 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
-            if (e14) return e14;
-          }
-          const e13 = this.options.useRefreshTokens ? await this._getTokenUsingRefreshToken(o11) : await this._getTokenFromIFrame(o11), { id_token: t8, access_token: n9, oauthTokenScope: a5, expires_in: r10 } = e13;
-          return Object.assign(Object.assign({ id_token: t8, access_token: n9 }, a5 ? { scope: a5 } : null), { expires_in: r10 });
-        } finally {
-          await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
-        }
-      }
-    }
-    async getTokenWithPopup(e13 = {}, t7 = {}) {
-      var i9;
-      const o11 = Object.assign(Object.assign({}, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.scope) }) });
-      t7 = Object.assign(Object.assign({}, r), t7), await this.loginWithPopup(o11, t7);
-      return (await this.cacheManager.get(new C({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId }))).access_token;
-    }
-    async isAuthenticated() {
-      return !!await this.getUser();
-    }
-    _buildLogoutUrl(t7) {
-      null !== t7.clientId ? t7.clientId = t7.clientId || this.options.clientId : delete t7.clientId;
-      const i9 = t7.logoutParams || {}, { federated: o11 } = i9, n9 = e(i9, ["federated"]), a5 = o11 ? "&federated" : "";
-      return this._url(`/v2/logout?${v(Object.assign({ clientId: t7.clientId }, n9))}`) + a5;
-    }
-    async logout(t7 = {}) {
-      const i9 = Q(t7), { openUrl: o11 } = i9, n9 = e(i9, ["openUrl"]);
-      null === t7.clientId ? await this.cacheManager.clear() : await this.cacheManager.clear(t7.clientId || this.options.clientId), this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove(this.isAuthenticatedCookieName, { cookieDomain: this.options.cookieDomain }), this.userCache.remove("@@user@@");
-      const a5 = this._buildLogoutUrl(n9);
-      o11 ? await o11(a5) : false !== o11 && window.location.assign(a5);
-    }
-    async _getTokenFromIFrame(e13) {
-      const t7 = Object.assign(Object.assign({}, e13.authorizationParams), { prompt: "none" }), i9 = this.cookieStorage.get(this.orgHintCookieName);
-      i9 && !t7.organization && (t7.organization = i9);
-      const { url: o11, state: n9, nonce: a5, code_verifier: r10, redirect_uri: s5, scope: c7, audience: u6 } = await this._prepareAuthorizeUrl(t7, { response_mode: "web_message" }, window.location.origin);
-      try {
-        if (window.crossOriginIsolated) throw new d("login_required", "The application is running in a Cross-Origin Isolated context, silently retrieving a token without refresh token is not possible.");
-        const i10 = e13.timeoutInSeconds || this.options.authorizeTimeoutInSeconds, h6 = await ((e14, t8, i11 = 60) => new Promise((o12, n10) => {
-          const a6 = window.document.createElement("iframe");
-          a6.setAttribute("width", "0"), a6.setAttribute("height", "0"), a6.style.display = "none";
-          const r11 = () => {
-            window.document.body.contains(a6) && (window.document.body.removeChild(a6), window.removeEventListener("message", s6, false));
-          };
-          let s6;
-          const c8 = setTimeout(() => {
-            n10(new l()), r11();
-          }, 1e3 * i11);
-          s6 = function(e15) {
-            if (e15.origin != t8) return;
-            if (!e15.data || "authorization_response" !== e15.data.type) return;
-            const i12 = e15.source;
-            i12 && i12.close(), e15.data.response.error ? n10(d.fromPayload(e15.data.response)) : o12(e15.data.response), clearTimeout(c8), window.removeEventListener("message", s6, false), setTimeout(r11, 2e3);
-          }, window.addEventListener("message", s6, false), window.document.body.appendChild(a6), a6.setAttribute("src", e14);
-        }))(o11, this.domainUrl, i10);
-        if (n9 !== h6.state) throw new d("state_mismatch", "Invalid state");
-        const p4 = await this._requestToken(Object.assign(Object.assign({}, e13.authorizationParams), { code_verifier: r10, code: h6.code, grant_type: "authorization_code", redirect_uri: s5, timeout: e13.authorizationParams.timeout || this.httpTimeoutMs }), { nonceIn: a5, organization: t7.organization });
-        return Object.assign(Object.assign({}, p4), { scope: c7, oauthTokenScope: p4.scope, audience: u6 });
-      } catch (e14) {
-        throw "login_required" === e14.error && this.logout({ openUrl: false }), e14;
-      }
-    }
-    async _getTokenUsingRefreshToken(e13) {
-      const t7 = await this.cacheManager.get(new C({ scope: e13.authorizationParams.scope, audience: e13.authorizationParams.audience || "default", clientId: this.options.clientId }));
-      if (!(t7 && t7.refresh_token || this.worker)) {
-        if (this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
-        throw new f(e13.authorizationParams.audience || "default", e13.authorizationParams.scope);
-      }
-      const i9 = e13.authorizationParams.redirect_uri || this.options.authorizationParams.redirect_uri || window.location.origin, o11 = "number" == typeof e13.timeoutInSeconds ? 1e3 * e13.timeoutInSeconds : null;
-      try {
-        const n9 = await this._requestToken(Object.assign(Object.assign(Object.assign({}, e13.authorizationParams), { grant_type: "refresh_token", refresh_token: t7 && t7.refresh_token, redirect_uri: i9 }), o11 && { timeout: o11 }));
-        return Object.assign(Object.assign({}, n9), { scope: e13.authorizationParams.scope, oauthTokenScope: n9.scope, audience: e13.authorizationParams.audience || "default" });
-      } catch (t8) {
-        if ((t8.message.indexOf("Missing Refresh Token") > -1 || t8.message && t8.message.indexOf("invalid refresh token") > -1) && this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
-        throw t8;
-      }
-    }
-    async _saveEntryInCache(t7) {
-      const { id_token: i9, decodedToken: o11 } = t7, n9 = e(t7, ["id_token", "decodedToken"]);
-      this.userCache.set("@@user@@", { id_token: i9, decodedToken: o11 }), await this.cacheManager.setIdToken(this.options.clientId, t7.id_token, t7.decodedToken), await this.cacheManager.set(n9);
-    }
-    async _getIdTokenFromCache() {
-      const e13 = this.options.authorizationParams.audience || "default", t7 = await this.cacheManager.getIdToken(new C({ clientId: this.options.clientId, audience: e13, scope: this.scope })), i9 = this.userCache.get("@@user@@");
-      return t7 && t7.id_token === (null == i9 ? void 0 : i9.id_token) ? i9 : (this.userCache.set("@@user@@", t7), t7);
-    }
-    async _getEntryFromCache({ scope: e13, audience: t7, clientId: i9 }) {
-      const o11 = await this.cacheManager.get(new C({ scope: e13, audience: t7, clientId: i9 }), 60);
-      if (o11 && o11.access_token) {
-        const { access_token: e14, oauthTokenScope: t8, expires_in: i10 } = o11, n9 = await this._getIdTokenFromCache();
-        return n9 && Object.assign(Object.assign({ id_token: n9.id_token, access_token: e14 }, t8 ? { scope: t8 } : null), { expires_in: i10 });
-      }
-    }
-    async _requestToken(e13, t7) {
-      const { nonceIn: i9, organization: o11 } = t7 || {}, n9 = await T(Object.assign({ baseUrl: this.domainUrl, client_id: this.options.clientId, auth0Client: this.options.auth0Client, useFormData: this.options.useFormData, timeout: this.httpTimeoutMs }, e13), this.worker), a5 = await this._verifyIdToken(n9.id_token, i9, o11);
-      return await this._saveEntryInCache(Object.assign(Object.assign(Object.assign(Object.assign({}, n9), { decodedToken: a5, scope: e13.scope, audience: e13.audience || "default" }), n9.scope ? { oauthTokenScope: n9.scope } : null), { client_id: this.options.clientId })), this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this._processOrgHint(o11 || a5.claims.org_id), Object.assign(Object.assign({}, n9), { decodedToken: a5 });
-    }
-  };
-  async function oe(e13) {
-    const t7 = new te(e13);
-    return await t7.checkSession(), t7;
-  }
-
-  // src/shared/infrastructure/Auth0Adapter.ts
-  var Auth0Adapter = class {
-    config;
-    client;
-    constructor(config) {
-      this.config = config;
-      Object.freeze(this.config);
-    }
-    async initialize() {
-      const { domain, clientId, authorizationParams } = this.config;
-      this.client = await oe({
-        domain,
-        clientId,
-        authorizationParams
-      });
-      if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
-        try {
-          const result = await this.client.handleRedirectCallback();
-          console.log({ result });
-        } catch (err) {
-          const { error, error_description } = err;
-          console.error("Error handling redirect callback:", {
-            error,
-            error_description
-          });
-        }
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-    async login() {
-      console.log("login");
-      return await this.client.loginWithRedirect();
-    }
-    async logout() {
-      this.client.logout({
-        openUrl(url) {
-          window.location.replace(url);
-        }
-      });
-    }
-    async isAuthenticated() {
-      return await this.client.isAuthenticated();
-    }
-    async getAuthData() {
-      const res = await this.client.isAuthenticated() ? await this.client.getIdTokenClaims() : void 0;
-      return res;
-    }
-    async getAccessToken() {
-      return await this.client.getTokenSilently();
-    }
-  };
-
-  // node_modules/.pnpm/uuidv7@1.0.2/node_modules/uuidv7/dist/index.js
-  var DIGITS = "0123456789abcdef";
-  var UUID = class _UUID {
-    /** @param bytes - The 16-byte byte array representation. */
-    constructor(bytes) {
-      this.bytes = bytes;
-    }
-    /**
-     * Creates an object from the internal representation, a 16-byte byte array
-     * containing the binary UUID representation in the big-endian byte order.
-     *
-     * This method does NOT shallow-copy the argument, and thus the created object
-     * holds the reference to the underlying buffer.
-     *
-     * @throws TypeError if the length of the argument is not 16.
-     */
-    static ofInner(bytes) {
-      if (bytes.length !== 16) {
-        throw new TypeError("not 128-bit length");
-      } else {
-        return new _UUID(bytes);
-      }
-    }
-    /**
-     * Builds a byte array from UUIDv7 field values.
-     *
-     * @param unixTsMs - A 48-bit `unix_ts_ms` field value.
-     * @param randA - A 12-bit `rand_a` field value.
-     * @param randBHi - The higher 30 bits of 62-bit `rand_b` field value.
-     * @param randBLo - The lower 32 bits of 62-bit `rand_b` field value.
-     * @throws RangeError if any field value is out of the specified range.
-     */
-    static fromFieldsV7(unixTsMs, randA, randBHi, randBLo) {
-      if (!Number.isInteger(unixTsMs) || !Number.isInteger(randA) || !Number.isInteger(randBHi) || !Number.isInteger(randBLo) || unixTsMs < 0 || randA < 0 || randBHi < 0 || randBLo < 0 || unixTsMs > 281474976710655 || randA > 4095 || randBHi > 1073741823 || randBLo > 4294967295) {
-        throw new RangeError("invalid field value");
-      }
-      const bytes = new Uint8Array(16);
-      bytes[0] = unixTsMs / 2 ** 40;
-      bytes[1] = unixTsMs / 2 ** 32;
-      bytes[2] = unixTsMs / 2 ** 24;
-      bytes[3] = unixTsMs / 2 ** 16;
-      bytes[4] = unixTsMs / 2 ** 8;
-      bytes[5] = unixTsMs;
-      bytes[6] = 112 | randA >>> 8;
-      bytes[7] = randA;
-      bytes[8] = 128 | randBHi >>> 24;
-      bytes[9] = randBHi >>> 16;
-      bytes[10] = randBHi >>> 8;
-      bytes[11] = randBHi;
-      bytes[12] = randBLo >>> 24;
-      bytes[13] = randBLo >>> 16;
-      bytes[14] = randBLo >>> 8;
-      bytes[15] = randBLo;
-      return new _UUID(bytes);
-    }
-    /**
-     * Builds a byte array from a string representation.
-     *
-     * This method accepts the following formats:
-     *
-     * - 32-digit hexadecimal format without hyphens: `0189dcd553117d408db09496a2eef37b`
-     * - 8-4-4-4-12 hyphenated format: `0189dcd5-5311-7d40-8db0-9496a2eef37b`
-     * - Hyphenated format with surrounding braces: `{0189dcd5-5311-7d40-8db0-9496a2eef37b}`
-     * - RFC 9562 URN format: `urn:uuid:0189dcd5-5311-7d40-8db0-9496a2eef37b`
-     *
-     * Leading and trailing whitespaces represents an error.
-     *
-     * @throws SyntaxError if the argument could not parse as a valid UUID string.
-     */
-    static parse(uuid) {
-      var _a, _b, _c, _d;
-      let hex = void 0;
-      switch (uuid.length) {
-        case 32:
-          hex = (_a = /^[0-9a-f]{32}$/i.exec(uuid)) === null || _a === void 0 ? void 0 : _a[0];
-          break;
-        case 36:
-          hex = (_b = /^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i.exec(uuid)) === null || _b === void 0 ? void 0 : _b.slice(1, 6).join("");
-          break;
-        case 38:
-          hex = (_c = /^\{([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})\}$/i.exec(uuid)) === null || _c === void 0 ? void 0 : _c.slice(1, 6).join("");
-          break;
-        case 45:
-          hex = (_d = /^urn:uuid:([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$/i.exec(uuid)) === null || _d === void 0 ? void 0 : _d.slice(1, 6).join("");
-          break;
-        default:
-          break;
-      }
-      if (hex) {
-        const inner = new Uint8Array(16);
-        for (let i9 = 0; i9 < 16; i9 += 4) {
-          const n9 = parseInt(hex.substring(2 * i9, 2 * i9 + 8), 16);
-          inner[i9 + 0] = n9 >>> 24;
-          inner[i9 + 1] = n9 >>> 16;
-          inner[i9 + 2] = n9 >>> 8;
-          inner[i9 + 3] = n9;
-        }
-        return new _UUID(inner);
-      } else {
-        throw new SyntaxError("could not parse UUID string");
-      }
-    }
-    /**
-     * @returns The 8-4-4-4-12 canonical hexadecimal string representation
-     * (`0189dcd5-5311-7d40-8db0-9496a2eef37b`).
-     */
-    toString() {
-      let text = "";
-      for (let i9 = 0; i9 < this.bytes.length; i9++) {
-        text += DIGITS.charAt(this.bytes[i9] >>> 4);
-        text += DIGITS.charAt(this.bytes[i9] & 15);
-        if (i9 === 3 || i9 === 5 || i9 === 7 || i9 === 9) {
-          text += "-";
-        }
-      }
-      return text;
-    }
-    /**
-     * @returns The 32-digit hexadecimal representation without hyphens
-     * (`0189dcd553117d408db09496a2eef37b`).
-     */
-    toHex() {
-      let text = "";
-      for (let i9 = 0; i9 < this.bytes.length; i9++) {
-        text += DIGITS.charAt(this.bytes[i9] >>> 4);
-        text += DIGITS.charAt(this.bytes[i9] & 15);
-      }
-      return text;
-    }
-    /** @returns The 8-4-4-4-12 canonical hexadecimal string representation. */
-    toJSON() {
-      return this.toString();
-    }
-    /**
-     * Reports the variant field value of the UUID or, if appropriate, "NIL" or
-     * "MAX".
-     *
-     * For convenience, this method reports "NIL" or "MAX" if `this` represents
-     * the Nil or Max UUID, although the Nil and Max UUIDs are technically
-     * subsumed under the variants `0b0` and `0b111`, respectively.
-     */
-    getVariant() {
-      const n9 = this.bytes[8] >>> 4;
-      if (n9 < 0) {
-        throw new Error("unreachable");
-      } else if (n9 <= 7) {
-        return this.bytes.every((e13) => e13 === 0) ? "NIL" : "VAR_0";
-      } else if (n9 <= 11) {
-        return "VAR_10";
-      } else if (n9 <= 13) {
-        return "VAR_110";
-      } else if (n9 <= 15) {
-        return this.bytes.every((e13) => e13 === 255) ? "MAX" : "VAR_RESERVED";
-      } else {
-        throw new Error("unreachable");
-      }
-    }
-    /**
-     * Returns the version field value of the UUID or `undefined` if the UUID does
-     * not have the variant field value of `0b10`.
-     */
-    getVersion() {
-      return this.getVariant() === "VAR_10" ? this.bytes[6] >>> 4 : void 0;
-    }
-    /** Creates an object from `this`. */
-    clone() {
-      return new _UUID(this.bytes.slice(0));
-    }
-    /** Returns true if `this` is equivalent to `other`. */
-    equals(other) {
-      return this.compareTo(other) === 0;
-    }
-    /**
-     * Returns a negative integer, zero, or positive integer if `this` is less
-     * than, equal to, or greater than `other`, respectively.
-     */
-    compareTo(other) {
-      for (let i9 = 0; i9 < 16; i9++) {
-        const diff = this.bytes[i9] - other.bytes[i9];
-        if (diff !== 0) {
-          return Math.sign(diff);
-        }
-      }
-      return 0;
-    }
-  };
-  var V7Generator = class {
-    /**
-     * Creates a generator object with the default random number generator, or
-     * with the specified one if passed as an argument. The specified random
-     * number generator should be cryptographically strong and securely seeded.
-     */
-    constructor(randomNumberGenerator) {
-      this.timestamp = 0;
-      this.counter = 0;
-      this.random = randomNumberGenerator !== null && randomNumberGenerator !== void 0 ? randomNumberGenerator : getDefaultRandom();
-    }
-    /**
-     * Generates a new UUIDv7 object from the current timestamp, or resets the
-     * generator upon significant timestamp rollback.
-     *
-     * This method returns a monotonically increasing UUID by reusing the previous
-     * timestamp even if the up-to-date timestamp is smaller than the immediately
-     * preceding UUID's. However, when such a clock rollback is considered
-     * significant (i.e., by more than ten seconds), this method resets the
-     * generator and returns a new UUID based on the given timestamp, breaking the
-     * increasing order of UUIDs.
-     *
-     * See {@link generateOrAbort} for the other mode of generation and
-     * {@link generateOrResetCore} for the low-level primitive.
-     */
-    generate() {
-      return this.generateOrResetCore(Date.now(), 1e4);
-    }
-    /**
-     * Generates a new UUIDv7 object from the current timestamp, or returns
-     * `undefined` upon significant timestamp rollback.
-     *
-     * This method returns a monotonically increasing UUID by reusing the previous
-     * timestamp even if the up-to-date timestamp is smaller than the immediately
-     * preceding UUID's. However, when such a clock rollback is considered
-     * significant (i.e., by more than ten seconds), this method aborts and
-     * returns `undefined` immediately.
-     *
-     * See {@link generate} for the other mode of generation and
-     * {@link generateOrAbortCore} for the low-level primitive.
-     */
-    generateOrAbort() {
-      return this.generateOrAbortCore(Date.now(), 1e4);
-    }
-    /**
-     * Generates a new UUIDv7 object from the `unixTsMs` passed, or resets the
-     * generator upon significant timestamp rollback.
-     *
-     * This method is equivalent to {@link generate} except that it takes a custom
-     * timestamp and clock rollback allowance.
-     *
-     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
-     * considered significant. A suggested value is `10_000` (milliseconds).
-     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-     */
-    generateOrResetCore(unixTsMs, rollbackAllowance) {
-      let value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
-      if (value === void 0) {
-        this.timestamp = 0;
-        value = this.generateOrAbortCore(unixTsMs, rollbackAllowance);
-      }
-      return value;
-    }
-    /**
-     * Generates a new UUIDv7 object from the `unixTsMs` passed, or returns
-     * `undefined` upon significant timestamp rollback.
-     *
-     * This method is equivalent to {@link generateOrAbort} except that it takes a
-     * custom timestamp and clock rollback allowance.
-     *
-     * @param rollbackAllowance - The amount of `unixTsMs` rollback that is
-     * considered significant. A suggested value is `10_000` (milliseconds).
-     * @throws RangeError if `unixTsMs` is not a 48-bit positive integer.
-     */
-    generateOrAbortCore(unixTsMs, rollbackAllowance) {
-      const MAX_COUNTER = 4398046511103;
-      if (!Number.isInteger(unixTsMs) || unixTsMs < 1 || unixTsMs > 281474976710655) {
-        throw new RangeError("`unixTsMs` must be a 48-bit positive integer");
-      } else if (rollbackAllowance < 0 || rollbackAllowance > 281474976710655) {
-        throw new RangeError("`rollbackAllowance` out of reasonable range");
-      }
-      if (unixTsMs > this.timestamp) {
-        this.timestamp = unixTsMs;
-        this.resetCounter();
-      } else if (unixTsMs + rollbackAllowance >= this.timestamp) {
-        this.counter++;
-        if (this.counter > MAX_COUNTER) {
-          this.timestamp++;
-          this.resetCounter();
-        }
-      } else {
-        return void 0;
-      }
-      return UUID.fromFieldsV7(this.timestamp, Math.trunc(this.counter / 2 ** 30), this.counter & 2 ** 30 - 1, this.random.nextUint32());
-    }
-    /** Initializes the counter at a 42-bit random integer. */
-    resetCounter() {
-      this.counter = this.random.nextUint32() * 1024 + (this.random.nextUint32() & 1023);
-    }
-    /**
-     * Generates a new UUIDv4 object utilizing the random number generator inside.
-     *
-     * @internal
-     */
-    generateV4() {
-      const bytes = new Uint8Array(Uint32Array.of(this.random.nextUint32(), this.random.nextUint32(), this.random.nextUint32(), this.random.nextUint32()).buffer);
-      bytes[6] = 64 | bytes[6] >>> 4;
-      bytes[8] = 128 | bytes[8] >>> 2;
-      return UUID.ofInner(bytes);
-    }
-  };
-  var getDefaultRandom = () => {
-    if (typeof crypto !== "undefined" && typeof crypto.getRandomValues !== "undefined") {
-      return new BufferedCryptoRandom();
-    } else {
-      if (typeof UUIDV7_DENY_WEAK_RNG !== "undefined" && UUIDV7_DENY_WEAK_RNG) {
-        throw new Error("no cryptographically strong RNG available");
-      }
-      return {
-        nextUint32: () => Math.trunc(Math.random() * 65536) * 65536 + Math.trunc(Math.random() * 65536)
-      };
-    }
-  };
-  var BufferedCryptoRandom = class {
-    constructor() {
-      this.buffer = new Uint32Array(8);
-      this.cursor = 65535;
-    }
-    nextUint32() {
-      if (this.cursor >= this.buffer.length) {
-        crypto.getRandomValues(this.buffer);
-        this.cursor = 0;
-      }
-      return this.buffer[this.cursor++];
-    }
-  };
-  var defaultGenerator;
-  var uuidv7obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generate();
-  var uuidv4obj = () => (defaultGenerator || (defaultGenerator = new V7Generator())).generateV4();
-
-  // node_modules/.pnpm/isows@1.0.6_ws@8.18.0/node_modules/isows/_esm/utils.js
-  function getNativeWebSocket() {
-    if (typeof WebSocket !== "undefined")
-      return WebSocket;
-    if (typeof global.WebSocket !== "undefined")
-      return global.WebSocket;
-    if (typeof window.WebSocket !== "undefined")
-      return window.WebSocket;
-    if (typeof self.WebSocket !== "undefined")
-      return self.WebSocket;
-    throw new Error("`WebSocket` is not supported in this environment");
-  }
-
-  // node_modules/.pnpm/isows@1.0.6_ws@8.18.0/node_modules/isows/_esm/native.js
-  var WebSocket2 = getNativeWebSocket();
-
-  // node_modules/.pnpm/surrealdb@1.1.0_tslib@2.8.1_typescript@5.7.2_ws@8.18.0/node_modules/surrealdb/dist/index.mjs
-  var __defProp2 = Object.defineProperty;
-  var __export = (target, all) => {
-    for (var name in all) __defProp2(target, name, { get: all[name], enumerable: true });
-  };
-  var Emitter = class {
-    collectable = {};
-    listeners = {};
-    interceptors;
-    constructor({ interceptors } = {}) {
-      this.interceptors = interceptors ?? {};
-    }
-    subscribe(event, listener, historic = false) {
-      if (this.listeners[event] || (this.listeners[event] = []), !this.isSubscribed(event, listener) && (this.listeners[event]?.push(listener), historic && this.collectable[event])) {
-        let buffer = this.collectable[event];
-        this.collectable[event] = [];
-        for (let args of buffer) listener(...args);
-      }
-    }
-    subscribeOnce(event, historic = false) {
-      return new Promise((resolve) => {
-        let resolved = false, listener = (...args) => {
-          resolved || (resolved = true, this.unSubscribe(event, listener), resolve(args));
-        };
-        this.subscribe(event, listener, historic);
-      });
-    }
-    unSubscribe(event, listener) {
-      if (this.listeners[event]) {
-        let index2 = this.listeners[event]?.findIndex((v3) => v3 === listener);
-        index2 && this.listeners[event]?.splice(index2, 1);
-      }
-    }
-    isSubscribed(event, listener) {
-      return !!this.listeners[event]?.includes(listener);
-    }
-    async emit(event, args, collectable = false) {
-      let interceptor = this.interceptors[event], computedArgs = interceptor ? await interceptor(...args) : args;
-      this.listeners[event]?.length === 0 && collectable && (this.collectable[event] || (this.collectable[event] = []), this.collectable[event]?.push(args));
-      for (let listener of this.listeners[event] ?? []) listener(...computedArgs);
-    }
-    reset({ collectable, listeners }) {
-      if (Array.isArray(collectable)) for (let k3 of collectable) delete this.collectable[k3];
-      else typeof collectable == "string" ? delete this.collectable[collectable] : collectable !== false && (this.collectable = {});
-      if (Array.isArray(listeners)) for (let k3 of listeners) delete this.listeners[k3];
-      else typeof listeners == "string" ? delete this.listeners[listeners] : listeners !== false && (this.listeners = {});
-    }
-    scanListeners(filter) {
-      let listeners = Object.keys(this.listeners);
-      return filter && (listeners = listeners.filter(filter)), listeners;
-    }
-  };
-  var Gap = class {
-    args = [];
-    constructor(...args) {
-      this.args = args;
-    }
-    fill(value) {
-      return [this, value];
-    }
-    hasDefault() {
-      return this.args.length === 1;
-    }
-    get default() {
-      return this.args[0];
-    }
-  };
-  var cbor_exports = {};
-  __export(cbor_exports, { CborBreak: () => CborBreak, CborError: () => CborError, CborFillMissing: () => CborFillMissing, CborInvalidMajorError: () => CborInvalidMajorError, CborNumberError: () => CborNumberError, CborPartialDisabled: () => CborPartialDisabled, CborRangeError: () => CborRangeError, Encoded: () => Encoded, Gap: () => Gap, POW_2_53: () => POW_2_53, POW_2_64: () => POW_2_64, PartiallyEncoded: () => PartiallyEncoded, Reader: () => Reader, Tagged: () => Tagged, Writer: () => Writer, decode: () => decode, encode: () => encode, infiniteBytes: () => infiniteBytes, partiallyEncodeObject: () => partiallyEncodeObject });
-  var POW_2_53 = 9007199254740992;
-  var POW_2_64 = BigInt(18446744073709552e3);
-  var Encoded = class {
-    constructor(encoded) {
-      this.encoded = encoded;
-    }
-  };
-  var SurrealDbError = class extends Error {
-  };
-  var NoActiveSocket = class extends SurrealDbError {
-    name = "NoActiveSocket";
-    message = "No socket is currently connected to a SurrealDB instance. Please call the .connect() method first!";
-  };
-  var EngineDisconnected = class extends SurrealDbError {
-    name = "EngineDisconnected";
-    message = "The engine reported the connection to SurrealDB has dropped";
-  };
-  var UnexpectedServerResponse = class extends SurrealDbError {
-    constructor(response) {
-      super();
-      this.response = response;
-      this.message = `${response}`;
-    }
-    name = "UnexpectedServerResponse";
-  };
-  var UnexpectedConnectionError = class extends SurrealDbError {
-    constructor(error) {
-      super();
-      this.error = error;
-      this.message = `${error}`;
-    }
-    name = "UnexpectedConnectionError";
-  };
-  var UnsupportedEngine = class extends SurrealDbError {
-    constructor(engine) {
-      super();
-      this.engine = engine;
-    }
-    name = "UnsupportedEngine";
-    message = "The engine you are trying to connect to is not supported or configured.";
-  };
-  var ConnectionUnavailable = class extends SurrealDbError {
-    name = "ConnectionUnavailable";
-    message = "There is no connection available at this moment.";
-  };
-  var MissingNamespaceDatabase = class extends SurrealDbError {
-    name = "MissingNamespaceDatabase";
-    message = "There is no namespace and/or database selected.";
-  };
-  var HttpConnectionError = class extends SurrealDbError {
-    constructor(message, status, statusText, buffer) {
-      super();
-      this.message = message;
-      this.status = status;
-      this.statusText = statusText;
-      this.buffer = buffer;
-    }
-    name = "HttpConnectionError";
-  };
-  var ResponseError = class extends SurrealDbError {
-    constructor(message) {
-      super();
-      this.message = message;
-    }
-    name = "ResponseError";
-  };
-  var NoNamespaceSpecified = class extends SurrealDbError {
-    name = "NoNamespaceSpecified";
-    message = "Please specify a namespace to use.";
-  };
-  var NoDatabaseSpecified = class extends SurrealDbError {
-    name = "NoDatabaseSpecified";
-    message = "Please specify a database to use.";
-  };
-  var NoTokenReturned = class extends SurrealDbError {
-    name = "NoTokenReturned";
-    message = "Did not receive an authentication token.";
-  };
-  var UnsupportedVersion = class extends SurrealDbError {
-    name = "UnsupportedVersion";
-    version;
-    supportedRange;
-    constructor(version, supportedRange) {
-      super(), this.version = version, this.supportedRange = supportedRange, this.message = `The version "${version}" reported by the engine is not supported by this library, expected a version that satisfies "${supportedRange}".`;
-    }
-  };
-  var VersionRetrievalFailure = class extends SurrealDbError {
-    constructor(error) {
-      super();
-      this.error = error;
-    }
-    name = "VersionRetrievalFailure";
-    message = "Failed to retrieve remote version. If the server is behind a proxy, make sure it's configured correctly.";
-  };
-  var CborError = class extends SurrealDbError {
-    message;
-    constructor(message) {
-      super(), this.message = message;
-    }
-  };
-  var CborNumberError = class extends CborError {
-    name = "CborNumberError";
-  };
-  var CborRangeError = class extends CborError {
-    name = "CborRangeError";
-  };
-  var CborInvalidMajorError = class extends CborError {
-    name = "CborInvalidMajorError";
-  };
-  var CborBreak = class extends CborError {
-    name = "CborBreak";
-    constructor() {
-      super("Came across a break which was not intercepted by the decoder");
-    }
-  };
-  var CborPartialDisabled = class extends CborError {
-    name = "CborPartialDisabled";
-    constructor() {
-      super("Tried to insert a Gap into a CBOR value, while partial mode is not enabled");
-    }
-  };
-  var CborFillMissing = class extends CborError {
-    name = "CborFillMissing";
-    constructor() {
-      super("Fill for a gap is missing, and gap has no default");
-    }
-  };
-  var Writer = class {
-    constructor(byteLength = 256) {
-      this.byteLength = byteLength;
-      this._buf = new ArrayBuffer(this.byteLength), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf);
-    }
-    _chunks = [];
-    _pos = 0;
-    _buf;
-    _view;
-    _byte;
-    chunk(gap) {
-      this._chunks.push([this._buf.slice(0, this._pos), gap]), this._buf = new ArrayBuffer(this.byteLength), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf), this._pos = 0;
-    }
-    get chunks() {
-      return this._chunks;
-    }
-    get buffer() {
-      return this._buf.slice(0, this._pos);
-    }
-    claim(length) {
-      let pos = this._pos;
-      if (this._pos += length, this._pos <= this._buf.byteLength) return pos;
-      let newLen = this._buf.byteLength << 1;
-      for (; newLen < this._pos; ) newLen <<= 1;
-      if (newLen > this._buf.byteLength) {
-        let oldb = this._byte;
-        this._buf = new ArrayBuffer(newLen), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf), this._byte.set(oldb);
-      }
-      return pos;
-    }
-    writeUint8(value) {
-      let pos = this.claim(1);
-      this._view.setUint8(pos, value);
-    }
-    writeUint16(value) {
-      let pos = this.claim(2);
-      this._view.setUint16(pos, value);
-    }
-    writeUint32(value) {
-      let pos = this.claim(4);
-      this._view.setUint32(pos, value);
-    }
-    writeUint64(value) {
-      let pos = this.claim(8);
-      this._view.setBigUint64(pos, value);
-    }
-    writeUint8Array(data) {
-      if (data.byteLength === 0) return;
-      let pos = this.claim(data.byteLength);
-      this._byte.set(data, pos);
-    }
-    writeArrayBuffer(data) {
-      data.byteLength !== 0 && this.writeUint8Array(new Uint8Array(data));
-    }
-    writePartiallyEncoded(data) {
-      for (let [buf, gap] of data.chunks) this.writeArrayBuffer(buf), this.chunk(gap);
-      this.writeArrayBuffer(data.end);
-    }
-    writeFloat32(value) {
-      let pos = this.claim(4);
-      this._view.setFloat32(pos, value);
-    }
-    writeFloat64(value) {
-      let pos = this.claim(8);
-      this._view.setFloat64(pos, value);
-    }
-    writeMajor(type, length) {
-      let base = type << 5;
-      length < 24 ? this.writeUint8(base + Number(length)) : length < 256 ? (this.writeUint8(base + 24), this.writeUint8(Number(length))) : length < 65536 ? (this.writeUint8(base + 25), this.writeUint16(Number(length))) : length < 4294967296 ? (this.writeUint8(base + 26), this.writeUint32(Number(length))) : (this.writeUint8(base + 27), this.writeUint64(BigInt(length)));
-    }
-    output(partial, replacer2) {
-      return partial ? new PartiallyEncoded(this._chunks, this.buffer, replacer2) : this.buffer;
-    }
-  };
-  var PartiallyEncoded = class {
-    constructor(chunks, end, replacer2) {
-      this.chunks = chunks;
-      this.end = end;
-      this.replacer = replacer2;
-    }
-    build(fills, partial) {
-      let writer = new Writer(), map = new Map(fills);
-      for (let [buffer, gap] of this.chunks) {
-        let hasValue = map.has(gap) || gap.hasDefault();
-        if (!partial && !hasValue) throw new CborFillMissing();
-        if (writer.writeArrayBuffer(buffer), hasValue) {
-          let data = map.get(gap) ?? gap.default;
-          encode(data, { writer, replacer: this.replacer });
-        } else writer.chunk(gap);
-      }
-      return writer.writeArrayBuffer(this.end), writer.output(!!partial, this.replacer);
-    }
-  };
-  function partiallyEncodeObject(object, options) {
-    return Object.fromEntries(Object.entries(object).map(([k3, v3]) => [k3, encode(v3, { ...options, partial: true })]));
-  }
-  var Tagged = class {
-    constructor(tag, value) {
-      this.tag = tag;
-      this.value = value;
-    }
-  };
-  var textEncoder;
-  function encode(input, options = {}) {
-    let w3 = options.writer ?? new Writer(), fillsMap = new Map(options.fills ?? []);
-    function inner(input2) {
-      let value = options.replacer ? options.replacer(input2) : input2;
-      if (value === void 0) return w3.writeUint8(247);
-      if (value === null) return w3.writeUint8(246);
-      if (value === true) return w3.writeUint8(245);
-      if (value === false) return w3.writeUint8(244);
-      switch (typeof value) {
-        case "number": {
-          if (Number.isInteger(value)) if (value >= 0 && value <= 9007199254740992) w3.writeMajor(0, value);
-          else if (value < 0 && value >= -9007199254740992) w3.writeMajor(1, -(value + 1));
-          else throw new CborNumberError("Number too big to be encoded");
-          else w3.writeUint8(251), w3.writeFloat64(value);
-          return;
-        }
-        case "bigint": {
-          if (value >= 0 && value < POW_2_64) w3.writeMajor(0, value);
-          else if (value <= 0 && value >= -POW_2_64) w3.writeMajor(1, -(value + 1n));
-          else throw new CborNumberError("BigInt too big to be encoded");
-          return;
-        }
-        case "string": {
-          textEncoder ??= new TextEncoder();
-          let encoded = textEncoder.encode(value);
-          w3.writeMajor(3, encoded.byteLength), w3.writeUint8Array(encoded);
-          return;
-        }
-        default: {
-          if (Array.isArray(value)) {
-            w3.writeMajor(4, value.length);
-            for (let v3 of value) inner(v3);
-            return;
-          }
-          if (value instanceof Tagged) {
-            w3.writeMajor(6, value.tag), inner(value.value);
-            return;
-          }
-          if (value instanceof Encoded) {
-            w3.writeArrayBuffer(value.encoded);
-            return;
-          }
-          if (value instanceof Gap) {
-            if (fillsMap.has(value)) inner(fillsMap.get(value));
-            else {
-              if (!options.partial) throw new CborPartialDisabled();
-              w3.chunk(value);
-            }
-            return;
-          }
-          if (value instanceof PartiallyEncoded) {
-            let res = value.build(options.fills ?? [], options.partial);
-            options.partial ? w3.writePartiallyEncoded(res) : w3.writeArrayBuffer(res);
-            return;
-          }
-          if (value instanceof Uint8Array || value instanceof Uint16Array || value instanceof Uint32Array || value instanceof Int8Array || value instanceof Int16Array || value instanceof Int32Array || value instanceof Float32Array || value instanceof Float64Array || value instanceof ArrayBuffer) {
-            let v3 = new Uint8Array(value);
-            w3.writeMajor(2, v3.byteLength), w3.writeUint8Array(v3);
-            return;
-          }
-          let entries = value instanceof Map ? Array.from(value.entries()) : Object.entries(value);
-          w3.writeMajor(5, entries.length);
-          for (let v3 of entries.flat()) inner(v3);
-        }
-      }
-    }
-    return inner(input), w3.output(!!options.partial, options.replacer);
-  }
-  var Reader = class {
-    _buf;
-    _view;
-    _byte;
-    _pos = 0;
-    constructor(buffer) {
-      this._buf = new ArrayBuffer(buffer.byteLength), this._view = new DataView(this._buf), this._byte = new Uint8Array(this._buf), this._byte.set(new Uint8Array(buffer));
-    }
-    read(amount, res) {
-      return this._pos += amount, res;
-    }
-    readUint8() {
-      try {
-        return this.read(1, this._view.getUint8(this._pos));
-      } catch (e13) {
-        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
-      }
-    }
-    readUint16() {
-      try {
-        return this.read(2, this._view.getUint16(this._pos));
-      } catch (e13) {
-        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
-      }
-    }
-    readUint32() {
-      try {
-        return this.read(4, this._view.getUint32(this._pos));
-      } catch (e13) {
-        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
-      }
-    }
-    readUint64() {
-      try {
-        return this.read(8, this._view.getBigUint64(this._pos));
-      } catch (e13) {
-        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
-      }
-    }
-    readFloat16() {
-      let bytes = this.readUint16(), s22 = (bytes & 32768) >> 15, e13 = (bytes & 31744) >> 10, f22 = bytes & 1023;
-      return e13 === 0 ? (s22 ? -1 : 1) * 2 ** -14 * (f22 / 2 ** 10) : e13 === 31 ? f22 ? Number.NaN : (s22 ? -1 : 1) * Number.POSITIVE_INFINITY : (s22 ? -1 : 1) * 2 ** (e13 - 15) * (1 + f22 / 2 ** 10);
-    }
-    readFloat32() {
-      try {
-        return this.read(4, this._view.getFloat32(this._pos));
-      } catch (e13) {
-        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
-      }
-    }
-    readFloat64() {
-      try {
-        return this.read(8, this._view.getFloat64(this._pos));
-      } catch (e13) {
-        throw e13 instanceof RangeError ? new CborRangeError(e13.message) : e13;
-      }
-    }
-    readBytes(amount) {
-      let available = this._byte.length - this._pos;
-      if (available < amount) throw new CborRangeError(`The argument must be between 0 and ${available}`);
-      return this.read(amount, this._byte.slice(this._pos, this._pos + amount));
-    }
-    readMajor() {
-      let byte = this.readUint8(), major = byte >> 5;
-      if (major < 0 || major > 7) throw new CborInvalidMajorError("Received invalid major type");
-      return [major, byte & 31];
-    }
-    readMajorLength(length) {
-      if (length <= 23) return length;
-      switch (length) {
-        case 24:
-          return this.readUint8();
-        case 25:
-          return this.readUint16();
-        case 26:
-          return this.readUint32();
-        case 27: {
-          let read = this.readUint64();
-          return read > 9007199254740992 ? read : Number(read);
-        }
-      }
-      throw new CborRangeError("Expected a final length");
-    }
-  };
-  function infiniteBytes(r22, forMajor) {
-    let w3 = new Writer();
-    for (; ; ) {
-      let [major, len] = r22.readMajor();
-      if (major === 7 && len === 31) break;
-      if (major !== forMajor) throw new CborInvalidMajorError(`Expected a resource of the same major (${forMajor}) while processing an infinite resource`);
-      if (len === 31) throw new CborRangeError("Expected a finite resource while processing an infinite resource");
-      w3.writeUint8Array(r22.readBytes(Number(r22.readMajorLength(len))));
-    }
-    return w3.buffer;
-  }
-  var textDecoder;
-  function decode(input, options = {}) {
-    let r22 = input instanceof Reader ? input : new Reader(input);
-    function inner() {
-      let [major, len] = r22.readMajor();
-      switch (major) {
-        case 0:
-          return r22.readMajorLength(len);
-        case 1: {
-          let l6 = r22.readMajorLength(len);
-          return typeof l6 == "bigint" ? -(l6 + 1n) : -(l6 + 1);
-        }
-        case 2:
-          return len === 31 ? infiniteBytes(r22, 2) : r22.readBytes(Number(r22.readMajorLength(len))).buffer;
-        case 3: {
-          let encoded = len === 31 ? infiniteBytes(r22, 3) : r22.readBytes(Number(r22.readMajorLength(len)));
-          return textDecoder ??= new TextDecoder(), textDecoder.decode(encoded);
-        }
-        case 4: {
-          if (len === 31) {
-            let arr2 = [];
-            for (; ; ) try {
-              arr2.push(decode2());
-            } catch (e13) {
-              if (e13 instanceof CborBreak) break;
-              throw e13;
-            }
-            return arr2;
-          }
-          let l6 = r22.readMajorLength(len), arr = Array(l6);
-          for (let i9 = 0; i9 < l6; i9++) arr[i9] = decode2();
-          return arr;
-        }
-        case 5: {
-          let entries = [];
-          if (len === 31) for (; ; ) {
-            let key;
-            try {
-              key = decode2();
-            } catch (e13) {
-              if (e13 instanceof CborBreak) break;
-              throw e13;
-            }
-            let value = decode2();
-            entries.push([key, value]);
-          }
-          else {
-            let l6 = r22.readMajorLength(len);
-            for (let i9 = 0; i9 < l6; i9++) {
-              let key = decode2(), value = decode2();
-              entries[i9] = [key, value];
-            }
-          }
-          return options.map === "map" ? new Map(entries) : Object.fromEntries(entries);
-        }
-        case 6: {
-          let tag = r22.readMajorLength(len), value = decode2();
-          return new Tagged(tag, value);
-        }
-        case 7:
-          switch (len) {
-            case 20:
-              return false;
-            case 21:
-              return true;
-            case 22:
-              return null;
-            case 23:
-              return;
-            case 25:
-              return r22.readFloat16();
-            case 26:
-              return r22.readFloat32();
-            case 27:
-              return r22.readFloat64();
-            case 31:
-              throw new CborBreak();
-          }
-      }
-      throw new CborInvalidMajorError(`Unable to decode value with major tag ${major}`);
-    }
-    function decode2() {
-      return options.replacer ? options.replacer(inner()) : inner();
-    }
-    return decode2();
-  }
-  function dateToCborCustomDate(date) {
-    let s22 = Math.floor(date.getTime() / 1e3), ms = date.getTime() - s22 * 1e3;
-    return [s22, ms * 1e6];
-  }
-  function cborCustomDateToDate([s22, ns]) {
-    let date = /* @__PURE__ */ new Date(0);
-    return date.setUTCSeconds(Number(s22)), date.setMilliseconds(Math.floor(Number(ns) / 1e6)), date;
-  }
-  var Value = class {
-  };
-  var Decimal = class _Decimal extends Value {
-    decimal;
-    constructor(decimal) {
-      super(), this.decimal = decimal.toString();
-    }
-    equals(other) {
-      return other instanceof _Decimal ? this.decimal === other.decimal : false;
-    }
-    toString() {
-      return this.decimal;
-    }
-    toJSON() {
-      return this.decimal;
-    }
-  };
-  var millisecond = 1;
-  var microsecond = millisecond / 1e3;
-  var nanosecond = microsecond / 1e3;
-  var second = 1e3 * millisecond;
-  var minute = 60 * second;
-  var hour = 60 * minute;
-  var day = 24 * hour;
-  var week = 7 * day;
-  var units = /* @__PURE__ */ new Map([["ns", nanosecond], ["\xB5s", microsecond], ["\u03BCs", microsecond], ["us", microsecond], ["ms", millisecond], ["s", second], ["m", minute], ["h", hour], ["d", day], ["w", week]]);
-  var unitsReverse = Array.from(units).reduce((map, [unit, size3]) => (map.set(size3, unit), map), /* @__PURE__ */ new Map());
-  var durationPartRegex = new RegExp(`^(\\d+)(${Array.from(units.keys()).join("|")})`);
-  var Duration = class _Duration extends Value {
-    _milliseconds;
-    constructor(input) {
-      super(), input instanceof _Duration ? this._milliseconds = input._milliseconds : typeof input == "string" ? this._milliseconds = _Duration.parseString(input) : this._milliseconds = input;
-    }
-    static fromCompact([s22, ns]) {
-      s22 = s22 ?? 0, ns = ns ?? 0;
-      let ms = s22 * 1e3 + ns / 1e6;
-      return new _Duration(ms);
-    }
-    equals(other) {
-      return other instanceof _Duration ? this._milliseconds === other._milliseconds : false;
-    }
-    toCompact() {
-      let s22 = Math.floor(this._milliseconds / 1e3), ns = Math.floor((this._milliseconds - s22 * 1e3) * 1e6);
-      return ns > 0 ? [s22, ns] : s22 > 0 ? [s22] : [];
-    }
-    toString() {
-      let left = this._milliseconds, result = "";
-      function scrap(size3) {
-        let num = Math.floor(left / size3);
-        return num > 0 && (left = left % size3), num;
-      }
-      for (let [size3, unit] of Array.from(unitsReverse).reverse()) {
-        let scrapped = scrap(size3);
-        scrapped > 0 && (result += `${scrapped}${unit}`);
-      }
-      return result;
-    }
-    toJSON() {
-      return this.toString();
-    }
-    static parseString(input) {
-      let ms = 0, left = input;
-      for (; left !== ""; ) {
-        let match = left.match(durationPartRegex);
-        if (match) {
-          let amount = Number.parseInt(match[1]), factor = units.get(match[2]);
-          if (factor === void 0) throw new SurrealDbError(`Invalid duration unit: ${match[2]}`);
-          ms += amount * factor, left = left.slice(match[0].length);
-          continue;
-        }
-        throw new SurrealDbError("Could not match a next duration part");
-      }
-      return ms;
-    }
-    static nanoseconds(nanoseconds) {
-      return new _Duration(Math.floor(nanoseconds * nanosecond));
-    }
-    static microseconds(microseconds) {
-      return new _Duration(Math.floor(microseconds * microsecond));
-    }
-    static milliseconds(milliseconds) {
-      return new _Duration(milliseconds);
-    }
-    static seconds(seconds) {
-      return new _Duration(seconds * second);
-    }
-    static minutes(minutes) {
-      return new _Duration(minutes * minute);
-    }
-    static hours(hours) {
-      return new _Duration(hours * hour);
-    }
-    static days(days) {
-      return new _Duration(days * day);
-    }
-    static weeks(weeks) {
-      return new _Duration(weeks * week);
-    }
-    get microseconds() {
-      return Math.floor(this._milliseconds / microsecond);
-    }
-    get nanoseconds() {
-      return Math.floor(this._milliseconds / nanosecond);
-    }
-    get milliseconds() {
-      return Math.floor(this._milliseconds);
-    }
-    get seconds() {
-      return Math.floor(this._milliseconds / second);
-    }
-    get minutes() {
-      return Math.floor(this._milliseconds / minute);
-    }
-    get hours() {
-      return Math.floor(this._milliseconds / hour);
-    }
-    get days() {
-      return Math.floor(this._milliseconds / day);
-    }
-    get weeks() {
-      return Math.floor(this._milliseconds / week);
-    }
-  };
-  var Future = class _Future extends Value {
-    constructor(inner) {
-      super();
-      this.inner = inner;
-    }
-    equals(other) {
-      return other instanceof _Future ? this.inner === other.inner : false;
-    }
-    toJSON() {
-      return this.toString();
-    }
-    toString() {
-      return `<future> ${this.inner}`;
-    }
-  };
-  var Geometry = class _Geometry extends Value {
-    equals(other) {
-      return other instanceof _Geometry ? this.is(other) : false;
-    }
-    toString() {
-      return JSON.stringify(this.toJSON());
-    }
-  };
-  function f2(num) {
-    return num instanceof Decimal ? Number.parseFloat(num.decimal) : num;
-  }
-  var GeometryPoint = class _GeometryPoint extends Geometry {
-    point;
-    constructor(point) {
-      super(), point instanceof _GeometryPoint ? this.point = point.clone().point : this.point = [f2(point[0]), f2(point[1])];
-    }
-    toJSON() {
-      return { type: "Point", coordinates: this.coordinates };
-    }
-    get coordinates() {
-      return this.point;
-    }
-    is(geometry) {
-      return geometry instanceof _GeometryPoint ? this.point[0] === geometry.point[0] && this.point[1] === geometry.point[1] : false;
-    }
-    clone() {
-      return new _GeometryPoint([...this.point]);
-    }
-  };
-  var GeometryLine = class _GeometryLine extends Geometry {
-    line;
-    constructor(line) {
-      super(), this.line = line instanceof _GeometryLine ? line.clone().line : line;
-    }
-    toJSON() {
-      return { type: "LineString", coordinates: this.coordinates };
-    }
-    get coordinates() {
-      return this.line.map((g3) => g3.coordinates);
-    }
-    close() {
-      this.line[0].is(this.line.at(-1)) || this.line.push(this.line[0]);
-    }
-    is(geometry) {
-      if (!(geometry instanceof _GeometryLine) || this.line.length !== geometry.line.length) return false;
-      for (let i9 = 0; i9 < this.line.length; i9++) if (!this.line[i9].is(geometry.line[i9])) return false;
-      return true;
-    }
-    clone() {
-      return new _GeometryLine(this.line.map((p4) => p4.clone()));
-    }
-  };
-  var GeometryPolygon = class _GeometryPolygon extends Geometry {
-    polygon;
-    constructor(polygon) {
-      super(), this.polygon = polygon instanceof _GeometryPolygon ? polygon.clone().polygon : polygon.map((l6) => {
-        let line = l6.clone();
-        return line.close(), line;
-      });
-    }
-    toJSON() {
-      return { type: "Polygon", coordinates: this.coordinates };
-    }
-    get coordinates() {
-      return this.polygon.map((g3) => g3.coordinates);
-    }
-    is(geometry) {
-      if (!(geometry instanceof _GeometryPolygon) || this.polygon.length !== geometry.polygon.length) return false;
-      for (let i9 = 0; i9 < this.polygon.length; i9++) if (!this.polygon[i9].is(geometry.polygon[i9])) return false;
-      return true;
-    }
-    clone() {
-      return new _GeometryPolygon(this.polygon.map((p4) => p4.clone()));
-    }
-  };
-  var GeometryMultiPoint = class _GeometryMultiPoint extends Geometry {
-    points;
-    constructor(points) {
-      super(), this.points = points instanceof _GeometryMultiPoint ? points.points : points;
-    }
-    toJSON() {
-      return { type: "MultiPoint", coordinates: this.coordinates };
-    }
-    get coordinates() {
-      return this.points.map((g3) => g3.coordinates);
-    }
-    is(geometry) {
-      if (!(geometry instanceof _GeometryMultiPoint) || this.points.length !== geometry.points.length) return false;
-      for (let i9 = 0; i9 < this.points.length; i9++) if (!this.points[i9].is(geometry.points[i9])) return false;
-      return true;
-    }
-    clone() {
-      return new _GeometryMultiPoint(this.points.map((p4) => p4.clone()));
-    }
-  };
-  var GeometryMultiLine = class _GeometryMultiLine extends Geometry {
-    lines;
-    constructor(lines) {
-      super(), this.lines = lines instanceof _GeometryMultiLine ? lines.lines : lines;
-    }
-    toJSON() {
-      return { type: "MultiLineString", coordinates: this.coordinates };
-    }
-    get coordinates() {
-      return this.lines.map((g3) => g3.coordinates);
-    }
-    is(geometry) {
-      if (!(geometry instanceof _GeometryMultiLine) || this.lines.length !== geometry.lines.length) return false;
-      for (let i9 = 0; i9 < this.lines.length; i9++) if (!this.lines[i9].is(geometry.lines[i9])) return false;
-      return true;
-    }
-    clone() {
-      return new _GeometryMultiLine(this.lines.map((p4) => p4.clone()));
-    }
-  };
-  var GeometryMultiPolygon = class _GeometryMultiPolygon extends Geometry {
-    polygons;
-    constructor(polygons) {
-      super(), this.polygons = polygons instanceof _GeometryMultiPolygon ? polygons.polygons : polygons;
-    }
-    toJSON() {
-      return { type: "MultiPolygon", coordinates: this.coordinates };
-    }
-    get coordinates() {
-      return this.polygons.map((g3) => g3.coordinates);
-    }
-    is(geometry) {
-      if (!(geometry instanceof _GeometryMultiPolygon) || this.polygons.length !== geometry.polygons.length) return false;
-      for (let i9 = 0; i9 < this.polygons.length; i9++) if (!this.polygons[i9].is(geometry.polygons[i9])) return false;
-      return true;
-    }
-    clone() {
-      return new _GeometryMultiPolygon(this.polygons.map((p4) => p4.clone()));
-    }
-  };
-  var GeometryCollection = class _GeometryCollection extends Geometry {
-    collection;
-    constructor(collection) {
-      super(), this.collection = collection instanceof _GeometryCollection ? collection.collection : collection;
-    }
-    toJSON() {
-      return { type: "GeometryCollection", geometries: this.geometries };
-    }
-    get geometries() {
-      return this.collection.map((g3) => g3.toJSON());
-    }
-    is(geometry) {
-      if (!(geometry instanceof _GeometryCollection) || this.collection.length !== geometry.collection.length) return false;
-      for (let i9 = 0; i9 < this.collection.length; i9++) if (!this.collection[i9].is(geometry.collection[i9])) return false;
-      return true;
-    }
-    clone() {
-      return new _GeometryCollection(this.collection.map((p4) => p4.clone()));
-    }
-  };
-  function equals(x3, y4) {
-    if (Object.is(x3, y4)) return true;
-    if (x3 instanceof Date && y4 instanceof Date) return x3.getTime() === y4.getTime();
-    if (x3 instanceof RegExp && y4 instanceof RegExp) return x3.toString() === y4.toString();
-    if (x3 instanceof Value && y4 instanceof Value) return x3.equals(y4);
-    if (typeof x3 != "object" || x3 === null || typeof y4 != "object" || y4 === null) return false;
-    let keysX = Reflect.ownKeys(x3), keysY = Reflect.ownKeys(y4);
-    if (keysX.length !== keysY.length) return false;
-    for (let i9 = 0; i9 < keysX.length; i9++) if (!Reflect.has(y4, keysX[i9]) || !equals(x3[keysX[i9]], y4[keysX[i9]])) return false;
-    return true;
-  }
-  var MAX_i64 = 9223372036854775807n;
-  function escapeIdent(str) {
-    if (isOnlyNumbers(str)) return `\u27E8${str}\u27E9`;
-    let code, i9, len;
-    for (i9 = 0, len = str.length; i9 < len; i9++) if (code = str.charCodeAt(i9), !(code > 47 && code < 58) && !(code > 64 && code < 91) && !(code > 96 && code < 123) && code !== 95) return `\u27E8${str.replaceAll("\u27E9", "\\\u27E9")}\u27E9`;
-    return str;
-  }
-  function escapeNumber(num) {
-    return num <= MAX_i64 ? num.toString() : `\u27E8${num}\u27E9`;
-  }
-  function isOnlyNumbers(str) {
-    let stripped = str.replace("_", ""), parsed = Number.parseInt(stripped);
-    return !Number.isNaN(parsed) && parsed.toString() === stripped;
-  }
-  var Uuid = class _Uuid extends Value {
-    inner;
-    constructor(uuid) {
-      super(), uuid instanceof ArrayBuffer ? this.inner = UUID.ofInner(new Uint8Array(uuid)) : uuid instanceof Uint8Array ? this.inner = UUID.ofInner(uuid) : uuid instanceof _Uuid ? this.inner = uuid.inner : uuid instanceof UUID ? this.inner = uuid : this.inner = UUID.parse(uuid);
-    }
-    equals(other) {
-      return other instanceof _Uuid ? this.inner.equals(other.inner) : false;
-    }
-    toString() {
-      return this.inner.toString();
-    }
-    toJSON() {
-      return this.inner.toString();
-    }
-    toUint8Array() {
-      return this.inner.bytes;
-    }
-    toBuffer() {
-      return this.inner.bytes.buffer;
-    }
-    static v4() {
-      return new _Uuid(uuidv4obj());
-    }
-    static v7() {
-      return new _Uuid(uuidv7obj());
-    }
-  };
-  var RecordId = class _RecordId extends Value {
-    tb;
-    id;
-    constructor(tb, id22) {
-      if (super(), typeof tb != "string") throw new SurrealDbError("TB part is not valid");
-      if (!isValidIdPart(id22)) throw new SurrealDbError("ID part is not valid");
-      this.tb = tb, this.id = id22;
-    }
-    equals(other) {
-      return other instanceof _RecordId ? this.tb === other.tb && equals(this.id, other.id) : false;
-    }
-    toJSON() {
-      return this.toString();
-    }
-    toString() {
-      let tb = escapeIdent(this.tb), id22 = escapeIdPart(this.id);
-      return `${tb}:${id22}`;
-    }
-  };
-  var StringRecordId = class _StringRecordId extends Value {
-    rid;
-    constructor(rid) {
-      if (super(), rid instanceof _StringRecordId) this.rid = rid.rid;
-      else if (rid instanceof RecordId) this.rid = rid.toString();
-      else if (typeof rid == "string") this.rid = rid;
-      else throw new SurrealDbError("String Record ID must be a string");
-    }
-    equals(other) {
-      return other instanceof _StringRecordId ? this.rid === other.rid : false;
-    }
-    toJSON() {
-      return this.rid;
-    }
-    toString() {
-      return this.rid;
-    }
-  };
-  function isValidIdPart(v3) {
-    if (v3 instanceof Uuid) return true;
-    switch (typeof v3) {
-      case "string":
-      case "number":
-      case "bigint":
-        return true;
-      case "object":
-        return Array.isArray(v3) || v3 !== null;
-      default:
-        return false;
-    }
-  }
-  function escapeIdPart(id22) {
-    return id22 instanceof Uuid ? `u"${id22}"` : typeof id22 == "string" ? escapeIdent(id22) : typeof id22 == "bigint" || typeof id22 == "number" ? escapeNumber(id22) : toSurrealqlString(id22);
-  }
-  var Table = class _Table extends Value {
-    tb;
-    constructor(tb) {
-      if (super(), typeof tb != "string") throw new SurrealDbError("Table must be a string");
-      this.tb = tb;
-    }
-    equals(other) {
-      return other instanceof _Table ? this.tb === other.tb : false;
-    }
-    toJSON() {
-      return this.tb;
-    }
-    toString() {
-      return this.tb;
-    }
-  };
-  function toSurrealqlString(input) {
-    if (typeof input == "string") return `s${JSON.stringify(input)}`;
-    if (input === null) return "NULL";
-    if (input === void 0) return "NONE";
-    if (typeof input == "object") {
-      if (input instanceof Date) return `d${JSON.stringify(input.toISOString())}`;
-      if (input instanceof Uuid) return `u${JSON.stringify(input.toString())}`;
-      if (input instanceof RecordId || input instanceof StringRecordId) return `r${JSON.stringify(input.toString())}`;
-      if (input instanceof Geometry) return toSurrealqlString(input.toJSON());
-      if (input instanceof Decimal || input instanceof Duration || input instanceof Future || input instanceof Range || input instanceof Table) return input.toJSON();
-      switch (Object.getPrototypeOf(input)) {
-        case Object.prototype: {
-          let output2 = "{ ", entries = Object.entries(input);
-          for (let [i9, [k3, v3]] of entries.entries()) output2 += `${JSON.stringify(k3)}: ${toSurrealqlString(v3)}`, i9 < entries.length - 1 && (output2 += ", ");
-          return output2 += " }", output2;
-        }
-        case Map.prototype: {
-          let output2 = "{ ", entries = Array.from(input.entries());
-          for (let [i9, [k3, v3]] of entries.entries()) output2 += `${JSON.stringify(k3)}: ${toSurrealqlString(v3)}`, i9 < entries.length - 1 && (output2 += ", ");
-          return output2 += " }", output2;
-        }
-        case Array.prototype:
-          return `[ ${input.map(toSurrealqlString).join(", ")} ]`;
-        case Set.prototype:
-          return `[ ${[...new Set([...input].map(toSurrealqlString))].join(", ")} ]`;
-      }
-    }
-    return `${input}`;
-  }
-  var Range = class _Range extends Value {
-    constructor(beg, end) {
-      super();
-      this.beg = beg;
-      this.end = end;
-    }
-    equals(other) {
-      return !(other instanceof _Range) || this.beg?.constructor !== other.beg?.constructor || this.end?.constructor !== other.end?.constructor ? false : equals(this.beg?.value, other.beg?.value) && equals(this.end?.value, other.end?.value);
-    }
-    toJSON() {
-      return this.toString();
-    }
-    toString() {
-      let beg = escapeRangeBound(this.beg), end = escapeRangeBound(this.end);
-      return `${beg}${getRangeJoin(this.beg, this.end)}${end}`;
-    }
-  };
-  var BoundIncluded = class {
-    constructor(value) {
-      this.value = value;
-    }
-  };
-  var BoundExcluded = class {
-    constructor(value) {
-      this.value = value;
-    }
-  };
-  var RecordIdRange = class _RecordIdRange extends Value {
-    constructor(tb, beg, end) {
-      super();
-      this.tb = tb;
-      this.beg = beg;
-      this.end = end;
-      if (typeof tb != "string") throw new SurrealDbError("TB part is not valid");
-      if (!isValidIdBound(beg)) throw new SurrealDbError("Beg part is not valid");
-      if (!isValidIdBound(end)) throw new SurrealDbError("End part is not valid");
-    }
-    equals(other) {
-      return !(other instanceof _RecordIdRange) || this.beg?.constructor !== other.beg?.constructor || this.end?.constructor !== other.end?.constructor ? false : this.tb === other.tb && equals(this.beg?.value, other.beg?.value) && equals(this.end?.value, other.end?.value);
-    }
-    toJSON() {
-      return this.toString();
-    }
-    toString() {
-      let tb = escapeIdent(this.tb), beg = escapeIdBound(this.beg), end = escapeIdBound(this.end);
-      return `${tb}:${beg}${getRangeJoin(this.beg, this.end)}${end}`;
-    }
-  };
-  function getRangeJoin(beg, end) {
-    let output2 = "";
-    return beg instanceof BoundExcluded && (output2 += ">"), output2 += "..", end instanceof BoundIncluded && (output2 += "="), output2;
-  }
-  function isValidIdBound(bound) {
-    return bound instanceof BoundIncluded || bound instanceof BoundExcluded ? isValidIdPart(bound.value) : true;
-  }
-  function escapeIdBound(bound) {
-    return bound instanceof BoundIncluded || bound instanceof BoundExcluded ? escapeIdPart(bound.value) : "";
-  }
-  function escapeRangeBound(bound) {
-    if (bound === void 0) return "";
-    let value = bound.value;
-    return bound instanceof Range ? `(${toSurrealqlString(value)})` : toSurrealqlString(value);
-  }
-  function rangeToCbor([beg, end]) {
-    function encodeBound(bound) {
-      return bound instanceof BoundIncluded ? new Tagged(TAG_BOUND_INCLUDED, bound.value) : bound instanceof BoundExcluded ? new Tagged(TAG_BOUND_EXCLUDED, bound.value) : null;
-    }
-    return [encodeBound(beg), encodeBound(end)];
-  }
-  function cborToRange(range) {
-    function decodeBound(bound) {
-      if (bound !== null) {
-        if (bound.tag === TAG_BOUND_INCLUDED) return new BoundIncluded(bound.value);
-        if (bound.tag === TAG_BOUND_EXCLUDED) return new BoundExcluded(bound.value);
-        throw new SurrealDbError("Invalid bound tag");
-      }
-    }
-    return [decodeBound(range[0]), decodeBound(range[1])];
-  }
-  var TAG_SPEC_DATETIME = 0;
-  var TAG_SPEC_UUID = 37;
-  var TAG_NONE = 6;
-  var TAG_TABLE = 7;
-  var TAG_RECORDID = 8;
-  var TAG_STRING_UUID = 9;
-  var TAG_STRING_DECIMAL = 10;
-  var TAG_CUSTOM_DATETIME = 12;
-  var TAG_STRING_DURATION = 13;
-  var TAG_CUSTOM_DURATION = 14;
-  var TAG_FUTURE = 15;
-  var TAG_RANGE = 49;
-  var TAG_BOUND_INCLUDED = 50;
-  var TAG_BOUND_EXCLUDED = 51;
-  var TAG_GEOMETRY_POINT = 88;
-  var TAG_GEOMETRY_LINE = 89;
-  var TAG_GEOMETRY_POLYGON = 90;
-  var TAG_GEOMETRY_MULTIPOINT = 91;
-  var TAG_GEOMETRY_MULTILINE = 92;
-  var TAG_GEOMETRY_MULTIPOLYGON = 93;
-  var TAG_GEOMETRY_COLLECTION = 94;
-  var replacer = { encode(v3) {
-    return v3 instanceof Date ? new Tagged(TAG_CUSTOM_DATETIME, dateToCborCustomDate(v3)) : v3 === void 0 ? new Tagged(TAG_NONE, null) : v3 instanceof Uuid ? new Tagged(TAG_SPEC_UUID, v3.toBuffer()) : v3 instanceof Decimal ? new Tagged(TAG_STRING_DECIMAL, v3.toString()) : v3 instanceof Duration ? new Tagged(TAG_CUSTOM_DURATION, v3.toCompact()) : v3 instanceof RecordId ? new Tagged(TAG_RECORDID, [v3.tb, v3.id]) : v3 instanceof StringRecordId ? new Tagged(TAG_RECORDID, v3.rid) : v3 instanceof RecordIdRange ? new Tagged(TAG_RECORDID, [v3.tb, new Tagged(TAG_RANGE, rangeToCbor([v3.beg, v3.end]))]) : v3 instanceof Table ? new Tagged(TAG_TABLE, v3.tb) : v3 instanceof Future ? new Tagged(TAG_FUTURE, v3.inner) : v3 instanceof Range ? new Tagged(TAG_RANGE, rangeToCbor([v3.beg, v3.end])) : v3 instanceof GeometryPoint ? new Tagged(TAG_GEOMETRY_POINT, v3.point) : v3 instanceof GeometryLine ? new Tagged(TAG_GEOMETRY_LINE, v3.line) : v3 instanceof GeometryPolygon ? new Tagged(TAG_GEOMETRY_POLYGON, v3.polygon) : v3 instanceof GeometryMultiPoint ? new Tagged(TAG_GEOMETRY_MULTIPOINT, v3.points) : v3 instanceof GeometryMultiLine ? new Tagged(TAG_GEOMETRY_MULTILINE, v3.lines) : v3 instanceof GeometryMultiPolygon ? new Tagged(TAG_GEOMETRY_MULTIPOLYGON, v3.polygons) : v3 instanceof GeometryCollection ? new Tagged(TAG_GEOMETRY_COLLECTION, v3.collection) : v3;
-  }, decode(v3) {
-    if (!(v3 instanceof Tagged)) return v3;
-    switch (v3.tag) {
-      case TAG_SPEC_DATETIME:
-        return new Date(v3.value);
-      case TAG_SPEC_UUID:
-      case TAG_STRING_UUID:
-        return new Uuid(v3.value);
-      case TAG_CUSTOM_DATETIME:
-        return cborCustomDateToDate(v3.value);
-      case TAG_NONE:
-        return;
-      case TAG_STRING_DECIMAL:
-        return new Decimal(v3.value);
-      case TAG_STRING_DURATION:
-        return new Duration(v3.value);
-      case TAG_CUSTOM_DURATION:
-        return Duration.fromCompact(v3.value);
-      case TAG_TABLE:
-        return new Table(v3.value);
-      case TAG_FUTURE:
-        return new Future(v3.value);
-      case TAG_RANGE:
-        return new Range(...cborToRange(v3.value));
-      case TAG_RECORDID:
-        return v3.value[1] instanceof Range ? new RecordIdRange(v3.value[0], v3.value[1].beg, v3.value[1].end) : new RecordId(v3.value[0], v3.value[1]);
-      case TAG_GEOMETRY_POINT:
-        return new GeometryPoint(v3.value);
-      case TAG_GEOMETRY_LINE:
-        return new GeometryLine(v3.value);
-      case TAG_GEOMETRY_POLYGON:
-        return new GeometryPolygon(v3.value);
-      case TAG_GEOMETRY_MULTIPOINT:
-        return new GeometryMultiPoint(v3.value);
-      case TAG_GEOMETRY_MULTILINE:
-        return new GeometryMultiLine(v3.value);
-      case TAG_GEOMETRY_MULTIPOLYGON:
-        return new GeometryMultiPolygon(v3.value);
-      case TAG_GEOMETRY_COLLECTION:
-        return new GeometryCollection(v3.value);
-    }
-  } };
-  Object.freeze(replacer);
-  function encodeCbor(data) {
-    return encode(data, { replacer: replacer.encode });
-  }
-  function decodeCbor(data) {
-    return decode(data, { replacer: replacer.decode });
-  }
-  var textEncoder2;
-  var PreparedQuery = class {
-    _query;
-    _bindings;
-    length;
-    constructor(query, bindings) {
-      textEncoder2 ??= new TextEncoder(), this._query = textEncoder2.encode(query), this._bindings = partiallyEncodeObject(bindings ?? {}, { replacer: replacer.encode }), this.length = Object.keys(this._bindings).length;
-    }
-    get query() {
-      let w3 = new Writer(this._query.byteLength + 9);
-      return w3.writeMajor(3, this._query.byteLength), w3.writeUint8Array(this._query), new Encoded(w3.output(false));
-    }
-    get bindings() {
-      return this._bindings;
-    }
-    build(fills) {
-      return encode([this.query, this.bindings], { fills });
-    }
-    append(query_raw, ...values) {
-      let base = this.length;
-      this.length += values.length;
-      let reused = 0, gaps = /* @__PURE__ */ new Map(), mapped_bindings = values.map((v3, i9) => {
-        if (v3 instanceof Gap) {
-          let index2 = gaps.get(v3);
-          if (index2 !== void 0) return reused++, [`bind___${index2}`, v3];
-          gaps.set(v3, i9 - reused);
-        }
-        return [`bind___${base + i9 - reused}`, v3];
-      });
-      for (let [k3, v3] of mapped_bindings) this._bindings[k3] = encode(v3, { replacer: replacer.encode, partial: true });
-      let query = query_raw.flatMap((segment, i9) => {
-        let variable = mapped_bindings[i9]?.[0];
-        return [segment, ...variable ? [`$${variable}`] : []];
-      }).join("");
-      textEncoder2 ??= new TextEncoder();
-      let current = new Uint8Array(this._query), added = textEncoder2.encode(query);
-      return this._query = new Uint8Array(current.byteLength + added.byteLength), this._query.set(current), this._query.set(added, current.byteLength), this;
-    }
-  };
-  function convertAuth(params) {
-    let result = {}, convertString = (a5, b4, optional) => {
-      if (a5 in params) result[b4] = `${params[a5]}`, delete result[a5];
-      else if (optional !== true) throw new SurrealDbError(`Key ${a5} is missing from the authentication parameters`);
-    };
-    return "scope" in params ? (result = { ...params }, convertString("scope", "sc"), convertString("namespace", "ns"), convertString("database", "db")) : "variables" in params ? (result = { ...params.variables }, convertString("access", "ac"), convertString("namespace", "ns"), convertString("database", "db")) : (convertString("access", "ac", true), convertString("database", "db", true), convertString("namespace", "ns", !("database" in params)), convertString("username", "user"), convertString("password", "pass")), result;
-  }
-  var liveActions = ["CREATE", "UPDATE", "DELETE"];
-  function isLiveResult(v3) {
-    return !(typeof v3 != "object" || v3 === null || !("id" in v3 && "action" in v3 && "result" in v3) || !(v3.id instanceof Uuid) || !liveActions.includes(v3.action) || typeof v3.result != "object" || v3.result === null);
-  }
-  var defaultVersionCheckTimeout = 5e3;
-  var supportedSurrealDbVersionMin = "1.4.2";
-  var supportedSurrealDbVersionUntil = "3.0.0";
-  var supportedSurrealDbVersionRange = `>= ${supportedSurrealDbVersionMin} < ${supportedSurrealDbVersionUntil}`;
-  function versionCheck(version, min2 = supportedSurrealDbVersionMin, until = supportedSurrealDbVersionUntil) {
-    if (!isVersionSupported(version, min2, until)) throw new UnsupportedVersion(version, `>= ${min2} < ${until}`);
-    return true;
-  }
-  function isVersionSupported(version, min2 = supportedSurrealDbVersionMin, until = supportedSurrealDbVersionUntil) {
-    return min2.localeCompare(version, void 0, { numeric: true }) <= 0 && until.localeCompare(version, void 0, { numeric: true }) === 1;
-  }
-  async function retrieveRemoteVersion(url, timeout) {
-    let protocol = { "ws:": "http:", "wss:": "https:", "http:": "http:", "https:": "https:" }[url.protocol];
-    if (protocol) {
-      let basepath = url.pathname.slice(0, -4);
-      url = new URL(url), url.pathname = `${basepath}/version`, url.protocol = protocol;
-      let controller = new AbortController(), id22 = setTimeout(() => controller.abort(), timeout ?? defaultVersionCheckTimeout), versionPrefix = "surrealdb-";
-      return await fetch(url, { signal: controller.signal }).then((res) => res.text()).then((version2) => version2.slice(versionPrefix.length)).catch((e13) => {
-        throw new VersionRetrievalFailure(e13);
-      }).finally(() => {
-        clearTimeout(id22);
-      });
-    }
-    throw new VersionRetrievalFailure();
-  }
-  var id = 0;
-  function getIncrementalID() {
-    return id = (id + 1) % Number.MAX_SAFE_INTEGER, id.toString();
-  }
-  var ConnectionStatus = ((ConnectionStatus2) => (ConnectionStatus2.Disconnected = "disconnected", ConnectionStatus2.Connecting = "connecting", ConnectionStatus2.Connected = "connected", ConnectionStatus2.Error = "error", ConnectionStatus2))(ConnectionStatus || {});
-  var EngineContext = class {
-    emitter;
-    encodeCbor;
-    decodeCbor;
-    constructor({ emitter, encodeCbor: encodeCbor2, decodeCbor: decodeCbor2 }) {
-      this.emitter = emitter, this.encodeCbor = encodeCbor2, this.decodeCbor = decodeCbor2;
-    }
-  };
-  var AbstractEngine = class {
-    context;
-    ready;
-    status = "disconnected";
-    connection = { url: void 0, namespace: void 0, database: void 0, token: void 0 };
-    constructor(context) {
-      this.context = context;
-    }
-    get emitter() {
-      return this.context.emitter;
-    }
-    get encodeCbor() {
-      return this.context.encodeCbor;
-    }
-    get decodeCbor() {
-      return this.context.decodeCbor;
-    }
-    async req_post(body, url, headers_) {
-      let headers = { "Content-Type": "application/cbor", Accept: "application/cbor", ...headers_ };
-      this.connection.namespace && (headers["Surreal-NS"] = this.connection.namespace), this.connection.database && (headers["Surreal-DB"] = this.connection.database), this.connection.token && (headers.Authorization = `Bearer ${this.connection.token}`);
-      let raw = await fetch(`${url ?? this.connection.url}`, { method: "POST", headers, body: this.encodeCbor(body) }), buffer = await raw.arrayBuffer();
-      if (raw.status === 200) return buffer;
-      let dec = new TextDecoder("utf-8");
-      throw new HttpConnectionError(dec.decode(buffer), raw.status, raw.statusText, buffer);
-    }
-  };
-  function processAuthVars(vars, fallback2) {
-    if ("scope" in vars || "access" in vars && "variables" in vars && vars.variables) {
-      if (!vars.namespace) {
-        if (!fallback2?.namespace) throw new NoNamespaceSpecified();
-        vars.namespace = fallback2.namespace;
-      }
-      if (!vars.database) {
-        if (!fallback2?.database) throw new NoDatabaseSpecified();
-        vars.database = fallback2.database;
-      }
-    }
-    return vars;
-  }
-  var ALWAYS_ALLOW = /* @__PURE__ */ new Set(["signin", "signup", "authenticate", "invalidate", "version", "use", "let", "unset", "query"]);
-  var HttpEngine = class extends AbstractEngine {
-    connection = { url: void 0, namespace: void 0, database: void 0, token: void 0, variables: {} };
-    setStatus(status, ...args) {
-      this.status = status, this.emitter.emit(status, args);
-    }
-    version(url, timeout) {
-      return retrieveRemoteVersion(url, timeout);
-    }
-    connect(url) {
-      return this.setStatus("connecting"), this.connection.url = url, this.setStatus("connected"), this.ready = new Promise((r22) => r22()), this.ready;
-    }
-    disconnect() {
-      return this.connection = { url: void 0, namespace: void 0, database: void 0, token: void 0, variables: {} }, this.ready = void 0, this.setStatus("disconnected"), new Promise((r22) => r22());
-    }
-    async rpc(request) {
-      if (await this.ready, !this.connection.url) throw new ConnectionUnavailable();
-      if ((!this.connection.namespace || !this.connection.database) && !ALWAYS_ALLOW.has(request.method)) throw new MissingNamespaceDatabase();
-      if (request.method === "use") {
-        let [ns, db] = request.params;
-        return ns === null && (this.connection.namespace = void 0), db === null && (this.connection.database = void 0), ns && (this.connection.namespace = ns), db && (this.connection.database = db), { result: true };
-      }
-      if (request.method === "let") {
-        let [key, value] = request.params;
-        return this.connection.variables[key] = value, { result: true };
-      }
-      if (request.method === "unset") {
-        let [key] = request.params;
-        return delete this.connection.variables[key], { result: true };
-      }
-      request.method === "query" && (request.params = [request.params?.[0], { ...this.connection.variables, ...request.params?.[1] ?? {} }]);
-      let id22 = getIncrementalID(), buffer = await this.req_post({ id: id22, ...request }), response = this.decodeCbor(buffer);
-      if ("result" in response) switch (request.method) {
-        case "signin":
-        case "signup": {
-          this.connection.token = response.result;
-          break;
-        }
-        case "authenticate": {
-          let [token] = request.params;
-          this.connection.token = token;
-          break;
-        }
-        case "invalidate": {
-          this.connection.token = void 0;
-          break;
-        }
-      }
-      return this.emitter.emit(`rpc-${id22}`, [response]), response;
-    }
-    get connected() {
-      return !!this.connection.url;
-    }
-    async export(options) {
-      if (!this.connection.url) throw new ConnectionUnavailable();
-      let url = new URL(this.connection.url), basepath = url.pathname.slice(0, -4);
-      url.pathname = `${basepath}/export`;
-      let buffer = await this.req_post(options ?? {}, url, { Accept: "plain/text" });
-      return new TextDecoder("utf-8").decode(buffer);
-    }
-  };
-  var WebsocketEngine = class extends AbstractEngine {
-    pinger;
-    socket;
-    constructor(context) {
-      super(context), this.emitter.subscribe("disconnected", () => this.pinger?.stop());
-    }
-    setStatus(status, ...args) {
-      this.status = status, this.emitter.emit(status, args);
-    }
-    async requireStatus(status) {
-      return this.status !== status && await this.emitter.subscribeOnce(status), true;
-    }
-    version(url, timeout) {
-      return retrieveRemoteVersion(url, timeout);
-    }
-    async connect(url) {
-      this.connection.url = url, this.setStatus("connecting");
-      let socket = new WebSocket2(url.toString(), "cbor"), ready = new Promise((resolve, reject) => {
-        socket.addEventListener("open", () => {
-          this.setStatus("connected"), resolve();
-        }), socket.addEventListener("error", (e13) => {
-          let error = new UnexpectedConnectionError("detail" in e13 ? e13.detail : "error" in e13 ? e13.error : "An unexpected error occurred");
-          this.setStatus("error", error), reject(error);
-        }), socket.addEventListener("close", () => {
-          this.setStatus("disconnected");
-        }), socket.addEventListener("message", async ({ data }) => {
-          try {
-            let decoded = this.decodeCbor(data instanceof ArrayBuffer ? data : data instanceof Blob ? await data.arrayBuffer() : data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
-            if (typeof decoded == "object" && decoded != null && Object.getPrototypeOf(decoded) === Object.prototype) this.handleRpcResponse(decoded);
-            else throw new UnexpectedServerResponse(decoded);
-          } catch (detail) {
-            socket.dispatchEvent(new CustomEvent("error", { detail }));
-          }
-        });
-      });
-      return this.ready = ready, await ready.then(() => {
-        this.socket = socket, this.pinger?.stop(), this.pinger = new Pinger(3e4), this.pinger.start(() => this.rpc({ method: "ping" }));
-      });
-    }
-    async disconnect() {
-      this.connection = { url: void 0, namespace: void 0, database: void 0, token: void 0 }, await this.ready?.catch(() => {
-      }), this.socket?.close(), this.ready = void 0, this.socket = void 0, await Promise.any([this.requireStatus("disconnected"), this.requireStatus("error")]);
-    }
-    async rpc(request) {
-      if (await this.ready, !this.socket) throw new ConnectionUnavailable();
-      let id22 = getIncrementalID(), response = this.emitter.subscribeOnce(`rpc-${id22}`);
-      this.socket.send(this.encodeCbor({ id: id22, ...request }));
-      let [res] = await response;
-      if (res instanceof EngineDisconnected) throw res;
-      if ("result" in res) switch (request.method) {
-        case "use": {
-          let [ns, db] = request.params;
-          ns === null && (this.connection.namespace = void 0), db === null && (this.connection.database = void 0), ns && (this.connection.namespace = ns), db && (this.connection.database = db);
-          break;
-        }
-        case "signin":
-        case "signup": {
-          this.connection.token = res.result;
-          break;
-        }
-        case "authenticate": {
-          let [token] = request.params;
-          this.connection.token = token;
-          break;
-        }
-        case "invalidate": {
-          this.connection.token = void 0;
-          break;
-        }
-      }
-      return res;
-    }
-    handleRpcResponse({ id: id22, ...res }) {
-      if (id22) this.emitter.emit(`rpc-${id22}`, [res]);
-      else if (res.error) this.setStatus("error", new ResponseError(res.error));
-      else if (isLiveResult(res.result)) {
-        let { id: id32, action, result } = res.result;
-        this.emitter.emit(`live-${id32}`, [action, result], true);
-      } else this.setStatus("error", new UnexpectedServerResponse({ id: id22, ...res }));
-    }
-    get connected() {
-      return !!this.socket;
-    }
-    async export(options) {
-      if (!this.connection.url) throw new ConnectionUnavailable();
-      let url = new URL(this.connection.url), basepath = url.pathname.slice(0, -4);
-      url.protocol = url.protocol.replace("ws", "http"), url.pathname = `${basepath}/export`;
-      let buffer = await this.req_post(options ?? {}, url, { Accept: "plain/text" });
-      return new TextDecoder("utf-8").decode(buffer);
-    }
-  };
-  var Pinger = class {
-    pinger;
-    interval;
-    constructor(interval = 3e4) {
-      this.interval = interval;
-    }
-    start(callback) {
-      this.pinger = setInterval(callback, this.interval);
-    }
-    stop() {
-      clearInterval(this.pinger);
-    }
-  };
-  var Surreal = class {
-    connection;
-    ready;
-    emitter;
-    engines = { ws: WebsocketEngine, wss: WebsocketEngine, http: HttpEngine, https: HttpEngine };
-    constructor({ engines } = {}) {
-      this.emitter = new Emitter(), this.emitter.subscribe("disconnected", () => this.clean()), this.emitter.subscribe("error", () => this.close()), engines && (this.engines = { ...this.engines, ...engines });
-    }
-    async connect(url, opts = {}) {
-      url = new URL(url), url.pathname.endsWith("/rpc") || (url.pathname.endsWith("/") || (url.pathname += "/"), url.pathname += "rpc");
-      let engineName = url.protocol.slice(0, -1), engine = this.engines[engineName];
-      if (!engine) throw new UnsupportedEngine(engineName);
-      let { prepare, auth, namespace, database } = opts;
-      await this.close();
-      let context = new EngineContext({ emitter: this.emitter, encodeCbor, decodeCbor }), connection = new engine(context);
-      if (opts.versionCheck !== false) {
-        let version = await connection.version(url, opts.versionCheckTimeout);
-        versionCheck(version);
-      }
-      return this.connection = connection, this.ready = new Promise((resolve, reject) => connection.connect(url).then(async () => {
-        (namespace || database) && await this.use({ namespace, database }), typeof auth == "string" ? await this.authenticate(auth) : auth && await this.signin(auth), await prepare?.(this), resolve();
-      }).catch(reject)), await this.ready, true;
-    }
-    async close() {
-      return this.clean(), await this.connection?.disconnect(), true;
-    }
-    clean() {
-      let pending = this.emitter.scanListeners((k3) => k3.startsWith("rpc-"));
-      pending.map((k3) => this.emitter.emit(k3, [new EngineDisconnected()]));
-      let live = this.emitter.scanListeners((k3) => k3.startsWith("live-"));
-      live.map((k3) => this.emitter.emit(k3, ["CLOSE", "disconnected"])), this.emitter.reset({ collectable: true, listeners: [...pending, ...live] });
-    }
-    get status() {
-      return this.connection?.status ?? "disconnected";
-    }
-    async ping() {
-      let { error } = await this.rpc("ping");
-      if (error) throw new ResponseError(error.message);
-      return true;
-    }
-    async use({ namespace, database }) {
-      if (!this.connection) throw new NoActiveSocket();
-      if (namespace === null && database !== null) throw new SurrealDbError("Cannot unset namespace without unsetting database");
-      let { error } = await this.rpc("use", [namespace, database]);
-      if (error) throw new ResponseError(error.message);
-      return true;
-    }
-    async info() {
-      await this.ready;
-      let res = await this.rpc("info");
-      if (res.error) throw new ResponseError(res.error.message);
-      return res.result ?? void 0;
-    }
-    async signup(vars) {
-      if (!this.connection) throw new NoActiveSocket();
-      let parsed = processAuthVars(vars, this.connection.connection), converted = convertAuth(parsed), res = await this.rpc("signup", [converted]);
-      if (res.error) throw new ResponseError(res.error.message);
-      if (!res.result) throw new NoTokenReturned();
-      return res.result;
-    }
-    async signin(vars) {
-      if (!this.connection) throw new NoActiveSocket();
-      let parsed = processAuthVars(vars, this.connection.connection), converted = convertAuth(parsed), res = await this.rpc("signin", [converted]);
-      if (res.error) throw new ResponseError(res.error.message);
-      if (!res.result) throw new NoTokenReturned();
-      return res.result;
-    }
-    async authenticate(token) {
-      let res = await this.rpc("authenticate", [token]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return true;
-    }
-    async invalidate() {
-      let res = await this.rpc("invalidate");
-      if (res.error) throw new ResponseError(res.error.message);
-      return true;
-    }
-    async let(variable, value) {
-      let res = await this.rpc("let", [variable, value]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return true;
-    }
-    async unset(variable) {
-      let res = await this.rpc("unset", [variable]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return true;
-    }
-    async live(table, callback, diff) {
-      await this.ready;
-      let res = await this.rpc("live", [table, diff]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return callback && this.subscribeLive(res.result, callback), res.result;
-    }
-    async subscribeLive(queryUuid, callback) {
-      if (await this.ready, !this.connection) throw new NoActiveSocket();
-      this.connection.emitter.subscribe(`live-${queryUuid}`, callback, true);
-    }
-    async unSubscribeLive(queryUuid, callback) {
-      if (await this.ready, !this.connection) throw new NoActiveSocket();
-      this.connection.emitter.unSubscribe(`live-${queryUuid}`, callback);
-    }
-    async kill(queryUuid) {
-      if (await this.ready, !this.connection) throw new NoActiveSocket();
-      if (Array.isArray(queryUuid)) {
-        await Promise.all(queryUuid.map((u22) => this.rpc("kill", [u22])));
-        let toBeKilled = queryUuid.map((u22) => `live-${u22}`);
-        toBeKilled.map((k3) => this.emitter.emit(k3, ["CLOSE", "killed"])), this.connection.emitter.reset({ collectable: toBeKilled, listeners: toBeKilled });
-      } else await this.rpc("kill", [queryUuid]), this.emitter.emit(`live-${queryUuid}`, ["CLOSE", "killed"]), this.connection.emitter.reset({ collectable: `live-${queryUuid}`, listeners: `live-${queryUuid}` });
-    }
-    async query(...args) {
-      return (await this.queryRaw(...args)).map(({ status, result }) => {
-        if (status === "ERR") throw new ResponseError(result);
-        return result;
-      });
-    }
-    async queryRaw(...[q2, b4]) {
-      let params = q2 instanceof PreparedQuery ? [q2.query, partiallyEncodeObject(q2.bindings, { fills: b4, replacer: replacer.encode })] : [q2, b4];
-      await this.ready;
-      let res = await this.rpc("query", params);
-      if (res.error) throw new ResponseError(res.error.message);
-      return res.result;
-    }
-    async query_raw(...args) {
-      return this.queryRaw(...args);
-    }
-    async select(thing) {
-      await this.ready;
-      let res = await this.rpc("select", [thing]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    async create(thing, data) {
-      await this.ready;
-      let res = await this.rpc("create", [thing, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    async insert(arg1, arg2) {
-      await this.ready;
-      let [table, data] = typeof arg1 == "string" || arg1 instanceof Table ? [arg1, arg2] : [void 0, arg1], res = await this.rpc("insert", [table, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return res.result;
-    }
-    async insertRelation(arg1, arg2) {
-      await this.ready;
-      let [table, data] = typeof arg1 == "string" || arg1 instanceof Table ? [arg1, arg2] : [void 0, arg1], res = await this.rpc("insert_relation", [table, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return res.result;
-    }
-    async insert_relation(arg1, arg2) {
-      return arg1 instanceof Table || typeof arg1 == "string" ? this.insertRelation(arg1, arg2) : this.insertRelation(arg1);
-    }
-    async update(thing, data) {
-      await this.ready;
-      let res = await this.rpc("update", [thing, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    async upsert(thing, data) {
-      await this.ready;
-      let res = await this.rpc("upsert", [thing, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    async merge(thing, data) {
-      await this.ready;
-      let res = await this.rpc("merge", [thing, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    async patch(thing, data, diff) {
-      await this.ready;
-      let res = await this.rpc("patch", [thing, data, diff]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return diff ? res.result : output(thing, res.result);
-    }
-    async delete(thing) {
-      await this.ready;
-      let res = await this.rpc("delete", [thing]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    async version() {
-      await this.ready;
-      let res = await this.rpc("version");
-      if (res.error) throw new ResponseError(res.error.message);
-      return res.result;
-    }
-    async run(name, arg2, arg3) {
-      await this.ready;
-      let [version, args] = Array.isArray(arg2) ? [void 0, arg2] : [arg2, arg3], res = await this.rpc("run", [name, version, args]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return res.result;
-    }
-    async relate(from, thing, to, data) {
-      await this.ready;
-      let res = await this.rpc("relate", [from, thing, to, data]);
-      if (res.error) throw new ResponseError(res.error.message);
-      return output(thing, res.result);
-    }
-    rpc(method, params) {
-      if (!this.connection) throw new NoActiveSocket();
-      return this.connection.rpc({ method, params });
-    }
-    async export(options) {
-      if (await this.ready, !this.connection) throw new NoActiveSocket();
-      return this.connection.export(options);
-    }
-  };
-  function output(subject, input) {
-    return subject instanceof RecordId || subject instanceof StringRecordId ? Array.isArray(input) ? input[0] : input : Array.isArray(input) ? input : [input];
-  }
-
-  // src/shared/infrastructure/SurrealDbAdapter.ts
-  var pop = (data, count = 1) => {
-    let tmp = data;
-    while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
-      tmp = tmp[0];
-      count--;
-    }
-    return tmp;
-  };
-  var SurrealAdapter = class {
-    config;
-    client = new Surreal();
-    constructor(config) {
-      const { namespace, database, url } = config;
-      this.config = {
-        namespace,
-        database,
-        url
-      };
-      Object.freeze(this.config);
-    }
-    async initialize() {
-      const { url, namespace, database } = this.config;
-      try {
-        await this.client.connect(url, {
-          namespace,
-          database
-        });
-      } catch (err) {
-        console.error(
-          "Failed to connect to SurrealDB:",
-          err instanceof Error ? err.message : String(err)
-        );
-        await this.client.close();
-        throw err;
-      }
-    }
-    async getListings(filters) {
-      let whereClause = "";
-      const conditions = [];
-      if (filters?.indexLetter) {
-        conditions.push(
-          `string::starts_with(string::lowercase(title), '${filters.indexLetter.toLocaleLowerCase()}')`
-        );
-      }
-      if (filters?.tagKeys?.length) {
-        const tagstr = filters.tagKeys.map((key) => key).join(", ");
-        conditions.push(`tags[WHERE key INSIDE '[${tagstr}]']`);
-      }
-      if (conditions.length) {
-        whereClause = ` WHERE ${conditions.join(" AND ")}`;
-      }
-      const query = `SELECT *, tags.*.* FROM ${"listings" /* LISTINGS */}${whereClause};`;
-      console.log({ query });
-      const res = pop(await this.client.query(query));
-      return res;
-    }
-    async getIndexLetters() {
-      const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
-      const res = pop(await this.client.query(query));
-      return res;
-    }
-    async getTags() {
-      const query = `
-      SELECT *, count(
-        SELECT id
-        FROM listings
-        WHERE $parent.id INSIDE tags
-      ) as usageCount
-      FROM tags;
-    `;
-      const res = pop(await this.client.query(query));
-      return res;
-    }
-    async authenticate(token, failSilently) {
-      let res = false;
-      try {
-        res = await this.client.authenticate(token);
-      } catch (err) {
-        if (!failSilently) {
-          console.error(err.message);
-        }
-      }
-      return res;
-    }
-    async getUserData() {
-      const query = `SELECT * FROM ${"user" /* USER */};`;
-      const res = pop(await this.client.query(query), 2);
       return res;
     }
   };
 
-  // src/features/account/AccountService.ts
-  var AccountService = class {
-    db;
-    auth;
-    setIsAuthenticated;
-    authData;
-    userData;
-    isAuthenticated;
-    isAwaitingVerification;
-    constructor(db, auth) {
-      this.db = db;
-      this.auth = auth;
-      [this.isAuthenticated, this.setIsAuthenticated] = createSignal(false);
-      [this.authData] = createResource(
-        // Third party authentication
-        () => this.auth.isAuthenticated(),
-        () => this.auth.getAuthData()
-      );
-      [this.userData] = createResource(
-        // First party authentication
-        () => this.isAuthenticated() && !this.isAwaitingVerification(),
-        () => this.db.getUserData()
-      );
-      this.isAwaitingVerification = createMemo(() => {
-        return this.authData()?.email_verified === false;
-      });
-    }
-    async initialize() {
-      if (await this.auth.isAuthenticated()) {
-        const token = await this.auth.getAccessToken();
-        const res = await this.db.authenticate(
-          token,
-          this.isAwaitingVerification()
-        );
-        this.setIsAuthenticated(res);
-      }
-    }
-    async login() {
-      return this.auth.login();
-    }
-    async logout() {
-      return this.auth.logout();
-    }
+  // src/solid-js/application/ensureAdapterShape.ts
+  var checkAdapterReturnType = (config) => {
+    return config;
   };
 
-  // src/shared/infrastructure/factories.ts
-  var configsFactory = async (url) => {
-    const instance = withReactiveState(
-      new ConfigsService(url),
-      createSignal
+  // src/solid-js/application/createDirectoryServiceAdaper.ts
+  var createDirectoryServiceAdapter = async (db) => {
+    const filters = withReactiveState(Filters.from({ indexLetter: "s" }));
+    const instance = new DirectoryService(db);
+    const [tags] = createResource(() => instance.loadTags());
+    const [indexLetters] = createResource(() => instance.loadIndexLetters());
+    const [listings] = createResource(
+      () => filters.state(),
+      (filters2) => instance.loadListings(filters2)
     );
-    await instance.initialize();
-    return instance;
-  };
-  var databaseFactory = async (configs) => {
-    const instance = new SurrealAdapter(configs.state().surreal);
-    await instance.initialize();
-    return instance;
-  };
-  var authenticationFactory = async (configs) => {
-    const instance = new Auth0Adapter(configs.state().auth0);
-    await instance.initialize();
-    return instance;
-  };
-  var directoryServiceFactory = async (db) => {
-    const instance = withReactiveState(
-      new DirectoryService(db),
-      createSignal
-    );
-    await instance.initialize();
-    return instance;
-  };
-  var accountFactory = async (db, auth) => {
-    const instance = new AccountService(db, auth);
-    await instance.initialize();
-    return instance;
-  };
-
-  // src/ui/providers/ConfigsProvider.tsx
-  var ConfigsContext = createContext();
-  var ConfigsProvider = (props) => {
-    const [configs] = createResource(() => configsFactory("https://intergate.io/configs/gul-info-hurdal"));
-    createEffect(() => console.log(configs()?.state()));
-    return createComponent(Show, {
-      get when() {
-        return configs();
-      },
-      get children() {
-        return createComponent(ConfigsContext.Provider, {
-          value: () => configs(),
-          get children() {
-            return props.children;
-          }
-        });
+    const adapter = checkAdapterReturnType({
+      filters,
+      resources: {
+        tags,
+        indexLetters,
+        listings
       }
     });
-  };
-  var useConfigs = () => {
-    const context = useContext(ConfigsContext);
-    if (!context) {
-      throw new Error("useConfigs must be used within an ConfigsProvider");
-    }
-    return context;
+    return adapter;
   };
 
-  // src/ui/providers/ServiceProvider.tsx
+  // src/solid-js/ui/providers/ServiceProvider.tsx
   var ServiceContext = createContext();
   var ServiceProvider = (props) => {
-    const configs = useConfigs();
-    const [db] = createResource(() => configs(), (configs2) => databaseFactory(configs2));
-    const [auth] = createResource(() => configs(), (configs2) => authenticationFactory(configs2));
-    const [directory] = createResource(() => db(), (db2) => directoryServiceFactory(db2));
-    const [account] = createResource(() => db() && auth() ? {
-      db: db(),
-      auth: auth()
-    } : false, ({
-      db: db2,
-      auth: auth2
-    }) => accountFactory(db2, auth2));
-    createEffect(() => console.log(directory()?.state()));
-    const [services] = createResource(() => ({
-      directory,
-      account
-    }));
+    const system = useSystem();
+    const [auth] = createResource(() => system.configs(), (configs) => createAuthenticationAdaper(configs.auth0));
+    const [directory] = createResource(() => system.db(), (db) => createDirectoryServiceAdapter(db));
+    const services = {
+      directory
+    };
     return createComponent(ServiceContext.Provider, {
-      get value() {
-        return services();
-      },
+      value: services,
       get children() {
-        return createComponent(Show, {
-          get when() {
-            return services();
-          },
-          get children() {
-            return props.children;
-          }
-        });
+        return props.children;
       }
     });
   };
@@ -17182,7 +17141,7 @@
     return context;
   };
 
-  // src/ui/components/Loading.tsx
+  // src/solid-js/ui/components/Loading.tsx
   var _tmpl$ = /* @__PURE__ */ template(`<div><sl-spinner style=font-size:50px;--track-width:10px;></sl-spinner><div>`, true, false);
   var css = styler.css({
     centered: ({
@@ -17199,7 +17158,7 @@
     return _el$;
   })();
 
-  // src/ui/components/Layout.tsx
+  // src/solid-js/ui/components/Layout.tsx
   var _tmpl$2 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div><sl-icon-button style=font-size:20px;>`, true, false);
   var _tmpl$22 = /* @__PURE__ */ template(`<div>Error: `);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
@@ -17297,15 +17256,11 @@
     })
   });
   var Layout = (props) => {
-    const {
-      account
-    } = useService();
     return (() => {
       var _el$ = _tmpl$2(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling, _el$6 = _el$5.firstChild;
       insert(_el$4, () => props.title);
       addEventListener(_el$6, "click", props.toggleMainPages);
       _el$6._$owner = getOwner();
-      insert(_el$5, () => account()?.userData()?.name, null);
       insert(_el$, createComponent(ErrorBoundary, {
         fallback: (error) => {
           console.error(error);
@@ -17318,7 +17273,9 @@
         get children() {
           return createComponent(Suspense, {
             get fallback() {
-              return createComponent(Loading, {});
+              return createComponent(Loading, {
+                children: "Layout"
+              });
             },
             get children() {
               return props.children;
@@ -17345,7 +17302,7 @@
     })();
   };
 
-  // src/ui/components/IconLabel.tsx
+  // src/solid-js/ui/components/IconLabel.tsx
   var _tmpl$3 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
   var css3 = styler.css({
     wrapper: {
@@ -17382,7 +17339,7 @@
     })();
   };
 
-  // src/ui/components/WebLink.tsx
+  // src/solid-js/ui/components/WebLink.tsx
   var _tmpl$4 = /* @__PURE__ */ template(`<a target=_blank>`);
   var WebLink = (props) => {
     const {
@@ -17417,7 +17374,7 @@
     });
   };
 
-  // src/ui/components/Phone.tsx
+  // src/solid-js/ui/components/Phone.tsx
   var _tmpl$5 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
   var Phone = (props) => {
     const copyToClipboard = () => {
@@ -17448,13 +17405,13 @@
     })();
   };
 
-  // src/ui/components/Address.tsx
+  // src/solid-js/ui/components/Address.tsx
   var _tmpl$6 = /* @__PURE__ */ template(`<br>`);
   var Address = (props) => {
     return [createMemo(() => props.address), _tmpl$6(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
   };
 
-  // src/ui/components/BadgeButton.tsx
+  // src/solid-js/ui/components/BadgeButton.tsx
   var _tmpl$7 = /* @__PURE__ */ template(`<div><div class=text>`);
   var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
   var css4 = styler.css({
@@ -17518,7 +17475,7 @@
   };
   delegateEvents(["click"]);
 
-  // src/ui/components/ListingsFilters.tsx
+  // src/solid-js/ui/components/ListingsFilters.tsx
   var _tmpl$8 = /* @__PURE__ */ template(`<section><div>Filter </div><div></div><div>`);
   var css5 = styler.css({
     section: ({
@@ -17541,12 +17498,14 @@
     const {
       directory
     } = useService();
-    const filters = createMemo(() => directory()?.state().filters);
-    const tags = createMemo(() => directory()?.state().tags);
-    const indexLetters = createMemo(() => directory()?.state().indexLetters);
+    const filters = () => directory()?.filters;
+    const tags = () => directory()?.resources.tags();
+    const indexLetters = () => directory()?.resources.indexLetters();
+    const isLoading = () => directory()?.resources.listings.loading;
+    createEffect(() => console.log(filters()));
     return (() => {
       var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.nextSibling;
-      insert(_el$2, () => filters()?.indexLetter, null);
+      insert(_el$2, () => filters()?.state().indexLetter, null);
       insert(_el$4, () => indexLetters()?.map(({
         letter,
         count
@@ -17554,17 +17513,17 @@
         buttonLabel: letter,
         badgeLabel: count,
         get isActive() {
-          return !!(filters()?.indexLetter === letter);
+          return !!filters()?.isActiveIndexLetter(letter);
         },
         get disabled() {
-          return directory.loading;
+          return isLoading();
         },
         onClick: () => filters()?.setIndexLetter(letter)
       })));
       insert(_el$5, () => tags()?.map((tag) => createComponent(BadgeButton, {
         size: "small",
         get isActive() {
-          return !!filters()?.tagKeys.includes(tag.key);
+          return !!filters()?.hasTag(tag.key);
         },
         get buttonLabel() {
           return tag.name;
@@ -17573,7 +17532,7 @@
           return tag.usageCount;
         },
         get disabled() {
-          return directory.loading;
+          return isLoading();
         },
         onClick: () => filters()?.setTag(tag.key, true)
       })));
@@ -17593,7 +17552,7 @@
     })();
   };
 
-  // src/ui/pages/PageListings.tsx
+  // src/solid-js/ui/pages/PageListings.tsx
   var _tmpl$9 = /* @__PURE__ */ template(`<div> treff.`);
   var _tmpl$24 = /* @__PURE__ */ template(`<section>`);
   var _tmpl$32 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
@@ -17643,20 +17602,27 @@
     const {
       directory
     } = useService();
-    const listings = createMemo(() => directory()?.state().listings);
-    createEffect(() => console.log(directory.state));
+    const filters = () => directory()?.filters;
+    const listings = () => {
+      const res = directory()?.resources.listings();
+      setHitCount(res?.length || 0);
+      return res;
+    };
+    const [hitCount, setHitCount] = createSignal(0);
     return (() => {
       var _el$ = _tmpl$24();
       insert(_el$, createComponent(ListingsFilters, {
         get children() {
           var _el$2 = _tmpl$9(), _el$3 = _el$2.firstChild;
-          insert(_el$2, () => listings()?.length, _el$3);
+          insert(_el$2, hitCount, _el$3);
           return _el$2;
         }
       }), null);
       insert(_el$, createComponent(Suspense, {
         get fallback() {
-          return createComponent(Loading, {});
+          return createComponent(Loading, {
+            children: "Listings"
+          });
         },
         get children() {
           return listings()?.map(({
@@ -17689,9 +17655,7 @@
             })()));
             insert(_el$13, () => tags.map((tag) => (() => {
               var _el$16 = _tmpl$52();
-              addEventListener(_el$16, "click", () => directory()?.setFilters({
-                tagKeys: [tag.key]
-              }, true));
+              addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
               _el$16.style.setProperty("cursor", "pointer");
               _el$16.variant = "primary";
               _el$16.size = "small";
@@ -17718,99 +17682,13 @@
     })();
   };
 
-  // src/ui/pages/PageAccount.tsx
-  var _tmpl$10 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
-  var _tmpl$25 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$33 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Log inn med en annen e-post`, true, false);
-  var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
-  var _tmpl$53 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
-  var _tmpl$62 = /* @__PURE__ */ template(`<pre>`);
-  var _tmpl$72 = /* @__PURE__ */ template(`<section>`);
-  var css7 = styler.css({});
-  var PageAccount = (props) => {
-    const {
-      account
-    } = useService();
-    const isAuthenticated = createMemo(() => account()?.isAuthenticated());
-    const isVerifiying = createMemo(() => account()?.isAwaitingVerification());
-    const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
-    return (() => {
-      var _el$ = _tmpl$72();
-      insert(_el$, createComponent(Show, {
-        get when() {
-          return !isAuthenticated();
-        },
-        get children() {
-          return [(() => {
-            var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$7 = _el$8.nextSibling;
-            _el$2.variant = "warning";
-            _el$2._$owner = getOwner();
-            _el$3.name = "exclamation-triangle";
-            _el$3._$owner = getOwner();
-            insert(_el$4, () => account()?.authData()?.email, _el$8);
-            createRenderEffect(() => _el$2.open = isVerifiying());
-            return _el$2;
-          })(), (() => {
-            var _el$9 = _tmpl$43();
-            insert(_el$9, createComponent(Show, {
-              get when() {
-                return !isVerifiying();
-              },
-              get children() {
-                var _el$10 = _tmpl$25();
-                addEventListener(_el$10, "click", () => account()?.login());
-                _el$10._$owner = getOwner();
-                return _el$10;
-              }
-            }), null);
-            insert(_el$9, createComponent(Show, {
-              get when() {
-                return isVerifiying();
-              },
-              get children() {
-                var _el$11 = _tmpl$33(), _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling;
-                _el$11.label = "Alignment";
-                _el$11._$owner = getOwner();
-                addEventListener(_el$12, "click", () => account()?.login());
-                _el$12.variant = "primary";
-                _el$12._$owner = getOwner();
-                addEventListener(_el$13, "click", () => account()?.logout());
-                _el$13._$owner = getOwner();
-                return _el$11;
-              }
-            }), null);
-            return _el$9;
-          })()];
-        }
-      }), null);
-      insert(_el$, createComponent(Show, {
-        get when() {
-          return isLoggedIn();
-        },
-        get children() {
-          return [(() => {
-            var _el$14 = _tmpl$53();
-            addEventListener(_el$14, "click", () => account()?.logout());
-            _el$14._$owner = getOwner();
-            return _el$14;
-          })(), (() => {
-            var _el$15 = _tmpl$62();
-            insert(_el$15, () => JSON.stringify(account()?.userData()));
-            return _el$15;
-          })()];
-        }
-      }), null);
-      return _el$;
-    })();
-  };
-
-  // src/ui/App.tsx
-  var _tmpl$11 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
-  var _tmpl$26 = /* @__PURE__ */ template(`<style id=styler>`);
+  // src/solid-js/ui/App.tsx
+  var _tmpl$10 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$25 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
     const [selectedPage, setSelectedPage] = createSignal("PAGE_LISTINGS" /* LISTINGS */);
-    return [_tmpl$11(), (() => {
-      var _el$2 = _tmpl$26();
+    return [_tmpl$10(), (() => {
+      var _el$2 = _tmpl$25();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);
       return _el$2;
@@ -17821,7 +17699,7 @@
         });
       },
       get children() {
-        return createComponent(ConfigsProvider, {
+        return createComponent(CoreProvider, {
           get children() {
             return createComponent(ServiceProvider, {
               get children() {
@@ -17836,21 +17714,14 @@
                   get children() {
                     return createComponent(Switch, {
                       get children() {
-                        return [createComponent(Match, {
+                        return createComponent(Match, {
                           get when() {
                             return selectedPage() === "PAGE_LISTINGS" /* LISTINGS */;
                           },
                           get children() {
                             return createComponent(PageListings, {});
                           }
-                        }), createComponent(Match, {
-                          get when() {
-                            return selectedPage() === "PAGE_ACCOUNT" /* ACCOUNT */;
-                          },
-                          get children() {
-                            return createComponent(PageAccount, {});
-                          }
-                        })];
+                        });
                       }
                     });
                   }
@@ -23719,8 +23590,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css8 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css8.transform !== "none" || css8.perspective !== "none" || (css8.containerType ? css8.containerType !== "normal" : false) || !webkit && (css8.backdropFilter ? css8.backdropFilter !== "none" : false) || !webkit && (css8.filter ? css8.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css8.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css8.contain || "").includes(value));
+    const css7 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css7.transform !== "none" || css7.perspective !== "none" || (css7.containerType ? css7.containerType !== "normal" : false) || !webkit && (css7.backdropFilter ? css7.backdropFilter !== "none" : false) || !webkit && (css7.filter ? css7.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css7.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css7.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -23802,9 +23673,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css8 = getComputedStyle2(element);
-    let width = parseFloat(css8.width) || 0;
-    let height = parseFloat(css8.height) || 0;
+    const css7 = getComputedStyle2(element);
+    let width = parseFloat(css7.width) || 0;
+    let height = parseFloat(css7.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -23898,9 +23769,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css8 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css8.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css8.paddingTop)) * iframeScale.y;
+        const css7 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css7.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css7.paddingTop)) * iframeScale.y;
         x3 *= iframeScale.x;
         y4 *= iframeScale.y;
         width *= iframeScale.x;
@@ -28949,12 +28820,12 @@
   // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QNHJ67FH.js
   SlRadioButton.define("sl-radio-button");
 
-  // src/ui/lib/shoelace-setup.ts
+  // src/solid-js/lib/shoelace-setup.ts
   setBasePath(
     "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/dist"
   );
 
-  // src/main.ts
+  // src/solid-js/index.ts
   customElement(
     "gul-info",
     {

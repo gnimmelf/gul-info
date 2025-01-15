@@ -45,7 +45,7 @@ const checkAssetPaths = (assetPaths) => {
 const startEsbuild = async () => {
     // Setup esbuild
     let ctx = await esbuild.context({
-        entryPoints: ['src/main.ts'],
+        entryPoints: ['src/solid-js/index.ts'],
         bundle: true,
         sourcemap: true,
         outfile: 'dist/app.js',
