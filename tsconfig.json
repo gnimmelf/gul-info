@@ -6,6 +6,7 @@
         "jsxImportSource": "solid-js", // SolidJS JSX transformation
         "moduleResolution": "Node", // Resolve modules like Node.js
         "strict": true, // Enable all strict type checks
+        "experimentalDecorators": true,
         "esModuleInterop": true, // Support CommonJS modules
         "skipLibCheck": true, // Skip type checks for libraries
         "allowSyntheticDefaultImports": true, // Default import for CommonJS
@@ -15,6 +16,6 @@
             "~/*": ["src/*"] // Alias for source files
         }
     },
-    "include": ["src"], // Include only the source directory
+    "include": ["src", "__snippets/db.ts"], // Include only the source directory
     "exclude": ["node_modules", "dist"] // Exclude built files and dependencies
 }

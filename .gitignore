@@ -1,19 +1,20 @@
 
-dist
+# Dev
 .solid
 .output
 .vercel
 .netlify
 .vinxi
+.dev-data
 app.config.timestamp_*.js
+.dev-certs
+.dev-data
+__snippets
+#dist
 
 # Environment
 .env
 .env*.local
-
-# Secrets
-.build-assets/server.cert
-.build-assets/server.key
 
 # dependencies
 /node_modules
