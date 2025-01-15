@@ -1,0 +1,4 @@
+export enum PAGES {
+  LISTINGS = 'PAGE_LISTINGS',
+  ACCOUNT = 'PAGE_ACCOUNT',
+}
