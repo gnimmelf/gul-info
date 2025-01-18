@@ -1,10 +1,5 @@
-/**
- * TODO! Pri#1 Make work reactively
- */
 import {
   Component,
-  createEffect,
-  createMemo,
   createSignal,
   Suspense,
 } from 'solid-js';
@@ -80,26 +75,26 @@ export const PageListings: Component = () => {
       </ListingsFilters>
 
       <Suspense fallback={<Loading>Listings</Loading>}>
-        {listings()?.map(({ title, description, links, tags, ...contact }) => (
+        {listings()?.map((listing) => (
           <sl-card class={css.card}>
             <div slot="header" class={css.cardHeader}>
-              <div class="title">{title}</div>
+              <div class="title">{listing.title}</div>
               <div class="flex-middle">
                 <IconLabel label="beskrivelse" icon="info-circle">
-                  {description}
+                  {listing.description}
                 </IconLabel>
               </div>
               <div>
-                <Phone phoneNumber={contact.phone} />
+                <Phone phoneNumber={listing.phone} />
               </div>
             </div>
             <div>
               <div class={css.cardBody}>
                 <div>
-                  <Address {...contact} />
+                  <Address {...listing} />
                 </div>
                 <div>
-                  {links.map((link) => (
+                  {listing.links.map((link) => (
                     <span>
                       <WebLink link={link} />
                       <br />
@@ -108,7 +103,7 @@ export const PageListings: Component = () => {
                 </div>
               </div>
               <div>
-                {tags.map((tag) => (
+                {listing.tags.map((tag) => (
                   <sl-tag
                     style={{ cursor: 'pointer' }}
                     prop:variant="primary"

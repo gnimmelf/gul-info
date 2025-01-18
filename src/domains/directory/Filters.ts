@@ -1,12 +1,16 @@
 import { z } from 'zod';
-import { ExposeDataAsSchemaProps } from '~/shared/models/ExposeDataAsSchemaProps';
-import { TagSchema, TagSchemaType } from './Tag';
 import { _State } from '~/shared/application/_State';
+
+export enum TagsMatchType {
+  ALL = 'ALL',
+  ANY = 'ANY',
+}
 
 export const FilterStateSchema = z.object({
   text: z.string().optional().default(''),
   tagKeys: z.array(z.string()).optional().default([]),
   indexLetter: z.string().optional().default(''),
+  tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL)
 });
 
 export type TFilterState = z.infer<typeof FilterStateSchema>;
@@ -27,8 +31,8 @@ export class Filters extends _State<TFilterState> {
   }
 
   setIndexLetter(value: string) {
-    const next = value != this.state().indexLetter ? value : '';
-    this.setState({ indexLetter: next });
+    const next = value.toLocaleLowerCase() != this.state().indexLetter ? value : '';
+    this.setState({ indexLetter: next.toLocaleLowerCase() });
   }
 
   setTag(tagKey: string, toggle = true) {
@@ -45,7 +49,7 @@ export class Filters extends _State<TFilterState> {
 
   isActiveIndexLetter(letter: string) {
     return (
-      this.state().indexLetter?.toLocaleLowerCase() ===
+      this.state().indexLetter ===
       letter.toLocaleLowerCase()
     );
   }

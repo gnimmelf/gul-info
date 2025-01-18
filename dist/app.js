@@ -11641,1255 +11641,6 @@
     return subject instanceof RecordId || subject instanceof StringRecordId ? Array.isArray(input) ? input[0] : input : Array.isArray(input) ? input : [input];
   }
 
-  // src/domains/database/infrastructure/SurrealDbAdapter.ts
-  var pop = (data, count = 1) => {
-    let tmp = data;
-    while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
-      tmp = tmp[0];
-      count--;
-    }
-    return tmp;
-  };
-  var SurrealDbAdapter = class {
-    config;
-    client = new Surreal();
-    constructor(config) {
-      const { namespace, database, url } = config;
-      this.config = {
-        namespace,
-        database,
-        url
-      };
-      Object.freeze(this.config);
-    }
-    async initialize() {
-      const { url, namespace, database } = this.config;
-      try {
-        await this.client.connect(url, {
-          namespace,
-          database
-        });
-      } catch (err) {
-        console.error(
-          "Failed to connect to SurrealDB:",
-          err instanceof Error ? err.message : String(err)
-        );
-        await this.client.close();
-        throw err;
-      }
-    }
-    async getListings(filters) {
-      let whereClause = "";
-      const conditions = [];
-      if (filters?.indexLetter) {
-        conditions.push(
-          `string::starts_with(string::lowercase(title), '${filters.indexLetter.toLocaleLowerCase()}')`
-        );
-      }
-      if (filters?.tagKeys?.length) {
-        const tagstr = filters.tagKeys.map((key) => key).join("', '");
-        conditions.push(`tags[WHERE key ALLINSIDE ['${tagstr}']]`);
-      }
-      if (conditions.length) {
-        whereClause = ` WHERE ${conditions.join(" AND ")}`;
-      }
-      const query = `SELECT *, tags.*.* FROM ${"listings" /* LISTINGS */}${whereClause};`;
-      console.log({ query });
-      const res = pop(await this.client.query(query));
-      return res;
-    }
-    async getIndexLetters() {
-      const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
-      const res = pop(await this.client.query(query));
-      return res;
-    }
-    async getTags() {
-      const query = `
-      SELECT *, count(
-        SELECT id
-        FROM listings
-        WHERE $parent.id INSIDE tags
-      ) as usageCount
-      FROM tags;
-    `;
-      const res = pop(await this.client.query(query));
-      return res;
-    }
-    async authenticate(token, failSilently) {
-      let res = false;
-      try {
-        res = await this.client.authenticate(token);
-      } catch (err) {
-        if (!failSilently) {
-          console.error(err.message);
-        }
-      }
-      return res;
-    }
-    async getUserData() {
-      const query = `SELECT * FROM ${"user" /* USER */};`;
-      const res = pop(await this.client.query(query), 2);
-      return res;
-    }
-  };
-
-  // src/domains/database/createDatabaseAdapter.ts
-  var createDatabaseAdapter = async (surrealConfig) => {
-    const instance = new SurrealDbAdapter(surrealConfig);
-    await instance.initialize();
-    return instance;
-  };
-
-  // src/shared/lib/utils.ts
-  var timeout = async (ms = 600, fn) => {
-    return new Promise(
-      (resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms)
-    );
-  };
-
-  // src/domains/configs/ConfigsService.ts
-  var ConfigsService = class {
-    configsUrl;
-    constructor(configsUrl) {
-      this.configsUrl = configsUrl;
-    }
-    async loadConfigs() {
-      console.log({ configsUrl: this.configsUrl });
-      await timeout();
-      return {
-        auth0: {
-          domain: "intergate.eu.auth0.com",
-          clientId: "d63m36lvjcGcQZoYjF06IIgczFdIHGqN",
-          authorizationParams: {
-            audience: "https://surrealdb.com/",
-            redirect_uri: window.location.origin
-          }
-        },
-        surreal: {
-          namespace: "intergate",
-          database: "gul-info",
-          url: "https://127.0.0.1:7999/rpc"
-        }
-      };
-    }
-  };
-
-  // src/solid-js/application/createConfigsServiceAdaper.ts
-  var createConfigsServiceAdaper = async (url) => {
-    const adapter = new ConfigsService(url);
-    const configs = await adapter.loadConfigs();
-    return configs;
-  };
-
-  // src/solid-js/ui/providers/CoreProvider.tsx
-  var SystemContext = createContext();
-  var CoreProvider = (props) => {
-    const [resolved, setResolved] = createSignal();
-    createEffect(async () => {
-      const configs = await createConfigsServiceAdaper("https://intergate.io/configs/gul-info-hurdal");
-      const db = await createDatabaseAdapter(configs.surreal);
-      setResolved({
-        configs: () => configs,
-        db: () => db
-      });
-    });
-    const [system] = createResource(() => resolved(), (resolved2) => resolved2);
-    return createComponent(Show, {
-      get when() {
-        return system();
-      },
-      get children() {
-        return createComponent(SystemContext.Provider, {
-          get value() {
-            return system();
-          },
-          get children() {
-            return props.children;
-          }
-        });
-      }
-    });
-  };
-  var useSystem = () => {
-    const context = useContext(SystemContext);
-    if (!context) {
-      throw new Error("useSystem must be used within an CoreProvider");
-    }
-    return context;
-  };
-
-  // node_modules/.pnpm/@auth0+auth0-spa-js@2.1.3/node_modules/@auth0/auth0-spa-js/dist/auth0-spa-js.production.esm.js
-  function e(e13, t7) {
-    var i9 = {};
-    for (var o11 in e13) Object.prototype.hasOwnProperty.call(e13, o11) && t7.indexOf(o11) < 0 && (i9[o11] = e13[o11]);
-    if (null != e13 && "function" == typeof Object.getOwnPropertySymbols) {
-      var n9 = 0;
-      for (o11 = Object.getOwnPropertySymbols(e13); n9 < o11.length; n9++) t7.indexOf(o11[n9]) < 0 && Object.prototype.propertyIsEnumerable.call(e13, o11[n9]) && (i9[o11[n9]] = e13[o11[n9]]);
-    }
-    return i9;
-  }
-  var t = "undefined" != typeof globalThis ? globalThis : "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : {};
-  function i(e13) {
-    return e13 && e13.__esModule && Object.prototype.hasOwnProperty.call(e13, "default") ? e13.default : e13;
-  }
-  function o(e13, t7) {
-    return e13(t7 = { exports: {} }, t7.exports), t7.exports;
-  }
-  var n = o(function(e13, t7) {
-    Object.defineProperty(t7, "__esModule", { value: true });
-    var i9 = function() {
-      function e14() {
-        var e15 = this;
-        this.locked = /* @__PURE__ */ new Map(), this.addToLocked = function(t8, i10) {
-          var o11 = e15.locked.get(t8);
-          void 0 === o11 ? void 0 === i10 ? e15.locked.set(t8, []) : e15.locked.set(t8, [i10]) : void 0 !== i10 && (o11.unshift(i10), e15.locked.set(t8, o11));
-        }, this.isLocked = function(t8) {
-          return e15.locked.has(t8);
-        }, this.lock = function(t8) {
-          return new Promise(function(i10, o11) {
-            e15.isLocked(t8) ? e15.addToLocked(t8, i10) : (e15.addToLocked(t8), i10());
-          });
-        }, this.unlock = function(t8) {
-          var i10 = e15.locked.get(t8);
-          if (void 0 !== i10 && 0 !== i10.length) {
-            var o11 = i10.pop();
-            e15.locked.set(t8, i10), void 0 !== o11 && setTimeout(o11, 0);
-          } else e15.locked.delete(t8);
-        };
-      }
-      return e14.getInstance = function() {
-        return void 0 === e14.instance && (e14.instance = new e14()), e14.instance;
-      }, e14;
-    }();
-    t7.default = function() {
-      return i9.getInstance();
-    };
-  });
-  i(n);
-  var a = i(o(function(e13, i9) {
-    var o11 = t && t.__awaiter || function(e14, t7, i10, o12) {
-      return new (i10 || (i10 = Promise))(function(n9, a6) {
-        function r11(e15) {
-          try {
-            c8(o12.next(e15));
-          } catch (e16) {
-            a6(e16);
-          }
-        }
-        function s6(e15) {
-          try {
-            c8(o12.throw(e15));
-          } catch (e16) {
-            a6(e16);
-          }
-        }
-        function c8(e15) {
-          e15.done ? n9(e15.value) : new i10(function(t8) {
-            t8(e15.value);
-          }).then(r11, s6);
-        }
-        c8((o12 = o12.apply(e14, t7 || [])).next());
-      });
-    }, a5 = t && t.__generator || function(e14, t7) {
-      var i10, o12, n9, a6, r11 = { label: 0, sent: function() {
-        if (1 & n9[0]) throw n9[1];
-        return n9[1];
-      }, trys: [], ops: [] };
-      return a6 = { next: s6(0), throw: s6(1), return: s6(2) }, "function" == typeof Symbol && (a6[Symbol.iterator] = function() {
-        return this;
-      }), a6;
-      function s6(a7) {
-        return function(s7) {
-          return function(a8) {
-            if (i10) throw new TypeError("Generator is already executing.");
-            for (; r11; ) try {
-              if (i10 = 1, o12 && (n9 = 2 & a8[0] ? o12.return : a8[0] ? o12.throw || ((n9 = o12.return) && n9.call(o12), 0) : o12.next) && !(n9 = n9.call(o12, a8[1])).done) return n9;
-              switch (o12 = 0, n9 && (a8 = [2 & a8[0], n9.value]), a8[0]) {
-                case 0:
-                case 1:
-                  n9 = a8;
-                  break;
-                case 4:
-                  return r11.label++, { value: a8[1], done: false };
-                case 5:
-                  r11.label++, o12 = a8[1], a8 = [0];
-                  continue;
-                case 7:
-                  a8 = r11.ops.pop(), r11.trys.pop();
-                  continue;
-                default:
-                  if (!(n9 = r11.trys, (n9 = n9.length > 0 && n9[n9.length - 1]) || 6 !== a8[0] && 2 !== a8[0])) {
-                    r11 = 0;
-                    continue;
-                  }
-                  if (3 === a8[0] && (!n9 || a8[1] > n9[0] && a8[1] < n9[3])) {
-                    r11.label = a8[1];
-                    break;
-                  }
-                  if (6 === a8[0] && r11.label < n9[1]) {
-                    r11.label = n9[1], n9 = a8;
-                    break;
-                  }
-                  if (n9 && r11.label < n9[2]) {
-                    r11.label = n9[2], r11.ops.push(a8);
-                    break;
-                  }
-                  n9[2] && r11.ops.pop(), r11.trys.pop();
-                  continue;
-              }
-              a8 = t7.call(e14, r11);
-            } catch (e15) {
-              a8 = [6, e15], o12 = 0;
-            } finally {
-              i10 = n9 = 0;
-            }
-            if (5 & a8[0]) throw a8[1];
-            return { value: a8[0] ? a8[1] : void 0, done: true };
-          }([a7, s7]);
-        };
-      }
-    }, r10 = t;
-    Object.defineProperty(i9, "__esModule", { value: true });
-    var s5 = "browser-tabs-lock-key", c7 = { key: function(e14) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, getItem: function(e14) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, clear: function() {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e14) {
-          return [2, window.localStorage.clear()];
-        });
-      });
-    }, removeItem: function(e14) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, setItem: function(e14, t7) {
-      return o11(r10, void 0, void 0, function() {
-        return a5(this, function(e15) {
-          throw new Error("Unsupported");
-        });
-      });
-    }, keySync: function(e14) {
-      return window.localStorage.key(e14);
-    }, getItemSync: function(e14) {
-      return window.localStorage.getItem(e14);
-    }, clearSync: function() {
-      return window.localStorage.clear();
-    }, removeItemSync: function(e14) {
-      return window.localStorage.removeItem(e14);
-    }, setItemSync: function(e14, t7) {
-      return window.localStorage.setItem(e14, t7);
-    } };
-    function d4(e14) {
-      return new Promise(function(t7) {
-        return setTimeout(t7, e14);
-      });
-    }
-    function u6(e14) {
-      for (var t7 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz", i10 = "", o12 = 0; o12 < e14; o12++) {
-        i10 += t7[Math.floor(Math.random() * t7.length)];
-      }
-      return i10;
-    }
-    var l6 = function() {
-      function e14(t7) {
-        this.acquiredIatSet = /* @__PURE__ */ new Set(), this.storageHandler = void 0, this.id = Date.now().toString() + u6(15), this.acquireLock = this.acquireLock.bind(this), this.releaseLock = this.releaseLock.bind(this), this.releaseLock__private__ = this.releaseLock__private__.bind(this), this.waitForSomethingToChange = this.waitForSomethingToChange.bind(this), this.refreshLockWhileAcquired = this.refreshLockWhileAcquired.bind(this), this.storageHandler = t7, void 0 === e14.waiters && (e14.waiters = []);
-      }
-      return e14.prototype.acquireLock = function(t7, i10) {
-        return void 0 === i10 && (i10 = 5e3), o11(this, void 0, void 0, function() {
-          var o12, n9, r11, l7, h6, p4, m4;
-          return a5(this, function(a6) {
-            switch (a6.label) {
-              case 0:
-                o12 = Date.now() + u6(4), n9 = Date.now() + i10, r11 = s5 + "-" + t7, l7 = void 0 === this.storageHandler ? c7 : this.storageHandler, a6.label = 1;
-              case 1:
-                return Date.now() < n9 ? [4, d4(30)] : [3, 8];
-              case 2:
-                return a6.sent(), null !== l7.getItemSync(r11) ? [3, 5] : (h6 = this.id + "-" + t7 + "-" + o12, [4, d4(Math.floor(25 * Math.random()))]);
-              case 3:
-                return a6.sent(), l7.setItemSync(r11, JSON.stringify({ id: this.id, iat: o12, timeoutKey: h6, timeAcquired: Date.now(), timeRefreshed: Date.now() })), [4, d4(30)];
-              case 4:
-                return a6.sent(), null !== (p4 = l7.getItemSync(r11)) && (m4 = JSON.parse(p4)).id === this.id && m4.iat === o12 ? (this.acquiredIatSet.add(o12), this.refreshLockWhileAcquired(r11, o12), [2, true]) : [3, 7];
-              case 5:
-                return e14.lockCorrector(void 0 === this.storageHandler ? c7 : this.storageHandler), [4, this.waitForSomethingToChange(n9)];
-              case 6:
-                a6.sent(), a6.label = 7;
-              case 7:
-                return o12 = Date.now() + u6(4), [3, 1];
-              case 8:
-                return [2, false];
-            }
-          });
-        });
-      }, e14.prototype.refreshLockWhileAcquired = function(e15, t7) {
-        return o11(this, void 0, void 0, function() {
-          var i10 = this;
-          return a5(this, function(r11) {
-            return setTimeout(function() {
-              return o11(i10, void 0, void 0, function() {
-                var i11, o12, r12;
-                return a5(this, function(a6) {
-                  switch (a6.label) {
-                    case 0:
-                      return [4, n.default().lock(t7)];
-                    case 1:
-                      return a6.sent(), this.acquiredIatSet.has(t7) ? (i11 = void 0 === this.storageHandler ? c7 : this.storageHandler, null === (o12 = i11.getItemSync(e15)) ? (n.default().unlock(t7), [2]) : ((r12 = JSON.parse(o12)).timeRefreshed = Date.now(), i11.setItemSync(e15, JSON.stringify(r12)), n.default().unlock(t7), this.refreshLockWhileAcquired(e15, t7), [2])) : (n.default().unlock(t7), [2]);
-                  }
-                });
-              });
-            }, 1e3), [2];
-          });
-        });
-      }, e14.prototype.waitForSomethingToChange = function(t7) {
-        return o11(this, void 0, void 0, function() {
-          return a5(this, function(i10) {
-            switch (i10.label) {
-              case 0:
-                return [4, new Promise(function(i11) {
-                  var o12 = false, n9 = Date.now(), a6 = false;
-                  function r11() {
-                    if (a6 || (window.removeEventListener("storage", r11), e14.removeFromWaiting(r11), clearTimeout(s6), a6 = true), !o12) {
-                      o12 = true;
-                      var t8 = 50 - (Date.now() - n9);
-                      t8 > 0 ? setTimeout(i11, t8) : i11(null);
-                    }
-                  }
-                  window.addEventListener("storage", r11), e14.addToWaiting(r11);
-                  var s6 = setTimeout(r11, Math.max(0, t7 - Date.now()));
-                })];
-              case 1:
-                return i10.sent(), [2];
-            }
-          });
-        });
-      }, e14.addToWaiting = function(t7) {
-        this.removeFromWaiting(t7), void 0 !== e14.waiters && e14.waiters.push(t7);
-      }, e14.removeFromWaiting = function(t7) {
-        void 0 !== e14.waiters && (e14.waiters = e14.waiters.filter(function(e15) {
-          return e15 !== t7;
-        }));
-      }, e14.notifyWaiters = function() {
-        void 0 !== e14.waiters && e14.waiters.slice().forEach(function(e15) {
-          return e15();
-        });
-      }, e14.prototype.releaseLock = function(e15) {
-        return o11(this, void 0, void 0, function() {
-          return a5(this, function(t7) {
-            switch (t7.label) {
-              case 0:
-                return [4, this.releaseLock__private__(e15)];
-              case 1:
-                return [2, t7.sent()];
-            }
-          });
-        });
-      }, e14.prototype.releaseLock__private__ = function(t7) {
-        return o11(this, void 0, void 0, function() {
-          var i10, o12, r11, d5;
-          return a5(this, function(a6) {
-            switch (a6.label) {
-              case 0:
-                return i10 = void 0 === this.storageHandler ? c7 : this.storageHandler, o12 = s5 + "-" + t7, null === (r11 = i10.getItemSync(o12)) ? [2] : (d5 = JSON.parse(r11)).id !== this.id ? [3, 2] : [4, n.default().lock(d5.iat)];
-              case 1:
-                a6.sent(), this.acquiredIatSet.delete(d5.iat), i10.removeItemSync(o12), n.default().unlock(d5.iat), e14.notifyWaiters(), a6.label = 2;
-              case 2:
-                return [2];
-            }
-          });
-        });
-      }, e14.lockCorrector = function(t7) {
-        for (var i10 = Date.now() - 5e3, o12 = t7, n9 = [], a6 = 0; ; ) {
-          var r11 = o12.keySync(a6);
-          if (null === r11) break;
-          n9.push(r11), a6++;
-        }
-        for (var c8 = false, d5 = 0; d5 < n9.length; d5++) {
-          var u7 = n9[d5];
-          if (u7.includes(s5)) {
-            var l7 = o12.getItemSync(u7);
-            if (null !== l7) {
-              var h6 = JSON.parse(l7);
-              (void 0 === h6.timeRefreshed && h6.timeAcquired < i10 || void 0 !== h6.timeRefreshed && h6.timeRefreshed < i10) && (o12.removeItemSync(u7), c8 = true);
-            }
-          }
-        }
-        c8 && e14.notifyWaiters();
-      }, e14.waiters = void 0, e14;
-    }();
-    i9.default = l6;
-  }));
-  var r = { timeoutInSeconds: 60 };
-  var s = { name: "auth0-spa-js", version: "2.1.3" };
-  var c = () => Date.now();
-  var d = class _d extends Error {
-    constructor(e13, t7) {
-      super(t7), this.error = e13, this.error_description = t7, Object.setPrototypeOf(this, _d.prototype);
-    }
-    static fromPayload({ error: e13, error_description: t7 }) {
-      return new _d(e13, t7);
-    }
-  };
-  var u = class _u extends d {
-    constructor(e13, t7, i9, o11 = null) {
-      super(e13, t7), this.state = i9, this.appState = o11, Object.setPrototypeOf(this, _u.prototype);
-    }
-  };
-  var l = class _l extends d {
-    constructor() {
-      super("timeout", "Timeout"), Object.setPrototypeOf(this, _l.prototype);
-    }
-  };
-  var h = class _h extends l {
-    constructor(e13) {
-      super(), this.popup = e13, Object.setPrototypeOf(this, _h.prototype);
-    }
-  };
-  var p = class _p extends d {
-    constructor(e13) {
-      super("cancelled", "Popup closed"), this.popup = e13, Object.setPrototypeOf(this, _p.prototype);
-    }
-  };
-  var m = class _m extends d {
-    constructor(e13, t7, i9) {
-      super(e13, t7), this.mfa_token = i9, Object.setPrototypeOf(this, _m.prototype);
-    }
-  };
-  var f2 = class _f extends d {
-    constructor(e13, t7) {
-      super("missing_refresh_token", `Missing Refresh Token (audience: '${g(e13, ["default"])}', scope: '${g(t7)}')`), this.audience = e13, this.scope = t7, Object.setPrototypeOf(this, _f.prototype);
-    }
-  };
-  function g(e13, t7 = []) {
-    return e13 && !t7.includes(e13) ? e13 : "";
-  }
-  var w = () => window.crypto;
-  var y = () => {
-    const e13 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.";
-    let t7 = "";
-    return Array.from(w().getRandomValues(new Uint8Array(43))).forEach((i9) => t7 += e13[i9 % e13.length]), t7;
-  };
-  var k = (e13) => btoa(e13);
-  var v = (t7) => {
-    var { clientId: i9 } = t7, o11 = e(t7, ["clientId"]);
-    return new URLSearchParams(((e13) => Object.keys(e13).filter((t8) => void 0 !== e13[t8]).reduce((t8, i10) => Object.assign(Object.assign({}, t8), { [i10]: e13[i10] }), {}))(Object.assign({ client_id: i9 }, o11))).toString();
-  };
-  var b = (e13) => ((e14) => decodeURIComponent(atob(e14).split("").map((e15) => "%" + ("00" + e15.charCodeAt(0).toString(16)).slice(-2)).join("")))(e13.replace(/_/g, "/").replace(/-/g, "+"));
-  var _ = async (e13, t7) => {
-    const i9 = await fetch(e13, t7);
-    return { ok: i9.ok, json: await i9.json() };
-  };
-  var I = async (e13, t7, i9) => {
-    const o11 = new AbortController();
-    let n9;
-    return t7.signal = o11.signal, Promise.race([_(e13, t7), new Promise((e14, t8) => {
-      n9 = setTimeout(() => {
-        o11.abort(), t8(new Error("Timeout when executing 'fetch'"));
-      }, i9);
-    })]).finally(() => {
-      clearTimeout(n9);
-    });
-  };
-  var S = async (e13, t7, i9, o11, n9, a5, r10) => {
-    return s5 = { auth: { audience: t7, scope: i9 }, timeout: n9, fetchUrl: e13, fetchOptions: o11, useFormData: r10 }, c7 = a5, new Promise(function(e14, t8) {
-      const i10 = new MessageChannel();
-      i10.port1.onmessage = function(o12) {
-        o12.data.error ? t8(new Error(o12.data.error)) : e14(o12.data), i10.port1.close();
-      }, c7.postMessage(s5, [i10.port2]);
-    });
-    var s5, c7;
-  };
-  var O = async (e13, t7, i9, o11, n9, a5, r10 = 1e4) => n9 ? S(e13, t7, i9, o11, r10, n9, a5) : I(e13, o11, r10);
-  async function T(t7, i9) {
-    var { baseUrl: o11, timeout: n9, audience: a5, scope: r10, auth0Client: c7, useFormData: u6 } = t7, l6 = e(t7, ["baseUrl", "timeout", "audience", "scope", "auth0Client", "useFormData"]);
-    const h6 = u6 ? v(l6) : JSON.stringify(l6);
-    return await async function(t8, i10, o12, n10, a6, r11, s5) {
-      let c8, u7 = null;
-      for (let e13 = 0; e13 < 3; e13++) try {
-        c8 = await O(t8, o12, n10, a6, r11, s5, i10), u7 = null;
-        break;
-      } catch (e14) {
-        u7 = e14;
-      }
-      if (u7) throw u7;
-      const l7 = c8.json, { error: h7, error_description: p4 } = l7, g3 = e(l7, ["error", "error_description"]), { ok: w3 } = c8;
-      if (!w3) {
-        const e13 = p4 || `HTTP error. Unable to fetch ${t8}`;
-        if ("mfa_required" === h7) throw new m(h7, e13, g3.mfa_token);
-        if ("missing_refresh_token" === h7) throw new f2(o12, n10);
-        throw new d(h7 || "request_error", e13);
-      }
-      return g3;
-    }(`${o11}/oauth/token`, n9, a5 || "default", r10, { method: "POST", body: h6, headers: { "Content-Type": u6 ? "application/x-www-form-urlencoded" : "application/json", "Auth0-Client": btoa(JSON.stringify(c7 || s)) } }, i9, u6);
-  }
-  var j = (...e13) => {
-    return (t7 = e13.filter(Boolean).join(" ").trim().split(/\s+/), Array.from(new Set(t7))).join(" ");
-    var t7;
-  };
-  var C = class _C {
-    constructor(e13, t7 = "@@auth0spajs@@", i9) {
-      this.prefix = t7, this.suffix = i9, this.clientId = e13.clientId, this.scope = e13.scope, this.audience = e13.audience;
-    }
-    toKey() {
-      return [this.prefix, this.clientId, this.audience, this.scope, this.suffix].filter(Boolean).join("::");
-    }
-    static fromKey(e13) {
-      const [t7, i9, o11, n9] = e13.split("::");
-      return new _C({ clientId: i9, scope: n9, audience: o11 }, t7);
-    }
-    static fromCacheEntry(e13) {
-      const { scope: t7, audience: i9, client_id: o11 } = e13;
-      return new _C({ scope: t7, audience: i9, clientId: o11 });
-    }
-  };
-  var z = class {
-    set(e13, t7) {
-      localStorage.setItem(e13, JSON.stringify(t7));
-    }
-    get(e13) {
-      const t7 = window.localStorage.getItem(e13);
-      if (t7) try {
-        return JSON.parse(t7);
-      } catch (e14) {
-        return;
-      }
-    }
-    remove(e13) {
-      localStorage.removeItem(e13);
-    }
-    allKeys() {
-      return Object.keys(window.localStorage).filter((e13) => e13.startsWith("@@auth0spajs@@"));
-    }
-  };
-  var P = class {
-    constructor() {
-      this.enclosedCache = /* @__PURE__ */ function() {
-        let e13 = {};
-        return { set(t7, i9) {
-          e13[t7] = i9;
-        }, get(t7) {
-          const i9 = e13[t7];
-          if (i9) return i9;
-        }, remove(t7) {
-          delete e13[t7];
-        }, allKeys: () => Object.keys(e13) };
-      }();
-    }
-  };
-  var x = class {
-    constructor(e13, t7, i9) {
-      this.cache = e13, this.keyManifest = t7, this.nowProvider = i9 || c;
-    }
-    async setIdToken(e13, t7, i9) {
-      var o11;
-      const n9 = this.getIdTokenCacheKey(e13);
-      await this.cache.set(n9, { id_token: t7, decodedToken: i9 }), await (null === (o11 = this.keyManifest) || void 0 === o11 ? void 0 : o11.add(n9));
-    }
-    async getIdToken(e13) {
-      const t7 = await this.cache.get(this.getIdTokenCacheKey(e13.clientId));
-      if (!t7 && e13.scope && e13.audience) {
-        const t8 = await this.get(e13);
-        if (!t8) return;
-        if (!t8.id_token || !t8.decodedToken) return;
-        return { id_token: t8.id_token, decodedToken: t8.decodedToken };
-      }
-      if (t7) return { id_token: t7.id_token, decodedToken: t7.decodedToken };
-    }
-    async get(e13, t7 = 0) {
-      var i9;
-      let o11 = await this.cache.get(e13.toKey());
-      if (!o11) {
-        const t8 = await this.getCacheKeys();
-        if (!t8) return;
-        const i10 = this.matchExistingCacheKey(e13, t8);
-        i10 && (o11 = await this.cache.get(i10));
-      }
-      if (!o11) return;
-      const n9 = await this.nowProvider(), a5 = Math.floor(n9 / 1e3);
-      return o11.expiresAt - t7 < a5 ? o11.body.refresh_token ? (o11.body = { refresh_token: o11.body.refresh_token }, await this.cache.set(e13.toKey(), o11), o11.body) : (await this.cache.remove(e13.toKey()), void await (null === (i9 = this.keyManifest) || void 0 === i9 ? void 0 : i9.remove(e13.toKey()))) : o11.body;
-    }
-    async set(e13) {
-      var t7;
-      const i9 = new C({ clientId: e13.client_id, scope: e13.scope, audience: e13.audience }), o11 = await this.wrapCacheEntry(e13);
-      await this.cache.set(i9.toKey(), o11), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.add(i9.toKey()));
-    }
-    async clear(e13) {
-      var t7;
-      const i9 = await this.getCacheKeys();
-      i9 && (await i9.filter((t8) => !e13 || t8.includes(e13)).reduce(async (e14, t8) => {
-        await e14, await this.cache.remove(t8);
-      }, Promise.resolve()), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.clear()));
-    }
-    async wrapCacheEntry(e13) {
-      const t7 = await this.nowProvider();
-      return { body: e13, expiresAt: Math.floor(t7 / 1e3) + e13.expires_in };
-    }
-    async getCacheKeys() {
-      var e13;
-      return this.keyManifest ? null === (e13 = await this.keyManifest.get()) || void 0 === e13 ? void 0 : e13.keys : this.cache.allKeys ? this.cache.allKeys() : void 0;
-    }
-    getIdTokenCacheKey(e13) {
-      return new C({ clientId: e13 }, "@@auth0spajs@@", "@@user@@").toKey();
-    }
-    matchExistingCacheKey(e13, t7) {
-      return t7.filter((t8) => {
-        var i9;
-        const o11 = C.fromKey(t8), n9 = new Set(o11.scope && o11.scope.split(" ")), a5 = (null === (i9 = e13.scope) || void 0 === i9 ? void 0 : i9.split(" ")) || [], r10 = o11.scope && a5.reduce((e14, t9) => e14 && n9.has(t9), true);
-        return "@@auth0spajs@@" === o11.prefix && o11.clientId === e13.clientId && o11.audience === e13.audience && r10;
-      })[0];
-    }
-  };
-  var Z = class {
-    constructor(e13, t7, i9) {
-      this.storage = e13, this.clientId = t7, this.cookieDomain = i9, this.storageKey = `a0.spajs.txs.${this.clientId}`;
-    }
-    create(e13) {
-      this.storage.save(this.storageKey, e13, { daysUntilExpire: 1, cookieDomain: this.cookieDomain });
-    }
-    get() {
-      return this.storage.get(this.storageKey);
-    }
-    remove() {
-      this.storage.remove(this.storageKey, { cookieDomain: this.cookieDomain });
-    }
-  };
-  var K = (e13) => "number" == typeof e13;
-  var W = ["iss", "aud", "exp", "nbf", "iat", "jti", "azp", "nonce", "auth_time", "at_hash", "c_hash", "acr", "amr", "sub_jwk", "cnf", "sip_from_tag", "sip_date", "sip_callid", "sip_cseq_num", "sip_via_branch", "orig", "dest", "mky", "events", "toe", "txn", "rph", "sid", "vot", "vtm"];
-  var E = (e13) => {
-    if (!e13.id_token) throw new Error("ID token is required but missing");
-    const t7 = ((e14) => {
-      const t8 = e14.split("."), [i10, o12, n10] = t8;
-      if (3 !== t8.length || !i10 || !o12 || !n10) throw new Error("ID token could not be decoded");
-      const a5 = JSON.parse(b(o12)), r10 = { __raw: e14 }, s5 = {};
-      return Object.keys(a5).forEach((e15) => {
-        r10[e15] = a5[e15], W.includes(e15) || (s5[e15] = a5[e15]);
-      }), { encoded: { header: i10, payload: o12, signature: n10 }, header: JSON.parse(b(i10)), claims: r10, user: s5 };
-    })(e13.id_token);
-    if (!t7.claims.iss) throw new Error("Issuer (iss) claim must be a string present in the ID token");
-    if (t7.claims.iss !== e13.iss) throw new Error(`Issuer (iss) claim mismatch in the ID token; expected "${e13.iss}", found "${t7.claims.iss}"`);
-    if (!t7.user.sub) throw new Error("Subject (sub) claim must be a string present in the ID token");
-    if ("RS256" !== t7.header.alg) throw new Error(`Signature algorithm of "${t7.header.alg}" is not supported. Expected the ID token to be signed with "RS256".`);
-    if (!t7.claims.aud || "string" != typeof t7.claims.aud && !Array.isArray(t7.claims.aud)) throw new Error("Audience (aud) claim must be a string or array of strings present in the ID token");
-    if (Array.isArray(t7.claims.aud)) {
-      if (!t7.claims.aud.includes(e13.aud)) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but was not one of "${t7.claims.aud.join(", ")}"`);
-      if (t7.claims.aud.length > 1) {
-        if (!t7.claims.azp) throw new Error("Authorized Party (azp) claim must be a string present in the ID token when Audience (aud) claim has multiple values");
-        if (t7.claims.azp !== e13.aud) throw new Error(`Authorized Party (azp) claim mismatch in the ID token; expected "${e13.aud}", found "${t7.claims.azp}"`);
-      }
-    } else if (t7.claims.aud !== e13.aud) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but found "${t7.claims.aud}"`);
-    if (e13.nonce) {
-      if (!t7.claims.nonce) throw new Error("Nonce (nonce) claim must be a string present in the ID token");
-      if (t7.claims.nonce !== e13.nonce) throw new Error(`Nonce (nonce) claim mismatch in the ID token; expected "${e13.nonce}", found "${t7.claims.nonce}"`);
-    }
-    if (e13.max_age && !K(t7.claims.auth_time)) throw new Error("Authentication Time (auth_time) claim must be a number present in the ID token when Max Age (max_age) is specified");
-    if (null == t7.claims.exp || !K(t7.claims.exp)) throw new Error("Expiration Time (exp) claim must be a number present in the ID token");
-    if (!K(t7.claims.iat)) throw new Error("Issued At (iat) claim must be a number present in the ID token");
-    const i9 = e13.leeway || 60, o11 = new Date(e13.now || Date.now()), n9 = /* @__PURE__ */ new Date(0);
-    if (n9.setUTCSeconds(t7.claims.exp + i9), o11 > n9) throw new Error(`Expiration Time (exp) claim error in the ID token; current time (${o11}) is after expiration time (${n9})`);
-    if (null != t7.claims.nbf && K(t7.claims.nbf)) {
-      const e14 = /* @__PURE__ */ new Date(0);
-      if (e14.setUTCSeconds(t7.claims.nbf - i9), o11 < e14) throw new Error(`Not Before time (nbf) claim in the ID token indicates that this token can't be used just yet. Current time (${o11}) is before ${e14}`);
-    }
-    if (null != t7.claims.auth_time && K(t7.claims.auth_time)) {
-      const n10 = /* @__PURE__ */ new Date(0);
-      if (n10.setUTCSeconds(parseInt(t7.claims.auth_time) + e13.max_age + i9), o11 > n10) throw new Error(`Authentication Time (auth_time) claim in the ID token indicates that too much time has passed since the last end-user authentication. Current time (${o11}) is after last auth at ${n10}`);
-    }
-    if (e13.organization) {
-      const i10 = e13.organization.trim();
-      if (i10.startsWith("org_")) {
-        const e14 = i10;
-        if (!t7.claims.org_id) throw new Error("Organization ID (org_id) claim must be a string present in the ID token");
-        if (e14 !== t7.claims.org_id) throw new Error(`Organization ID (org_id) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_id}"`);
-      } else {
-        const e14 = i10.toLowerCase();
-        if (!t7.claims.org_name) throw new Error("Organization Name (org_name) claim must be a string present in the ID token");
-        if (e14 !== t7.claims.org_name) throw new Error(`Organization Name (org_name) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_name}"`);
-      }
-    }
-    return t7;
-  };
-  var R = o(function(e13, i9) {
-    var o11 = t && t.__assign || function() {
-      return o11 = Object.assign || function(e14) {
-        for (var t7, i10 = 1, o12 = arguments.length; i10 < o12; i10++) for (var n10 in t7 = arguments[i10]) Object.prototype.hasOwnProperty.call(t7, n10) && (e14[n10] = t7[n10]);
-        return e14;
-      }, o11.apply(this, arguments);
-    };
-    function n9(e14, t7) {
-      if (!t7) return "";
-      var i10 = "; " + e14;
-      return true === t7 ? i10 : i10 + "=" + t7;
-    }
-    function a5(e14, t7, i10) {
-      return encodeURIComponent(e14).replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent).replace(/\(/g, "%28").replace(/\)/g, "%29") + "=" + encodeURIComponent(t7).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent) + function(e15) {
-        if ("number" == typeof e15.expires) {
-          var t8 = /* @__PURE__ */ new Date();
-          t8.setMilliseconds(t8.getMilliseconds() + 864e5 * e15.expires), e15.expires = t8;
-        }
-        return n9("Expires", e15.expires ? e15.expires.toUTCString() : "") + n9("Domain", e15.domain) + n9("Path", e15.path) + n9("Secure", e15.secure) + n9("SameSite", e15.sameSite);
-      }(i10);
-    }
-    function r10(e14) {
-      for (var t7 = {}, i10 = e14 ? e14.split("; ") : [], o12 = /(%[\dA-F]{2})+/gi, n10 = 0; n10 < i10.length; n10++) {
-        var a6 = i10[n10].split("="), r11 = a6.slice(1).join("=");
-        '"' === r11.charAt(0) && (r11 = r11.slice(1, -1));
-        try {
-          t7[a6[0].replace(o12, decodeURIComponent)] = r11.replace(o12, decodeURIComponent);
-        } catch (e15) {
-        }
-      }
-      return t7;
-    }
-    function s5() {
-      return r10(document.cookie);
-    }
-    function c7(e14, t7, i10) {
-      document.cookie = a5(e14, t7, o11({ path: "/" }, i10));
-    }
-    i9.__esModule = true, i9.encode = a5, i9.parse = r10, i9.getAll = s5, i9.get = function(e14) {
-      return s5()[e14];
-    }, i9.set = c7, i9.remove = function(e14, t7) {
-      c7(e14, "", o11(o11({}, t7), { expires: -1 }));
-    };
-  });
-  i(R), R.encode, R.parse, R.getAll;
-  var U = R.get;
-  var L = R.set;
-  var D = R.remove;
-  var X = { get(e13) {
-    const t7 = U(e13);
-    if (void 0 !== t7) return JSON.parse(t7);
-  }, save(e13, t7, i9) {
-    let o11 = {};
-    "https:" === window.location.protocol && (o11 = { secure: true, sameSite: "none" }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(e13, JSON.stringify(t7), o11);
-  }, remove(e13, t7) {
-    let i9 = {};
-    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9);
-  } };
-  var N = { get(e13) {
-    const t7 = X.get(e13);
-    return t7 || X.get(`_legacy_${e13}`);
-  }, save(e13, t7, i9) {
-    let o11 = {};
-    "https:" === window.location.protocol && (o11 = { secure: true }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(`_legacy_${e13}`, JSON.stringify(t7), o11), X.save(e13, t7, i9);
-  }, remove(e13, t7) {
-    let i9 = {};
-    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9), X.remove(e13, t7), X.remove(`_legacy_${e13}`, t7);
-  } };
-  var J = { get(e13) {
-    if ("undefined" == typeof sessionStorage) return;
-    const t7 = sessionStorage.getItem(e13);
-    return null != t7 ? JSON.parse(t7) : void 0;
-  }, save(e13, t7) {
-    sessionStorage.setItem(e13, JSON.stringify(t7));
-  }, remove(e13) {
-    sessionStorage.removeItem(e13);
-  } };
-  function F(e13, t7, i9) {
-    var o11 = void 0 === t7 ? null : t7, n9 = function(e14, t8) {
-      var i10 = atob(e14);
-      if (t8) {
-        for (var o12 = new Uint8Array(i10.length), n10 = 0, a6 = i10.length; n10 < a6; ++n10) o12[n10] = i10.charCodeAt(n10);
-        return String.fromCharCode.apply(null, new Uint16Array(o12.buffer));
-      }
-      return i10;
-    }(e13, void 0 !== i9 && i9), a5 = n9.indexOf("\n", 10) + 1, r10 = n9.substring(a5) + (o11 ? "//# sourceMappingURL=" + o11 : ""), s5 = new Blob([r10], { type: "application/javascript" });
-    return URL.createObjectURL(s5);
-  }
-  var H;
-  var Y;
-  var G;
-  var V;
-  var M = (H = "Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwohZnVuY3Rpb24oKXsidXNlIHN0cmljdCI7Y2xhc3MgZSBleHRlbmRzIEVycm9ye2NvbnN0cnVjdG9yKHQscil7c3VwZXIociksdGhpcy5lcnJvcj10LHRoaXMuZXJyb3JfZGVzY3JpcHRpb249cixPYmplY3Quc2V0UHJvdG90eXBlT2YodGhpcyxlLnByb3RvdHlwZSl9c3RhdGljIGZyb21QYXlsb2FkKHtlcnJvcjp0LGVycm9yX2Rlc2NyaXB0aW9uOnJ9KXtyZXR1cm4gbmV3IGUodCxyKX19Y2xhc3MgdCBleHRlbmRzIGV7Y29uc3RydWN0b3IoZSxzKXtzdXBlcigibWlzc2luZ19yZWZyZXNoX3Rva2VuIixgTWlzc2luZyBSZWZyZXNoIFRva2VuIChhdWRpZW5jZTogJyR7cihlLFsiZGVmYXVsdCJdKX0nLCBzY29wZTogJyR7cihzKX0nKWApLHRoaXMuYXVkaWVuY2U9ZSx0aGlzLnNjb3BlPXMsT2JqZWN0LnNldFByb3RvdHlwZU9mKHRoaXMsdC5wcm90b3R5cGUpfX1mdW5jdGlvbiByKGUsdD1bXSl7cmV0dXJuIGUmJiF0LmluY2x1ZGVzKGUpP2U6IiJ9ImZ1bmN0aW9uIj09dHlwZW9mIFN1cHByZXNzZWRFcnJvciYmU3VwcHJlc3NlZEVycm9yO2NvbnN0IHM9ZT0+e3ZhcntjbGllbnRJZDp0fT1lLHI9ZnVuY3Rpb24oZSx0KXt2YXIgcj17fTtmb3IodmFyIHMgaW4gZSlPYmplY3QucHJvdG90eXBlLmhhc093blByb3BlcnR5LmNhbGwoZSxzKSYmdC5pbmRleE9mKHMpPDAmJihyW3NdPWVbc10pO2lmKG51bGwhPWUmJiJmdW5jdGlvbiI9PXR5cGVvZiBPYmplY3QuZ2V0T3duUHJvcGVydHlTeW1ib2xzKXt2YXIgbz0wO2ZvcihzPU9iamVjdC5nZXRPd25Qcm9wZXJ0eVN5bWJvbHMoZSk7bzxzLmxlbmd0aDtvKyspdC5pbmRleE9mKHNbb10pPDAmJk9iamVjdC5wcm90b3R5cGUucHJvcGVydHlJc0VudW1lcmFibGUuY2FsbChlLHNbb10pJiYocltzW29dXT1lW3Nbb11dKX1yZXR1cm4gcn0oZSxbImNsaWVudElkIl0pO3JldHVybiBuZXcgVVJMU2VhcmNoUGFyYW1zKChlPT5PYmplY3Qua2V5cyhlKS5maWx0ZXIoKHQ9PnZvaWQgMCE9PWVbdF0pKS5yZWR1Y2UoKCh0LHIpPT5PYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30sdCkse1tyXTplW3JdfSkpLHt9KSkoT2JqZWN0LmFzc2lnbih7Y2xpZW50X2lkOnR9LHIpKSkudG9TdHJpbmcoKX07bGV0IG89e307Y29uc3Qgbj0oZSx0KT0+YCR7ZX18JHt0fWA7YWRkRXZlbnRMaXN0ZW5lcigibWVzc2FnZSIsKGFzeW5jKHtkYXRhOnt0aW1lb3V0OmUsYXV0aDpyLGZldGNoVXJsOmksZmV0Y2hPcHRpb25zOmMsdXNlRm9ybURhdGE6YX0scG9ydHM6W3BdfSk9PntsZXQgZjtjb25zdHthdWRpZW5jZTp1LHNjb3BlOmx9PXJ8fHt9O3RyeXtjb25zdCByPWE/KGU9Pntjb25zdCB0PW5ldyBVUkxTZWFyY2hQYXJhbXMoZSkscj17fTtyZXR1cm4gdC5mb3JFYWNoKCgoZSx0KT0+e3JbdF09ZX0pKSxyfSkoYy5ib2R5KTpKU09OLnBhcnNlKGMuYm9keSk7aWYoIXIucmVmcmVzaF90b2tlbiYmInJlZnJlc2hfdG9rZW4iPT09ci5ncmFudF90eXBlKXtjb25zdCBlPSgoZSx0KT0+b1tuKGUsdCldKSh1LGwpO2lmKCFlKXRocm93IG5ldyB0KHUsbCk7Yy5ib2R5PWE/cyhPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKTpKU09OLnN0cmluZ2lmeShPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKX1sZXQgaCxnOyJmdW5jdGlvbiI9PXR5cGVvZiBBYm9ydENvbnRyb2xsZXImJihoPW5ldyBBYm9ydENvbnRyb2xsZXIsYy5zaWduYWw9aC5zaWduYWwpO3RyeXtnPWF3YWl0IFByb21pc2UucmFjZShbKGQ9ZSxuZXcgUHJvbWlzZSgoZT0+c2V0VGltZW91dChlLGQpKSkpLGZldGNoKGksT2JqZWN0LmFzc2lnbih7fSxjKSldKX1jYXRjaChlKXtyZXR1cm4gdm9pZCBwLnBvc3RNZXNzYWdlKHtlcnJvcjplLm1lc3NhZ2V9KX1pZighZylyZXR1cm4gaCYmaC5hYm9ydCgpLHZvaWQgcC5wb3N0TWVzc2FnZSh7ZXJyb3I6IlRpbWVvdXQgd2hlbiBleGVjdXRpbmcgJ2ZldGNoJyJ9KTtmPWF3YWl0IGcuanNvbigpLGYucmVmcmVzaF90b2tlbj8oKChlLHQscik9PntvW24odCxyKV09ZX0pKGYucmVmcmVzaF90b2tlbix1LGwpLGRlbGV0ZSBmLnJlZnJlc2hfdG9rZW4pOigoZSx0KT0+e2RlbGV0ZSBvW24oZSx0KV19KSh1LGwpLHAucG9zdE1lc3NhZ2Uoe29rOmcub2ssanNvbjpmfSl9Y2F0Y2goZSl7cC5wb3N0TWVzc2FnZSh7b2s6ITEsanNvbjp7ZXJyb3I6ZS5lcnJvcixlcnJvcl9kZXNjcmlwdGlvbjplLm1lc3NhZ2V9fSl9dmFyIGR9KSl9KCk7Cgo=", Y = null, G = false, function(e13) {
-    return V = V || F(H, Y, G), new Worker(V, e13);
-  });
-  var A = {};
-  var B = class {
-    constructor(e13, t7) {
-      this.cache = e13, this.clientId = t7, this.manifestKey = this.createManifestKeyFrom(this.clientId);
-    }
-    async add(e13) {
-      var t7;
-      const i9 = new Set((null === (t7 = await this.cache.get(this.manifestKey)) || void 0 === t7 ? void 0 : t7.keys) || []);
-      i9.add(e13), await this.cache.set(this.manifestKey, { keys: [...i9] });
-    }
-    async remove(e13) {
-      const t7 = await this.cache.get(this.manifestKey);
-      if (t7) {
-        const i9 = new Set(t7.keys);
-        return i9.delete(e13), i9.size > 0 ? await this.cache.set(this.manifestKey, { keys: [...i9] }) : await this.cache.remove(this.manifestKey);
-      }
-    }
-    get() {
-      return this.cache.get(this.manifestKey);
-    }
-    clear() {
-      return this.cache.remove(this.manifestKey);
-    }
-    createManifestKeyFrom(e13) {
-      return `@@auth0spajs@@::${e13}`;
-    }
-  };
-  var $ = { memory: () => new P().enclosedCache, localstorage: () => new z() };
-  var q = (e13) => $[e13];
-  var Q = (t7) => {
-    const { openUrl: i9, onRedirect: o11 } = t7, n9 = e(t7, ["openUrl", "onRedirect"]);
-    return Object.assign(Object.assign({}, n9), { openUrl: false === i9 || i9 ? i9 : o11 });
-  };
-  var ee = new a();
-  var te = class {
-    constructor(e13) {
-      let t7, i9;
-      if (this.userCache = new P().enclosedCache, this.defaultOptions = { authorizationParams: { scope: "openid profile email" }, useRefreshTokensFallback: false, useFormData: true }, this._releaseLockOnPageHide = async () => {
-        await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
-      }, this.options = Object.assign(Object.assign(Object.assign({}, this.defaultOptions), e13), { authorizationParams: Object.assign(Object.assign({}, this.defaultOptions.authorizationParams), e13.authorizationParams) }), "undefined" != typeof window && (() => {
-        if (!w()) throw new Error("For security reasons, `window.crypto` is required to run `auth0-spa-js`.");
-        if (void 0 === w().subtle) throw new Error("\n      auth0-spa-js must run on a secure origin. See https://github.com/auth0/auth0-spa-js/blob/main/FAQ.md#why-do-i-get-auth0-spa-js-must-run-on-a-secure-origin for more information.\n    ");
-      })(), e13.cache && e13.cacheLocation && console.warn("Both `cache` and `cacheLocation` options have been specified in the Auth0Client configuration; ignoring `cacheLocation` and using `cache`."), e13.cache) i9 = e13.cache;
-      else {
-        if (t7 = e13.cacheLocation || "memory", !q(t7)) throw new Error(`Invalid cache location "${t7}"`);
-        i9 = q(t7)();
-      }
-      this.httpTimeoutMs = e13.httpTimeoutInSeconds ? 1e3 * e13.httpTimeoutInSeconds : 1e4, this.cookieStorage = false === e13.legacySameSiteCookie ? X : N, this.orgHintCookieName = `auth0.${this.options.clientId}.organization_hint`, this.isAuthenticatedCookieName = ((e14) => `auth0.${e14}.is.authenticated`)(this.options.clientId), this.sessionCheckExpiryDays = e13.sessionCheckExpiryDays || 1;
-      const o11 = e13.useCookiesForTransactions ? this.cookieStorage : J;
-      var n9;
-      this.scope = j("openid", this.options.authorizationParams.scope, this.options.useRefreshTokens ? "offline_access" : ""), this.transactionManager = new Z(o11, this.options.clientId, this.options.cookieDomain), this.nowProvider = this.options.nowProvider || c, this.cacheManager = new x(i9, i9.allKeys ? void 0 : new B(i9, this.options.clientId), this.nowProvider), this.domainUrl = (n9 = this.options.domain, /^https?:\/\//.test(n9) ? n9 : `https://${n9}`), this.tokenIssuer = ((e14, t8) => e14 ? e14.startsWith("https://") ? e14 : `https://${e14}/` : `${t8}/`)(this.options.issuer, this.domainUrl), "undefined" != typeof window && window.Worker && this.options.useRefreshTokens && "memory" === t7 && (this.options.workerUrl ? this.worker = new Worker(this.options.workerUrl) : this.worker = new M());
-    }
-    _url(e13) {
-      const t7 = encodeURIComponent(btoa(JSON.stringify(this.options.auth0Client || s)));
-      return `${this.domainUrl}${e13}&auth0Client=${t7}`;
-    }
-    _authorizeUrl(e13) {
-      return this._url(`/authorize?${v(e13)}`);
-    }
-    async _verifyIdToken(e13, t7, i9) {
-      const o11 = await this.nowProvider();
-      return E({ iss: this.tokenIssuer, aud: this.options.clientId, id_token: e13, nonce: t7, organization: i9, leeway: this.options.leeway, max_age: (n9 = this.options.authorizationParams.max_age, "string" != typeof n9 ? n9 : parseInt(n9, 10) || void 0), now: o11 });
-      var n9;
-    }
-    _processOrgHint(e13) {
-      e13 ? this.cookieStorage.save(this.orgHintCookieName, e13, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }) : this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain });
-    }
-    async _prepareAuthorizeUrl(e13, t7, i9) {
-      const o11 = k(y()), n9 = k(y()), a5 = y(), r10 = ((e14) => {
-        const t8 = new Uint8Array(e14);
-        return ((e15) => {
-          const t9 = { "+": "-", "/": "_", "=": "" };
-          return e15.replace(/[+/=]/g, (e16) => t9[e16]);
-        })(window.btoa(String.fromCharCode(...Array.from(t8))));
-      })(await (async (e14) => {
-        const t8 = w().subtle.digest({ name: "SHA-256" }, new TextEncoder().encode(e14));
-        return await t8;
-      })(a5)), s5 = ((e14, t8, i10, o12, n10, a6, r11, s6) => Object.assign(Object.assign(Object.assign({ client_id: e14.clientId }, e14.authorizationParams), i10), { scope: j(t8, i10.scope), response_type: "code", response_mode: s6 || "query", state: o12, nonce: n10, redirect_uri: r11 || e14.authorizationParams.redirect_uri, code_challenge: a6, code_challenge_method: "S256" }))(this.options, this.scope, e13, o11, n9, r10, e13.redirect_uri || this.options.authorizationParams.redirect_uri || i9, null == t7 ? void 0 : t7.response_mode), c7 = this._authorizeUrl(s5);
-      return { nonce: n9, code_verifier: a5, scope: s5.scope, audience: s5.audience || "default", redirect_uri: s5.redirect_uri, state: o11, url: c7 };
-    }
-    async loginWithPopup(e13, t7) {
-      var i9;
-      if (e13 = e13 || {}, !(t7 = t7 || {}).popup && (t7.popup = ((e14) => {
-        const t8 = window.screenX + (window.innerWidth - 400) / 2, i10 = window.screenY + (window.innerHeight - 600) / 2;
-        return window.open(e14, "auth0:authorize:popup", `left=${t8},top=${i10},width=400,height=600,resizable,scrollbars=yes,status=1`);
-      })(""), !t7.popup)) throw new Error("Unable to open a popup for loginWithPopup - window.open returned `null`");
-      const o11 = await this._prepareAuthorizeUrl(e13.authorizationParams || {}, { response_mode: "web_message" }, window.location.origin);
-      t7.popup.location.href = o11.url;
-      const n9 = await ((e14) => new Promise((t8, i10) => {
-        let o12;
-        const n10 = setInterval(() => {
-          e14.popup && e14.popup.closed && (clearInterval(n10), clearTimeout(a6), window.removeEventListener("message", o12, false), i10(new p(e14.popup)));
-        }, 1e3), a6 = setTimeout(() => {
-          clearInterval(n10), i10(new h(e14.popup)), window.removeEventListener("message", o12, false);
-        }, 1e3 * (e14.timeoutInSeconds || 60));
-        o12 = function(r10) {
-          if (r10.data && "authorization_response" === r10.data.type) {
-            if (clearTimeout(a6), clearInterval(n10), window.removeEventListener("message", o12, false), e14.popup.close(), r10.data.response.error) return i10(d.fromPayload(r10.data.response));
-            t8(r10.data.response);
-          }
-        }, window.addEventListener("message", o12);
-      }))(Object.assign(Object.assign({}, t7), { timeoutInSeconds: t7.timeoutInSeconds || this.options.authorizeTimeoutInSeconds || 60 }));
-      if (o11.state !== n9.state) throw new d("state_mismatch", "Invalid state");
-      const a5 = (null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization;
-      await this._requestToken({ audience: o11.audience, scope: o11.scope, code_verifier: o11.code_verifier, grant_type: "authorization_code", code: n9.code, redirect_uri: o11.redirect_uri }, { nonceIn: o11.nonce, organization: a5 });
-    }
-    async getUser() {
-      var e13;
-      const t7 = await this._getIdTokenFromCache();
-      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.user;
-    }
-    async getIdTokenClaims() {
-      var e13;
-      const t7 = await this._getIdTokenFromCache();
-      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.claims;
-    }
-    async loginWithRedirect(t7 = {}) {
-      var i9;
-      const o11 = Q(t7), { openUrl: n9, fragment: a5, appState: r10 } = o11, s5 = e(o11, ["openUrl", "fragment", "appState"]), c7 = (null === (i9 = s5.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization, d4 = await this._prepareAuthorizeUrl(s5.authorizationParams || {}), { url: u6 } = d4, l6 = e(d4, ["url"]);
-      this.transactionManager.create(Object.assign(Object.assign(Object.assign({}, l6), { appState: r10 }), c7 && { organization: c7 }));
-      const h6 = a5 ? `${u6}#${a5}` : u6;
-      n9 ? await n9(h6) : window.location.assign(h6);
-    }
-    async handleRedirectCallback(e13 = window.location.href) {
-      const t7 = e13.split("?").slice(1);
-      if (0 === t7.length) throw new Error("There are no query params available for parsing.");
-      const { state: i9, code: o11, error: n9, error_description: a5 } = ((e14) => {
-        e14.indexOf("#") > -1 && (e14 = e14.substring(0, e14.indexOf("#")));
-        const t8 = new URLSearchParams(e14);
-        return { state: t8.get("state"), code: t8.get("code") || void 0, error: t8.get("error") || void 0, error_description: t8.get("error_description") || void 0 };
-      })(t7.join("")), r10 = this.transactionManager.get();
-      if (!r10) throw new d("missing_transaction", "Invalid state");
-      if (this.transactionManager.remove(), n9) throw new u(n9, a5 || n9, i9, r10.appState);
-      if (!r10.code_verifier || r10.state && r10.state !== i9) throw new d("state_mismatch", "Invalid state");
-      const s5 = r10.organization, c7 = r10.nonce, l6 = r10.redirect_uri;
-      return await this._requestToken(Object.assign({ audience: r10.audience, scope: r10.scope, code_verifier: r10.code_verifier, grant_type: "authorization_code", code: o11 }, l6 ? { redirect_uri: l6 } : {}), { nonceIn: c7, organization: s5 }), { appState: r10.appState };
-    }
-    async checkSession(e13) {
-      if (!this.cookieStorage.get(this.isAuthenticatedCookieName)) {
-        if (!this.cookieStorage.get("auth0.is.authenticated")) return;
-        this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove("auth0.is.authenticated");
-      }
-      try {
-        await this.getTokenSilently(e13);
-      } catch (e14) {
-      }
-    }
-    async getTokenSilently(e13 = {}) {
-      var t7;
-      const i9 = Object.assign(Object.assign({ cacheMode: "on" }, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (t7 = e13.authorizationParams) || void 0 === t7 ? void 0 : t7.scope) }) }), o11 = await ((e14, t8) => {
-        let i10 = A[t8];
-        return i10 || (i10 = e14().finally(() => {
-          delete A[t8], i10 = null;
-        }), A[t8] = i10), i10;
-      })(() => this._getTokenSilently(i9), `${this.options.clientId}::${i9.authorizationParams.audience}::${i9.authorizationParams.scope}`);
-      return e13.detailedResponse ? o11 : null == o11 ? void 0 : o11.access_token;
-    }
-    async _getTokenSilently(t7) {
-      const { cacheMode: i9 } = t7, o11 = e(t7, ["cacheMode"]);
-      if ("off" !== i9) {
-        const e13 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
-        if (e13) return e13;
-      }
-      if ("cache-only" !== i9) {
-        if (!await (async (e13, t8 = 3) => {
-          for (let i10 = 0; i10 < t8; i10++) if (await e13()) return true;
-          return false;
-        })(() => ee.acquireLock("auth0.lock.getTokenSilently", 5e3), 10)) throw new l();
-        try {
-          if (window.addEventListener("pagehide", this._releaseLockOnPageHide), "off" !== i9) {
-            const e14 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
-            if (e14) return e14;
-          }
-          const e13 = this.options.useRefreshTokens ? await this._getTokenUsingRefreshToken(o11) : await this._getTokenFromIFrame(o11), { id_token: t8, access_token: n9, oauthTokenScope: a5, expires_in: r10 } = e13;
-          return Object.assign(Object.assign({ id_token: t8, access_token: n9 }, a5 ? { scope: a5 } : null), { expires_in: r10 });
-        } finally {
-          await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
-        }
-      }
-    }
-    async getTokenWithPopup(e13 = {}, t7 = {}) {
-      var i9;
-      const o11 = Object.assign(Object.assign({}, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.scope) }) });
-      t7 = Object.assign(Object.assign({}, r), t7), await this.loginWithPopup(o11, t7);
-      return (await this.cacheManager.get(new C({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId }))).access_token;
-    }
-    async isAuthenticated() {
-      return !!await this.getUser();
-    }
-    _buildLogoutUrl(t7) {
-      null !== t7.clientId ? t7.clientId = t7.clientId || this.options.clientId : delete t7.clientId;
-      const i9 = t7.logoutParams || {}, { federated: o11 } = i9, n9 = e(i9, ["federated"]), a5 = o11 ? "&federated" : "";
-      return this._url(`/v2/logout?${v(Object.assign({ clientId: t7.clientId }, n9))}`) + a5;
-    }
-    async logout(t7 = {}) {
-      const i9 = Q(t7), { openUrl: o11 } = i9, n9 = e(i9, ["openUrl"]);
-      null === t7.clientId ? await this.cacheManager.clear() : await this.cacheManager.clear(t7.clientId || this.options.clientId), this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove(this.isAuthenticatedCookieName, { cookieDomain: this.options.cookieDomain }), this.userCache.remove("@@user@@");
-      const a5 = this._buildLogoutUrl(n9);
-      o11 ? await o11(a5) : false !== o11 && window.location.assign(a5);
-    }
-    async _getTokenFromIFrame(e13) {
-      const t7 = Object.assign(Object.assign({}, e13.authorizationParams), { prompt: "none" }), i9 = this.cookieStorage.get(this.orgHintCookieName);
-      i9 && !t7.organization && (t7.organization = i9);
-      const { url: o11, state: n9, nonce: a5, code_verifier: r10, redirect_uri: s5, scope: c7, audience: u6 } = await this._prepareAuthorizeUrl(t7, { response_mode: "web_message" }, window.location.origin);
-      try {
-        if (window.crossOriginIsolated) throw new d("login_required", "The application is running in a Cross-Origin Isolated context, silently retrieving a token without refresh token is not possible.");
-        const i10 = e13.timeoutInSeconds || this.options.authorizeTimeoutInSeconds, h6 = await ((e14, t8, i11 = 60) => new Promise((o12, n10) => {
-          const a6 = window.document.createElement("iframe");
-          a6.setAttribute("width", "0"), a6.setAttribute("height", "0"), a6.style.display = "none";
-          const r11 = () => {
-            window.document.body.contains(a6) && (window.document.body.removeChild(a6), window.removeEventListener("message", s6, false));
-          };
-          let s6;
-          const c8 = setTimeout(() => {
-            n10(new l()), r11();
-          }, 1e3 * i11);
-          s6 = function(e15) {
-            if (e15.origin != t8) return;
-            if (!e15.data || "authorization_response" !== e15.data.type) return;
-            const i12 = e15.source;
-            i12 && i12.close(), e15.data.response.error ? n10(d.fromPayload(e15.data.response)) : o12(e15.data.response), clearTimeout(c8), window.removeEventListener("message", s6, false), setTimeout(r11, 2e3);
-          }, window.addEventListener("message", s6, false), window.document.body.appendChild(a6), a6.setAttribute("src", e14);
-        }))(o11, this.domainUrl, i10);
-        if (n9 !== h6.state) throw new d("state_mismatch", "Invalid state");
-        const p4 = await this._requestToken(Object.assign(Object.assign({}, e13.authorizationParams), { code_verifier: r10, code: h6.code, grant_type: "authorization_code", redirect_uri: s5, timeout: e13.authorizationParams.timeout || this.httpTimeoutMs }), { nonceIn: a5, organization: t7.organization });
-        return Object.assign(Object.assign({}, p4), { scope: c7, oauthTokenScope: p4.scope, audience: u6 });
-      } catch (e14) {
-        throw "login_required" === e14.error && this.logout({ openUrl: false }), e14;
-      }
-    }
-    async _getTokenUsingRefreshToken(e13) {
-      const t7 = await this.cacheManager.get(new C({ scope: e13.authorizationParams.scope, audience: e13.authorizationParams.audience || "default", clientId: this.options.clientId }));
-      if (!(t7 && t7.refresh_token || this.worker)) {
-        if (this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
-        throw new f2(e13.authorizationParams.audience || "default", e13.authorizationParams.scope);
-      }
-      const i9 = e13.authorizationParams.redirect_uri || this.options.authorizationParams.redirect_uri || window.location.origin, o11 = "number" == typeof e13.timeoutInSeconds ? 1e3 * e13.timeoutInSeconds : null;
-      try {
-        const n9 = await this._requestToken(Object.assign(Object.assign(Object.assign({}, e13.authorizationParams), { grant_type: "refresh_token", refresh_token: t7 && t7.refresh_token, redirect_uri: i9 }), o11 && { timeout: o11 }));
-        return Object.assign(Object.assign({}, n9), { scope: e13.authorizationParams.scope, oauthTokenScope: n9.scope, audience: e13.authorizationParams.audience || "default" });
-      } catch (t8) {
-        if ((t8.message.indexOf("Missing Refresh Token") > -1 || t8.message && t8.message.indexOf("invalid refresh token") > -1) && this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
-        throw t8;
-      }
-    }
-    async _saveEntryInCache(t7) {
-      const { id_token: i9, decodedToken: o11 } = t7, n9 = e(t7, ["id_token", "decodedToken"]);
-      this.userCache.set("@@user@@", { id_token: i9, decodedToken: o11 }), await this.cacheManager.setIdToken(this.options.clientId, t7.id_token, t7.decodedToken), await this.cacheManager.set(n9);
-    }
-    async _getIdTokenFromCache() {
-      const e13 = this.options.authorizationParams.audience || "default", t7 = await this.cacheManager.getIdToken(new C({ clientId: this.options.clientId, audience: e13, scope: this.scope })), i9 = this.userCache.get("@@user@@");
-      return t7 && t7.id_token === (null == i9 ? void 0 : i9.id_token) ? i9 : (this.userCache.set("@@user@@", t7), t7);
-    }
-    async _getEntryFromCache({ scope: e13, audience: t7, clientId: i9 }) {
-      const o11 = await this.cacheManager.get(new C({ scope: e13, audience: t7, clientId: i9 }), 60);
-      if (o11 && o11.access_token) {
-        const { access_token: e14, oauthTokenScope: t8, expires_in: i10 } = o11, n9 = await this._getIdTokenFromCache();
-        return n9 && Object.assign(Object.assign({ id_token: n9.id_token, access_token: e14 }, t8 ? { scope: t8 } : null), { expires_in: i10 });
-      }
-    }
-    async _requestToken(e13, t7) {
-      const { nonceIn: i9, organization: o11 } = t7 || {}, n9 = await T(Object.assign({ baseUrl: this.domainUrl, client_id: this.options.clientId, auth0Client: this.options.auth0Client, useFormData: this.options.useFormData, timeout: this.httpTimeoutMs }, e13), this.worker), a5 = await this._verifyIdToken(n9.id_token, i9, o11);
-      return await this._saveEntryInCache(Object.assign(Object.assign(Object.assign(Object.assign({}, n9), { decodedToken: a5, scope: e13.scope, audience: e13.audience || "default" }), n9.scope ? { oauthTokenScope: n9.scope } : null), { client_id: this.options.clientId })), this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this._processOrgHint(o11 || a5.claims.org_id), Object.assign(Object.assign({}, n9), { decodedToken: a5 });
-    }
-  };
-  async function oe(e13) {
-    const t7 = new te(e13);
-    return await t7.checkSession(), t7;
-  }
-
-  // src/domains/authentication/infrastructure/Auth0Adapter.ts
-  var Auth0Adapter = class {
-    config;
-    client;
-    constructor(config) {
-      this.config = config;
-      Object.freeze(this.config);
-    }
-    async initialize() {
-      const { domain, clientId, authorizationParams } = this.config;
-      this.client = await oe({
-        domain,
-        clientId,
-        authorizationParams
-      });
-      if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
-        try {
-          const result = await this.client.handleRedirectCallback();
-          console.log({ result });
-        } catch (err) {
-          const { error, error_description } = err;
-          console.error("Error handling redirect callback:", {
-            error,
-            error_description
-          });
-        }
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-    }
-    async login() {
-      console.log("login");
-      return await this.client.loginWithRedirect();
-    }
-    async logout() {
-      this.client.logout({
-        openUrl(url) {
-          window.location.replace(url);
-        }
-      });
-    }
-    async isAuthenticated() {
-      return await this.client.isAuthenticated();
-    }
-    async getAuthData() {
-      const res = await this.client.isAuthenticated() ? await this.client.getIdTokenClaims() : void 0;
-      return res;
-    }
-    async getAccessToken() {
-      return await this.client.getTokenSilently();
-    }
-  };
-
-  // src/domains/authentication/createAuthenticationAdaper.ts
-  var createAuthenticationAdaper = async (auth0COnfig) => {
-    const instance = new Auth0Adapter(auth0COnfig);
-    await instance.initialize();
-    return instance;
-  };
-
-  // src/shared/application/_State.ts
-  var _State = class {
-    _state;
-    constructor(initialState) {
-      this._state = initialState;
-    }
-    state() {
-      console.log("state()", this._state);
-      return { ...this._state };
-    }
-    setState(value) {
-      this._state = typeof value === "function" ? value(this._state) : {
-        ...this._state,
-        ...value
-      };
-      console.log("setState()", this._state);
-    }
-  };
-
-  // src/solid-js/application/withReactiveState.ts
-  var withReactiveState = (instance) => {
-    if (!(instance instanceof _State)) {
-      throw new Error("Passed instanc must extend `_State`");
-    }
-    const [state, setState] = createSignal(instance.state());
-    const originalSetState = instance.setState.bind(instance);
-    instance.setState = (value) => {
-      originalSetState(value);
-      setState(instance.state());
-    };
-    const proxy = new Proxy(instance, {
-      get(target, prop) {
-        if (prop === "state") {
-          return state;
-        }
-        return target[prop];
-      },
-      set(target, prop, value) {
-        if (prop === "state" || prop === "setState") {
-          throw new Error(`Cannot overwrite ${String(prop)}.`);
-        }
-        target[prop] = value;
-        return true;
-      }
-    });
-    return proxy;
-  };
-
   // node_modules/.pnpm/zod@3.24.1/node_modules/zod/lib/index.mjs
   var util;
   (function(util2) {
@@ -16817,7 +15568,7 @@
     date: (arg) => ZodDate.create({ ...arg, coerce: true })
   };
   var NEVER = INVALID;
-  var z2 = /* @__PURE__ */ Object.freeze({
+  var z = /* @__PURE__ */ Object.freeze({
     __proto__: null,
     defaultErrorMap: errorMap,
     setErrorMap,
@@ -16934,11 +15685,36 @@
     ZodError
   });
 
+  // src/shared/application/_State.ts
+  var _State = class {
+    _state;
+    constructor(initialState) {
+      this._state = initialState;
+    }
+    state() {
+      console.log("state()", this._state);
+      return { ...this._state };
+    }
+    setState(value) {
+      this._state = typeof value === "function" ? value(this._state) : {
+        ...this._state,
+        ...value
+      };
+      console.log("setState()", this._state);
+    }
+  };
+
   // src/domains/directory/Filters.ts
-  var FilterStateSchema = z2.object({
-    text: z2.string().optional().default(""),
-    tagKeys: z2.array(z2.string()).optional().default([]),
-    indexLetter: z2.string().optional().default("")
+  var TagsMatchType = /* @__PURE__ */ ((TagsMatchType2) => {
+    TagsMatchType2["ALL"] = "ALL";
+    TagsMatchType2["ANY"] = "ANY";
+    return TagsMatchType2;
+  })(TagsMatchType || {});
+  var FilterStateSchema = z.object({
+    text: z.string().optional().default(""),
+    tagKeys: z.array(z.string()).optional().default([]),
+    indexLetter: z.string().optional().default(""),
+    tagsMatchType: z.nativeEnum(TagsMatchType).default("ALL" /* ALL */)
   });
   var Filters = class _Filters extends _State {
     constructor(data) {
@@ -16953,8 +15729,8 @@
       this.setState({ text: value });
     }
     setIndexLetter(value) {
-      const next = value != this.state().indexLetter ? value : "";
-      this.setState({ indexLetter: next });
+      const next = value.toLocaleLowerCase() != this.state().indexLetter ? value : "";
+      this.setState({ indexLetter: next.toLocaleLowerCase() });
     }
     setTag(tagKey, toggle = true) {
       const prev = this.state().tagKeys;
@@ -16966,11 +15742,1244 @@
       this.setState({ tagKeys: next });
     }
     isActiveIndexLetter(letter) {
-      return this.state().indexLetter?.toLocaleLowerCase() === letter.toLocaleLowerCase();
+      return this.state().indexLetter === letter.toLocaleLowerCase();
     }
     hasTag(tagKey) {
       return this.state().tagKeys.includes(tagKey);
     }
+  };
+
+  // src/domains/database/infrastructure/SurrealDbAdapter.ts
+  var pop = (data, count = 1) => {
+    let tmp = data;
+    while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
+      tmp = tmp[0];
+      count--;
+    }
+    return tmp;
+  };
+  var SurrealDbAdapter = class {
+    config;
+    client = new Surreal();
+    constructor(config) {
+      const { namespace, database, url } = config;
+      this.config = {
+        namespace,
+        database,
+        url
+      };
+      Object.freeze(this.config);
+    }
+    async initialize() {
+      const { url, namespace, database } = this.config;
+      try {
+        await this.client.connect(url, {
+          namespace,
+          database
+        });
+      } catch (err) {
+        console.error(
+          "Failed to connect to SurrealDB:",
+          err instanceof Error ? err.message : String(err)
+        );
+        await this.client.close();
+        throw err;
+      }
+    }
+    async getListings(filters) {
+      let whereClause = "";
+      const conditions = [];
+      if (filters?.indexLetter) {
+        conditions.push(
+          `string::starts_with(string::lowercase(title), '${filters.indexLetter.toLocaleLowerCase()}')`
+        );
+      }
+      if (filters?.tagKeys?.length) {
+        const tagstr = filters.tagKeys.map((key) => key).join("', '");
+        if (filters.tagsMatchType === "ALL" /* ALL */) {
+          conditions.push(`array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`);
+        } else {
+          conditions.push(`tags[WHERE key IN ['${tagstr}']];`);
+        }
+      }
+      if (conditions.length) {
+        whereClause = ` WHERE ${conditions.join(" AND ")}`;
+      }
+      const query = `SELECT *, tags.*.* FROM ${"listings" /* LISTINGS */}${whereClause};`;
+      console.log({ query });
+      const res = pop(await this.client.query(query));
+      return res;
+    }
+    async getIndexLetters() {
+      const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
+      const res = pop(await this.client.query(query));
+      return res;
+    }
+    async getTags() {
+      const query = `
+      SELECT *, count(
+        SELECT id
+        FROM listings
+        WHERE $parent.id INSIDE tags
+      ) as usageCount
+      FROM tags;
+    `;
+      const res = pop(await this.client.query(query));
+      return res;
+    }
+    async authenticate(token, failSilently) {
+      let res = false;
+      try {
+        res = await this.client.authenticate(token);
+      } catch (err) {
+        if (!failSilently) {
+          console.error(err.message);
+        }
+      }
+      return res;
+    }
+    async getUserData() {
+      const query = `SELECT * FROM ${"user" /* USER */};`;
+      const res = pop(await this.client.query(query), 2);
+      return res;
+    }
+  };
+
+  // src/domains/database/createDatabaseAdapter.ts
+  var createDatabaseAdapter = async (surrealConfig) => {
+    const instance = new SurrealDbAdapter(surrealConfig);
+    await instance.initialize();
+    return instance;
+  };
+
+  // src/shared/lib/utils.ts
+  var timeout = async (ms = 600, fn) => {
+    return new Promise(
+      (resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms)
+    );
+  };
+
+  // src/domains/configs/ConfigsService.ts
+  var ConfigsService = class {
+    configsUrl;
+    constructor(configsUrl) {
+      this.configsUrl = configsUrl;
+    }
+    async loadConfigs() {
+      console.log({ configsUrl: this.configsUrl });
+      await timeout();
+      return {
+        auth0: {
+          domain: "intergate.eu.auth0.com",
+          clientId: "d63m36lvjcGcQZoYjF06IIgczFdIHGqN",
+          authorizationParams: {
+            audience: "https://surrealdb.com/",
+            redirect_uri: window.location.origin
+          }
+        },
+        surreal: {
+          namespace: "intergate",
+          database: "gul-info",
+          url: "https://127.0.0.1:7999/rpc"
+        }
+      };
+    }
+  };
+
+  // src/solid-js/application/createConfigsServiceAdaper.ts
+  var createConfigsServiceAdaper = async (url) => {
+    const adapter = new ConfigsService(url);
+    const configs = await adapter.loadConfigs();
+    return configs;
+  };
+
+  // src/solid-js/ui/providers/CoreProvider.tsx
+  var SystemContext = createContext();
+  var CoreProvider = (props) => {
+    const initialize = async () => {
+      const configs = await createConfigsServiceAdaper("https://intergate.io/configs/gul-info-hurdal");
+      const db = await createDatabaseAdapter(configs.surreal);
+      return {
+        configs: () => configs,
+        db: () => db
+      };
+    };
+    const [system] = createResource(initialize);
+    return createComponent(Show, {
+      get when() {
+        return system();
+      },
+      get children() {
+        return createComponent(SystemContext.Provider, {
+          get value() {
+            return system();
+          },
+          get children() {
+            return props.children;
+          }
+        });
+      }
+    });
+  };
+  var useSystem = () => {
+    const context = useContext(SystemContext);
+    if (!context) {
+      throw new Error("useSystem must be used within an CoreProvider");
+    }
+    return context;
+  };
+
+  // node_modules/.pnpm/@auth0+auth0-spa-js@2.1.3/node_modules/@auth0/auth0-spa-js/dist/auth0-spa-js.production.esm.js
+  function e(e13, t7) {
+    var i9 = {};
+    for (var o11 in e13) Object.prototype.hasOwnProperty.call(e13, o11) && t7.indexOf(o11) < 0 && (i9[o11] = e13[o11]);
+    if (null != e13 && "function" == typeof Object.getOwnPropertySymbols) {
+      var n9 = 0;
+      for (o11 = Object.getOwnPropertySymbols(e13); n9 < o11.length; n9++) t7.indexOf(o11[n9]) < 0 && Object.prototype.propertyIsEnumerable.call(e13, o11[n9]) && (i9[o11[n9]] = e13[o11[n9]]);
+    }
+    return i9;
+  }
+  var t = "undefined" != typeof globalThis ? globalThis : "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : {};
+  function i(e13) {
+    return e13 && e13.__esModule && Object.prototype.hasOwnProperty.call(e13, "default") ? e13.default : e13;
+  }
+  function o(e13, t7) {
+    return e13(t7 = { exports: {} }, t7.exports), t7.exports;
+  }
+  var n = o(function(e13, t7) {
+    Object.defineProperty(t7, "__esModule", { value: true });
+    var i9 = function() {
+      function e14() {
+        var e15 = this;
+        this.locked = /* @__PURE__ */ new Map(), this.addToLocked = function(t8, i10) {
+          var o11 = e15.locked.get(t8);
+          void 0 === o11 ? void 0 === i10 ? e15.locked.set(t8, []) : e15.locked.set(t8, [i10]) : void 0 !== i10 && (o11.unshift(i10), e15.locked.set(t8, o11));
+        }, this.isLocked = function(t8) {
+          return e15.locked.has(t8);
+        }, this.lock = function(t8) {
+          return new Promise(function(i10, o11) {
+            e15.isLocked(t8) ? e15.addToLocked(t8, i10) : (e15.addToLocked(t8), i10());
+          });
+        }, this.unlock = function(t8) {
+          var i10 = e15.locked.get(t8);
+          if (void 0 !== i10 && 0 !== i10.length) {
+            var o11 = i10.pop();
+            e15.locked.set(t8, i10), void 0 !== o11 && setTimeout(o11, 0);
+          } else e15.locked.delete(t8);
+        };
+      }
+      return e14.getInstance = function() {
+        return void 0 === e14.instance && (e14.instance = new e14()), e14.instance;
+      }, e14;
+    }();
+    t7.default = function() {
+      return i9.getInstance();
+    };
+  });
+  i(n);
+  var a = i(o(function(e13, i9) {
+    var o11 = t && t.__awaiter || function(e14, t7, i10, o12) {
+      return new (i10 || (i10 = Promise))(function(n9, a6) {
+        function r11(e15) {
+          try {
+            c8(o12.next(e15));
+          } catch (e16) {
+            a6(e16);
+          }
+        }
+        function s6(e15) {
+          try {
+            c8(o12.throw(e15));
+          } catch (e16) {
+            a6(e16);
+          }
+        }
+        function c8(e15) {
+          e15.done ? n9(e15.value) : new i10(function(t8) {
+            t8(e15.value);
+          }).then(r11, s6);
+        }
+        c8((o12 = o12.apply(e14, t7 || [])).next());
+      });
+    }, a5 = t && t.__generator || function(e14, t7) {
+      var i10, o12, n9, a6, r11 = { label: 0, sent: function() {
+        if (1 & n9[0]) throw n9[1];
+        return n9[1];
+      }, trys: [], ops: [] };
+      return a6 = { next: s6(0), throw: s6(1), return: s6(2) }, "function" == typeof Symbol && (a6[Symbol.iterator] = function() {
+        return this;
+      }), a6;
+      function s6(a7) {
+        return function(s7) {
+          return function(a8) {
+            if (i10) throw new TypeError("Generator is already executing.");
+            for (; r11; ) try {
+              if (i10 = 1, o12 && (n9 = 2 & a8[0] ? o12.return : a8[0] ? o12.throw || ((n9 = o12.return) && n9.call(o12), 0) : o12.next) && !(n9 = n9.call(o12, a8[1])).done) return n9;
+              switch (o12 = 0, n9 && (a8 = [2 & a8[0], n9.value]), a8[0]) {
+                case 0:
+                case 1:
+                  n9 = a8;
+                  break;
+                case 4:
+                  return r11.label++, { value: a8[1], done: false };
+                case 5:
+                  r11.label++, o12 = a8[1], a8 = [0];
+                  continue;
+                case 7:
+                  a8 = r11.ops.pop(), r11.trys.pop();
+                  continue;
+                default:
+                  if (!(n9 = r11.trys, (n9 = n9.length > 0 && n9[n9.length - 1]) || 6 !== a8[0] && 2 !== a8[0])) {
+                    r11 = 0;
+                    continue;
+                  }
+                  if (3 === a8[0] && (!n9 || a8[1] > n9[0] && a8[1] < n9[3])) {
+                    r11.label = a8[1];
+                    break;
+                  }
+                  if (6 === a8[0] && r11.label < n9[1]) {
+                    r11.label = n9[1], n9 = a8;
+                    break;
+                  }
+                  if (n9 && r11.label < n9[2]) {
+                    r11.label = n9[2], r11.ops.push(a8);
+                    break;
+                  }
+                  n9[2] && r11.ops.pop(), r11.trys.pop();
+                  continue;
+              }
+              a8 = t7.call(e14, r11);
+            } catch (e15) {
+              a8 = [6, e15], o12 = 0;
+            } finally {
+              i10 = n9 = 0;
+            }
+            if (5 & a8[0]) throw a8[1];
+            return { value: a8[0] ? a8[1] : void 0, done: true };
+          }([a7, s7]);
+        };
+      }
+    }, r10 = t;
+    Object.defineProperty(i9, "__esModule", { value: true });
+    var s5 = "browser-tabs-lock-key", c7 = { key: function(e14) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, getItem: function(e14) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, clear: function() {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e14) {
+          return [2, window.localStorage.clear()];
+        });
+      });
+    }, removeItem: function(e14) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, setItem: function(e14, t7) {
+      return o11(r10, void 0, void 0, function() {
+        return a5(this, function(e15) {
+          throw new Error("Unsupported");
+        });
+      });
+    }, keySync: function(e14) {
+      return window.localStorage.key(e14);
+    }, getItemSync: function(e14) {
+      return window.localStorage.getItem(e14);
+    }, clearSync: function() {
+      return window.localStorage.clear();
+    }, removeItemSync: function(e14) {
+      return window.localStorage.removeItem(e14);
+    }, setItemSync: function(e14, t7) {
+      return window.localStorage.setItem(e14, t7);
+    } };
+    function d4(e14) {
+      return new Promise(function(t7) {
+        return setTimeout(t7, e14);
+      });
+    }
+    function u6(e14) {
+      for (var t7 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXTZabcdefghiklmnopqrstuvwxyz", i10 = "", o12 = 0; o12 < e14; o12++) {
+        i10 += t7[Math.floor(Math.random() * t7.length)];
+      }
+      return i10;
+    }
+    var l6 = function() {
+      function e14(t7) {
+        this.acquiredIatSet = /* @__PURE__ */ new Set(), this.storageHandler = void 0, this.id = Date.now().toString() + u6(15), this.acquireLock = this.acquireLock.bind(this), this.releaseLock = this.releaseLock.bind(this), this.releaseLock__private__ = this.releaseLock__private__.bind(this), this.waitForSomethingToChange = this.waitForSomethingToChange.bind(this), this.refreshLockWhileAcquired = this.refreshLockWhileAcquired.bind(this), this.storageHandler = t7, void 0 === e14.waiters && (e14.waiters = []);
+      }
+      return e14.prototype.acquireLock = function(t7, i10) {
+        return void 0 === i10 && (i10 = 5e3), o11(this, void 0, void 0, function() {
+          var o12, n9, r11, l7, h6, p4, m4;
+          return a5(this, function(a6) {
+            switch (a6.label) {
+              case 0:
+                o12 = Date.now() + u6(4), n9 = Date.now() + i10, r11 = s5 + "-" + t7, l7 = void 0 === this.storageHandler ? c7 : this.storageHandler, a6.label = 1;
+              case 1:
+                return Date.now() < n9 ? [4, d4(30)] : [3, 8];
+              case 2:
+                return a6.sent(), null !== l7.getItemSync(r11) ? [3, 5] : (h6 = this.id + "-" + t7 + "-" + o12, [4, d4(Math.floor(25 * Math.random()))]);
+              case 3:
+                return a6.sent(), l7.setItemSync(r11, JSON.stringify({ id: this.id, iat: o12, timeoutKey: h6, timeAcquired: Date.now(), timeRefreshed: Date.now() })), [4, d4(30)];
+              case 4:
+                return a6.sent(), null !== (p4 = l7.getItemSync(r11)) && (m4 = JSON.parse(p4)).id === this.id && m4.iat === o12 ? (this.acquiredIatSet.add(o12), this.refreshLockWhileAcquired(r11, o12), [2, true]) : [3, 7];
+              case 5:
+                return e14.lockCorrector(void 0 === this.storageHandler ? c7 : this.storageHandler), [4, this.waitForSomethingToChange(n9)];
+              case 6:
+                a6.sent(), a6.label = 7;
+              case 7:
+                return o12 = Date.now() + u6(4), [3, 1];
+              case 8:
+                return [2, false];
+            }
+          });
+        });
+      }, e14.prototype.refreshLockWhileAcquired = function(e15, t7) {
+        return o11(this, void 0, void 0, function() {
+          var i10 = this;
+          return a5(this, function(r11) {
+            return setTimeout(function() {
+              return o11(i10, void 0, void 0, function() {
+                var i11, o12, r12;
+                return a5(this, function(a6) {
+                  switch (a6.label) {
+                    case 0:
+                      return [4, n.default().lock(t7)];
+                    case 1:
+                      return a6.sent(), this.acquiredIatSet.has(t7) ? (i11 = void 0 === this.storageHandler ? c7 : this.storageHandler, null === (o12 = i11.getItemSync(e15)) ? (n.default().unlock(t7), [2]) : ((r12 = JSON.parse(o12)).timeRefreshed = Date.now(), i11.setItemSync(e15, JSON.stringify(r12)), n.default().unlock(t7), this.refreshLockWhileAcquired(e15, t7), [2])) : (n.default().unlock(t7), [2]);
+                  }
+                });
+              });
+            }, 1e3), [2];
+          });
+        });
+      }, e14.prototype.waitForSomethingToChange = function(t7) {
+        return o11(this, void 0, void 0, function() {
+          return a5(this, function(i10) {
+            switch (i10.label) {
+              case 0:
+                return [4, new Promise(function(i11) {
+                  var o12 = false, n9 = Date.now(), a6 = false;
+                  function r11() {
+                    if (a6 || (window.removeEventListener("storage", r11), e14.removeFromWaiting(r11), clearTimeout(s6), a6 = true), !o12) {
+                      o12 = true;
+                      var t8 = 50 - (Date.now() - n9);
+                      t8 > 0 ? setTimeout(i11, t8) : i11(null);
+                    }
+                  }
+                  window.addEventListener("storage", r11), e14.addToWaiting(r11);
+                  var s6 = setTimeout(r11, Math.max(0, t7 - Date.now()));
+                })];
+              case 1:
+                return i10.sent(), [2];
+            }
+          });
+        });
+      }, e14.addToWaiting = function(t7) {
+        this.removeFromWaiting(t7), void 0 !== e14.waiters && e14.waiters.push(t7);
+      }, e14.removeFromWaiting = function(t7) {
+        void 0 !== e14.waiters && (e14.waiters = e14.waiters.filter(function(e15) {
+          return e15 !== t7;
+        }));
+      }, e14.notifyWaiters = function() {
+        void 0 !== e14.waiters && e14.waiters.slice().forEach(function(e15) {
+          return e15();
+        });
+      }, e14.prototype.releaseLock = function(e15) {
+        return o11(this, void 0, void 0, function() {
+          return a5(this, function(t7) {
+            switch (t7.label) {
+              case 0:
+                return [4, this.releaseLock__private__(e15)];
+              case 1:
+                return [2, t7.sent()];
+            }
+          });
+        });
+      }, e14.prototype.releaseLock__private__ = function(t7) {
+        return o11(this, void 0, void 0, function() {
+          var i10, o12, r11, d5;
+          return a5(this, function(a6) {
+            switch (a6.label) {
+              case 0:
+                return i10 = void 0 === this.storageHandler ? c7 : this.storageHandler, o12 = s5 + "-" + t7, null === (r11 = i10.getItemSync(o12)) ? [2] : (d5 = JSON.parse(r11)).id !== this.id ? [3, 2] : [4, n.default().lock(d5.iat)];
+              case 1:
+                a6.sent(), this.acquiredIatSet.delete(d5.iat), i10.removeItemSync(o12), n.default().unlock(d5.iat), e14.notifyWaiters(), a6.label = 2;
+              case 2:
+                return [2];
+            }
+          });
+        });
+      }, e14.lockCorrector = function(t7) {
+        for (var i10 = Date.now() - 5e3, o12 = t7, n9 = [], a6 = 0; ; ) {
+          var r11 = o12.keySync(a6);
+          if (null === r11) break;
+          n9.push(r11), a6++;
+        }
+        for (var c8 = false, d5 = 0; d5 < n9.length; d5++) {
+          var u7 = n9[d5];
+          if (u7.includes(s5)) {
+            var l7 = o12.getItemSync(u7);
+            if (null !== l7) {
+              var h6 = JSON.parse(l7);
+              (void 0 === h6.timeRefreshed && h6.timeAcquired < i10 || void 0 !== h6.timeRefreshed && h6.timeRefreshed < i10) && (o12.removeItemSync(u7), c8 = true);
+            }
+          }
+        }
+        c8 && e14.notifyWaiters();
+      }, e14.waiters = void 0, e14;
+    }();
+    i9.default = l6;
+  }));
+  var r = { timeoutInSeconds: 60 };
+  var s = { name: "auth0-spa-js", version: "2.1.3" };
+  var c = () => Date.now();
+  var d = class _d extends Error {
+    constructor(e13, t7) {
+      super(t7), this.error = e13, this.error_description = t7, Object.setPrototypeOf(this, _d.prototype);
+    }
+    static fromPayload({ error: e13, error_description: t7 }) {
+      return new _d(e13, t7);
+    }
+  };
+  var u = class _u extends d {
+    constructor(e13, t7, i9, o11 = null) {
+      super(e13, t7), this.state = i9, this.appState = o11, Object.setPrototypeOf(this, _u.prototype);
+    }
+  };
+  var l = class _l extends d {
+    constructor() {
+      super("timeout", "Timeout"), Object.setPrototypeOf(this, _l.prototype);
+    }
+  };
+  var h = class _h extends l {
+    constructor(e13) {
+      super(), this.popup = e13, Object.setPrototypeOf(this, _h.prototype);
+    }
+  };
+  var p = class _p extends d {
+    constructor(e13) {
+      super("cancelled", "Popup closed"), this.popup = e13, Object.setPrototypeOf(this, _p.prototype);
+    }
+  };
+  var m = class _m extends d {
+    constructor(e13, t7, i9) {
+      super(e13, t7), this.mfa_token = i9, Object.setPrototypeOf(this, _m.prototype);
+    }
+  };
+  var f2 = class _f extends d {
+    constructor(e13, t7) {
+      super("missing_refresh_token", `Missing Refresh Token (audience: '${g(e13, ["default"])}', scope: '${g(t7)}')`), this.audience = e13, this.scope = t7, Object.setPrototypeOf(this, _f.prototype);
+    }
+  };
+  function g(e13, t7 = []) {
+    return e13 && !t7.includes(e13) ? e13 : "";
+  }
+  var w = () => window.crypto;
+  var y = () => {
+    const e13 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_~.";
+    let t7 = "";
+    return Array.from(w().getRandomValues(new Uint8Array(43))).forEach((i9) => t7 += e13[i9 % e13.length]), t7;
+  };
+  var k = (e13) => btoa(e13);
+  var v = (t7) => {
+    var { clientId: i9 } = t7, o11 = e(t7, ["clientId"]);
+    return new URLSearchParams(((e13) => Object.keys(e13).filter((t8) => void 0 !== e13[t8]).reduce((t8, i10) => Object.assign(Object.assign({}, t8), { [i10]: e13[i10] }), {}))(Object.assign({ client_id: i9 }, o11))).toString();
+  };
+  var b = (e13) => ((e14) => decodeURIComponent(atob(e14).split("").map((e15) => "%" + ("00" + e15.charCodeAt(0).toString(16)).slice(-2)).join("")))(e13.replace(/_/g, "/").replace(/-/g, "+"));
+  var _ = async (e13, t7) => {
+    const i9 = await fetch(e13, t7);
+    return { ok: i9.ok, json: await i9.json() };
+  };
+  var I = async (e13, t7, i9) => {
+    const o11 = new AbortController();
+    let n9;
+    return t7.signal = o11.signal, Promise.race([_(e13, t7), new Promise((e14, t8) => {
+      n9 = setTimeout(() => {
+        o11.abort(), t8(new Error("Timeout when executing 'fetch'"));
+      }, i9);
+    })]).finally(() => {
+      clearTimeout(n9);
+    });
+  };
+  var S = async (e13, t7, i9, o11, n9, a5, r10) => {
+    return s5 = { auth: { audience: t7, scope: i9 }, timeout: n9, fetchUrl: e13, fetchOptions: o11, useFormData: r10 }, c7 = a5, new Promise(function(e14, t8) {
+      const i10 = new MessageChannel();
+      i10.port1.onmessage = function(o12) {
+        o12.data.error ? t8(new Error(o12.data.error)) : e14(o12.data), i10.port1.close();
+      }, c7.postMessage(s5, [i10.port2]);
+    });
+    var s5, c7;
+  };
+  var O = async (e13, t7, i9, o11, n9, a5, r10 = 1e4) => n9 ? S(e13, t7, i9, o11, r10, n9, a5) : I(e13, o11, r10);
+  async function T(t7, i9) {
+    var { baseUrl: o11, timeout: n9, audience: a5, scope: r10, auth0Client: c7, useFormData: u6 } = t7, l6 = e(t7, ["baseUrl", "timeout", "audience", "scope", "auth0Client", "useFormData"]);
+    const h6 = u6 ? v(l6) : JSON.stringify(l6);
+    return await async function(t8, i10, o12, n10, a6, r11, s5) {
+      let c8, u7 = null;
+      for (let e13 = 0; e13 < 3; e13++) try {
+        c8 = await O(t8, o12, n10, a6, r11, s5, i10), u7 = null;
+        break;
+      } catch (e14) {
+        u7 = e14;
+      }
+      if (u7) throw u7;
+      const l7 = c8.json, { error: h7, error_description: p4 } = l7, g3 = e(l7, ["error", "error_description"]), { ok: w3 } = c8;
+      if (!w3) {
+        const e13 = p4 || `HTTP error. Unable to fetch ${t8}`;
+        if ("mfa_required" === h7) throw new m(h7, e13, g3.mfa_token);
+        if ("missing_refresh_token" === h7) throw new f2(o12, n10);
+        throw new d(h7 || "request_error", e13);
+      }
+      return g3;
+    }(`${o11}/oauth/token`, n9, a5 || "default", r10, { method: "POST", body: h6, headers: { "Content-Type": u6 ? "application/x-www-form-urlencoded" : "application/json", "Auth0-Client": btoa(JSON.stringify(c7 || s)) } }, i9, u6);
+  }
+  var j = (...e13) => {
+    return (t7 = e13.filter(Boolean).join(" ").trim().split(/\s+/), Array.from(new Set(t7))).join(" ");
+    var t7;
+  };
+  var C = class _C {
+    constructor(e13, t7 = "@@auth0spajs@@", i9) {
+      this.prefix = t7, this.suffix = i9, this.clientId = e13.clientId, this.scope = e13.scope, this.audience = e13.audience;
+    }
+    toKey() {
+      return [this.prefix, this.clientId, this.audience, this.scope, this.suffix].filter(Boolean).join("::");
+    }
+    static fromKey(e13) {
+      const [t7, i9, o11, n9] = e13.split("::");
+      return new _C({ clientId: i9, scope: n9, audience: o11 }, t7);
+    }
+    static fromCacheEntry(e13) {
+      const { scope: t7, audience: i9, client_id: o11 } = e13;
+      return new _C({ scope: t7, audience: i9, clientId: o11 });
+    }
+  };
+  var z2 = class {
+    set(e13, t7) {
+      localStorage.setItem(e13, JSON.stringify(t7));
+    }
+    get(e13) {
+      const t7 = window.localStorage.getItem(e13);
+      if (t7) try {
+        return JSON.parse(t7);
+      } catch (e14) {
+        return;
+      }
+    }
+    remove(e13) {
+      localStorage.removeItem(e13);
+    }
+    allKeys() {
+      return Object.keys(window.localStorage).filter((e13) => e13.startsWith("@@auth0spajs@@"));
+    }
+  };
+  var P = class {
+    constructor() {
+      this.enclosedCache = /* @__PURE__ */ function() {
+        let e13 = {};
+        return { set(t7, i9) {
+          e13[t7] = i9;
+        }, get(t7) {
+          const i9 = e13[t7];
+          if (i9) return i9;
+        }, remove(t7) {
+          delete e13[t7];
+        }, allKeys: () => Object.keys(e13) };
+      }();
+    }
+  };
+  var x = class {
+    constructor(e13, t7, i9) {
+      this.cache = e13, this.keyManifest = t7, this.nowProvider = i9 || c;
+    }
+    async setIdToken(e13, t7, i9) {
+      var o11;
+      const n9 = this.getIdTokenCacheKey(e13);
+      await this.cache.set(n9, { id_token: t7, decodedToken: i9 }), await (null === (o11 = this.keyManifest) || void 0 === o11 ? void 0 : o11.add(n9));
+    }
+    async getIdToken(e13) {
+      const t7 = await this.cache.get(this.getIdTokenCacheKey(e13.clientId));
+      if (!t7 && e13.scope && e13.audience) {
+        const t8 = await this.get(e13);
+        if (!t8) return;
+        if (!t8.id_token || !t8.decodedToken) return;
+        return { id_token: t8.id_token, decodedToken: t8.decodedToken };
+      }
+      if (t7) return { id_token: t7.id_token, decodedToken: t7.decodedToken };
+    }
+    async get(e13, t7 = 0) {
+      var i9;
+      let o11 = await this.cache.get(e13.toKey());
+      if (!o11) {
+        const t8 = await this.getCacheKeys();
+        if (!t8) return;
+        const i10 = this.matchExistingCacheKey(e13, t8);
+        i10 && (o11 = await this.cache.get(i10));
+      }
+      if (!o11) return;
+      const n9 = await this.nowProvider(), a5 = Math.floor(n9 / 1e3);
+      return o11.expiresAt - t7 < a5 ? o11.body.refresh_token ? (o11.body = { refresh_token: o11.body.refresh_token }, await this.cache.set(e13.toKey(), o11), o11.body) : (await this.cache.remove(e13.toKey()), void await (null === (i9 = this.keyManifest) || void 0 === i9 ? void 0 : i9.remove(e13.toKey()))) : o11.body;
+    }
+    async set(e13) {
+      var t7;
+      const i9 = new C({ clientId: e13.client_id, scope: e13.scope, audience: e13.audience }), o11 = await this.wrapCacheEntry(e13);
+      await this.cache.set(i9.toKey(), o11), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.add(i9.toKey()));
+    }
+    async clear(e13) {
+      var t7;
+      const i9 = await this.getCacheKeys();
+      i9 && (await i9.filter((t8) => !e13 || t8.includes(e13)).reduce(async (e14, t8) => {
+        await e14, await this.cache.remove(t8);
+      }, Promise.resolve()), await (null === (t7 = this.keyManifest) || void 0 === t7 ? void 0 : t7.clear()));
+    }
+    async wrapCacheEntry(e13) {
+      const t7 = await this.nowProvider();
+      return { body: e13, expiresAt: Math.floor(t7 / 1e3) + e13.expires_in };
+    }
+    async getCacheKeys() {
+      var e13;
+      return this.keyManifest ? null === (e13 = await this.keyManifest.get()) || void 0 === e13 ? void 0 : e13.keys : this.cache.allKeys ? this.cache.allKeys() : void 0;
+    }
+    getIdTokenCacheKey(e13) {
+      return new C({ clientId: e13 }, "@@auth0spajs@@", "@@user@@").toKey();
+    }
+    matchExistingCacheKey(e13, t7) {
+      return t7.filter((t8) => {
+        var i9;
+        const o11 = C.fromKey(t8), n9 = new Set(o11.scope && o11.scope.split(" ")), a5 = (null === (i9 = e13.scope) || void 0 === i9 ? void 0 : i9.split(" ")) || [], r10 = o11.scope && a5.reduce((e14, t9) => e14 && n9.has(t9), true);
+        return "@@auth0spajs@@" === o11.prefix && o11.clientId === e13.clientId && o11.audience === e13.audience && r10;
+      })[0];
+    }
+  };
+  var Z = class {
+    constructor(e13, t7, i9) {
+      this.storage = e13, this.clientId = t7, this.cookieDomain = i9, this.storageKey = `a0.spajs.txs.${this.clientId}`;
+    }
+    create(e13) {
+      this.storage.save(this.storageKey, e13, { daysUntilExpire: 1, cookieDomain: this.cookieDomain });
+    }
+    get() {
+      return this.storage.get(this.storageKey);
+    }
+    remove() {
+      this.storage.remove(this.storageKey, { cookieDomain: this.cookieDomain });
+    }
+  };
+  var K = (e13) => "number" == typeof e13;
+  var W = ["iss", "aud", "exp", "nbf", "iat", "jti", "azp", "nonce", "auth_time", "at_hash", "c_hash", "acr", "amr", "sub_jwk", "cnf", "sip_from_tag", "sip_date", "sip_callid", "sip_cseq_num", "sip_via_branch", "orig", "dest", "mky", "events", "toe", "txn", "rph", "sid", "vot", "vtm"];
+  var E = (e13) => {
+    if (!e13.id_token) throw new Error("ID token is required but missing");
+    const t7 = ((e14) => {
+      const t8 = e14.split("."), [i10, o12, n10] = t8;
+      if (3 !== t8.length || !i10 || !o12 || !n10) throw new Error("ID token could not be decoded");
+      const a5 = JSON.parse(b(o12)), r10 = { __raw: e14 }, s5 = {};
+      return Object.keys(a5).forEach((e15) => {
+        r10[e15] = a5[e15], W.includes(e15) || (s5[e15] = a5[e15]);
+      }), { encoded: { header: i10, payload: o12, signature: n10 }, header: JSON.parse(b(i10)), claims: r10, user: s5 };
+    })(e13.id_token);
+    if (!t7.claims.iss) throw new Error("Issuer (iss) claim must be a string present in the ID token");
+    if (t7.claims.iss !== e13.iss) throw new Error(`Issuer (iss) claim mismatch in the ID token; expected "${e13.iss}", found "${t7.claims.iss}"`);
+    if (!t7.user.sub) throw new Error("Subject (sub) claim must be a string present in the ID token");
+    if ("RS256" !== t7.header.alg) throw new Error(`Signature algorithm of "${t7.header.alg}" is not supported. Expected the ID token to be signed with "RS256".`);
+    if (!t7.claims.aud || "string" != typeof t7.claims.aud && !Array.isArray(t7.claims.aud)) throw new Error("Audience (aud) claim must be a string or array of strings present in the ID token");
+    if (Array.isArray(t7.claims.aud)) {
+      if (!t7.claims.aud.includes(e13.aud)) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but was not one of "${t7.claims.aud.join(", ")}"`);
+      if (t7.claims.aud.length > 1) {
+        if (!t7.claims.azp) throw new Error("Authorized Party (azp) claim must be a string present in the ID token when Audience (aud) claim has multiple values");
+        if (t7.claims.azp !== e13.aud) throw new Error(`Authorized Party (azp) claim mismatch in the ID token; expected "${e13.aud}", found "${t7.claims.azp}"`);
+      }
+    } else if (t7.claims.aud !== e13.aud) throw new Error(`Audience (aud) claim mismatch in the ID token; expected "${e13.aud}" but found "${t7.claims.aud}"`);
+    if (e13.nonce) {
+      if (!t7.claims.nonce) throw new Error("Nonce (nonce) claim must be a string present in the ID token");
+      if (t7.claims.nonce !== e13.nonce) throw new Error(`Nonce (nonce) claim mismatch in the ID token; expected "${e13.nonce}", found "${t7.claims.nonce}"`);
+    }
+    if (e13.max_age && !K(t7.claims.auth_time)) throw new Error("Authentication Time (auth_time) claim must be a number present in the ID token when Max Age (max_age) is specified");
+    if (null == t7.claims.exp || !K(t7.claims.exp)) throw new Error("Expiration Time (exp) claim must be a number present in the ID token");
+    if (!K(t7.claims.iat)) throw new Error("Issued At (iat) claim must be a number present in the ID token");
+    const i9 = e13.leeway || 60, o11 = new Date(e13.now || Date.now()), n9 = /* @__PURE__ */ new Date(0);
+    if (n9.setUTCSeconds(t7.claims.exp + i9), o11 > n9) throw new Error(`Expiration Time (exp) claim error in the ID token; current time (${o11}) is after expiration time (${n9})`);
+    if (null != t7.claims.nbf && K(t7.claims.nbf)) {
+      const e14 = /* @__PURE__ */ new Date(0);
+      if (e14.setUTCSeconds(t7.claims.nbf - i9), o11 < e14) throw new Error(`Not Before time (nbf) claim in the ID token indicates that this token can't be used just yet. Current time (${o11}) is before ${e14}`);
+    }
+    if (null != t7.claims.auth_time && K(t7.claims.auth_time)) {
+      const n10 = /* @__PURE__ */ new Date(0);
+      if (n10.setUTCSeconds(parseInt(t7.claims.auth_time) + e13.max_age + i9), o11 > n10) throw new Error(`Authentication Time (auth_time) claim in the ID token indicates that too much time has passed since the last end-user authentication. Current time (${o11}) is after last auth at ${n10}`);
+    }
+    if (e13.organization) {
+      const i10 = e13.organization.trim();
+      if (i10.startsWith("org_")) {
+        const e14 = i10;
+        if (!t7.claims.org_id) throw new Error("Organization ID (org_id) claim must be a string present in the ID token");
+        if (e14 !== t7.claims.org_id) throw new Error(`Organization ID (org_id) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_id}"`);
+      } else {
+        const e14 = i10.toLowerCase();
+        if (!t7.claims.org_name) throw new Error("Organization Name (org_name) claim must be a string present in the ID token");
+        if (e14 !== t7.claims.org_name) throw new Error(`Organization Name (org_name) claim mismatch in the ID token; expected "${e14}", found "${t7.claims.org_name}"`);
+      }
+    }
+    return t7;
+  };
+  var R = o(function(e13, i9) {
+    var o11 = t && t.__assign || function() {
+      return o11 = Object.assign || function(e14) {
+        for (var t7, i10 = 1, o12 = arguments.length; i10 < o12; i10++) for (var n10 in t7 = arguments[i10]) Object.prototype.hasOwnProperty.call(t7, n10) && (e14[n10] = t7[n10]);
+        return e14;
+      }, o11.apply(this, arguments);
+    };
+    function n9(e14, t7) {
+      if (!t7) return "";
+      var i10 = "; " + e14;
+      return true === t7 ? i10 : i10 + "=" + t7;
+    }
+    function a5(e14, t7, i10) {
+      return encodeURIComponent(e14).replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent).replace(/\(/g, "%28").replace(/\)/g, "%29") + "=" + encodeURIComponent(t7).replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent) + function(e15) {
+        if ("number" == typeof e15.expires) {
+          var t8 = /* @__PURE__ */ new Date();
+          t8.setMilliseconds(t8.getMilliseconds() + 864e5 * e15.expires), e15.expires = t8;
+        }
+        return n9("Expires", e15.expires ? e15.expires.toUTCString() : "") + n9("Domain", e15.domain) + n9("Path", e15.path) + n9("Secure", e15.secure) + n9("SameSite", e15.sameSite);
+      }(i10);
+    }
+    function r10(e14) {
+      for (var t7 = {}, i10 = e14 ? e14.split("; ") : [], o12 = /(%[\dA-F]{2})+/gi, n10 = 0; n10 < i10.length; n10++) {
+        var a6 = i10[n10].split("="), r11 = a6.slice(1).join("=");
+        '"' === r11.charAt(0) && (r11 = r11.slice(1, -1));
+        try {
+          t7[a6[0].replace(o12, decodeURIComponent)] = r11.replace(o12, decodeURIComponent);
+        } catch (e15) {
+        }
+      }
+      return t7;
+    }
+    function s5() {
+      return r10(document.cookie);
+    }
+    function c7(e14, t7, i10) {
+      document.cookie = a5(e14, t7, o11({ path: "/" }, i10));
+    }
+    i9.__esModule = true, i9.encode = a5, i9.parse = r10, i9.getAll = s5, i9.get = function(e14) {
+      return s5()[e14];
+    }, i9.set = c7, i9.remove = function(e14, t7) {
+      c7(e14, "", o11(o11({}, t7), { expires: -1 }));
+    };
+  });
+  i(R), R.encode, R.parse, R.getAll;
+  var U = R.get;
+  var L = R.set;
+  var D = R.remove;
+  var X = { get(e13) {
+    const t7 = U(e13);
+    if (void 0 !== t7) return JSON.parse(t7);
+  }, save(e13, t7, i9) {
+    let o11 = {};
+    "https:" === window.location.protocol && (o11 = { secure: true, sameSite: "none" }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(e13, JSON.stringify(t7), o11);
+  }, remove(e13, t7) {
+    let i9 = {};
+    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9);
+  } };
+  var N = { get(e13) {
+    const t7 = X.get(e13);
+    return t7 || X.get(`_legacy_${e13}`);
+  }, save(e13, t7, i9) {
+    let o11 = {};
+    "https:" === window.location.protocol && (o11 = { secure: true }), (null == i9 ? void 0 : i9.daysUntilExpire) && (o11.expires = i9.daysUntilExpire), (null == i9 ? void 0 : i9.cookieDomain) && (o11.domain = i9.cookieDomain), L(`_legacy_${e13}`, JSON.stringify(t7), o11), X.save(e13, t7, i9);
+  }, remove(e13, t7) {
+    let i9 = {};
+    (null == t7 ? void 0 : t7.cookieDomain) && (i9.domain = t7.cookieDomain), D(e13, i9), X.remove(e13, t7), X.remove(`_legacy_${e13}`, t7);
+  } };
+  var J = { get(e13) {
+    if ("undefined" == typeof sessionStorage) return;
+    const t7 = sessionStorage.getItem(e13);
+    return null != t7 ? JSON.parse(t7) : void 0;
+  }, save(e13, t7) {
+    sessionStorage.setItem(e13, JSON.stringify(t7));
+  }, remove(e13) {
+    sessionStorage.removeItem(e13);
+  } };
+  function F(e13, t7, i9) {
+    var o11 = void 0 === t7 ? null : t7, n9 = function(e14, t8) {
+      var i10 = atob(e14);
+      if (t8) {
+        for (var o12 = new Uint8Array(i10.length), n10 = 0, a6 = i10.length; n10 < a6; ++n10) o12[n10] = i10.charCodeAt(n10);
+        return String.fromCharCode.apply(null, new Uint16Array(o12.buffer));
+      }
+      return i10;
+    }(e13, void 0 !== i9 && i9), a5 = n9.indexOf("\n", 10) + 1, r10 = n9.substring(a5) + (o11 ? "//# sourceMappingURL=" + o11 : ""), s5 = new Blob([r10], { type: "application/javascript" });
+    return URL.createObjectURL(s5);
+  }
+  var H;
+  var Y;
+  var G;
+  var V;
+  var M = (H = "Lyogcm9sbHVwLXBsdWdpbi13ZWItd29ya2VyLWxvYWRlciAqLwohZnVuY3Rpb24oKXsidXNlIHN0cmljdCI7Y2xhc3MgZSBleHRlbmRzIEVycm9ye2NvbnN0cnVjdG9yKHQscil7c3VwZXIociksdGhpcy5lcnJvcj10LHRoaXMuZXJyb3JfZGVzY3JpcHRpb249cixPYmplY3Quc2V0UHJvdG90eXBlT2YodGhpcyxlLnByb3RvdHlwZSl9c3RhdGljIGZyb21QYXlsb2FkKHtlcnJvcjp0LGVycm9yX2Rlc2NyaXB0aW9uOnJ9KXtyZXR1cm4gbmV3IGUodCxyKX19Y2xhc3MgdCBleHRlbmRzIGV7Y29uc3RydWN0b3IoZSxzKXtzdXBlcigibWlzc2luZ19yZWZyZXNoX3Rva2VuIixgTWlzc2luZyBSZWZyZXNoIFRva2VuIChhdWRpZW5jZTogJyR7cihlLFsiZGVmYXVsdCJdKX0nLCBzY29wZTogJyR7cihzKX0nKWApLHRoaXMuYXVkaWVuY2U9ZSx0aGlzLnNjb3BlPXMsT2JqZWN0LnNldFByb3RvdHlwZU9mKHRoaXMsdC5wcm90b3R5cGUpfX1mdW5jdGlvbiByKGUsdD1bXSl7cmV0dXJuIGUmJiF0LmluY2x1ZGVzKGUpP2U6IiJ9ImZ1bmN0aW9uIj09dHlwZW9mIFN1cHByZXNzZWRFcnJvciYmU3VwcHJlc3NlZEVycm9yO2NvbnN0IHM9ZT0+e3ZhcntjbGllbnRJZDp0fT1lLHI9ZnVuY3Rpb24oZSx0KXt2YXIgcj17fTtmb3IodmFyIHMgaW4gZSlPYmplY3QucHJvdG90eXBlLmhhc093blByb3BlcnR5LmNhbGwoZSxzKSYmdC5pbmRleE9mKHMpPDAmJihyW3NdPWVbc10pO2lmKG51bGwhPWUmJiJmdW5jdGlvbiI9PXR5cGVvZiBPYmplY3QuZ2V0T3duUHJvcGVydHlTeW1ib2xzKXt2YXIgbz0wO2ZvcihzPU9iamVjdC5nZXRPd25Qcm9wZXJ0eVN5bWJvbHMoZSk7bzxzLmxlbmd0aDtvKyspdC5pbmRleE9mKHNbb10pPDAmJk9iamVjdC5wcm90b3R5cGUucHJvcGVydHlJc0VudW1lcmFibGUuY2FsbChlLHNbb10pJiYocltzW29dXT1lW3Nbb11dKX1yZXR1cm4gcn0oZSxbImNsaWVudElkIl0pO3JldHVybiBuZXcgVVJMU2VhcmNoUGFyYW1zKChlPT5PYmplY3Qua2V5cyhlKS5maWx0ZXIoKHQ9PnZvaWQgMCE9PWVbdF0pKS5yZWR1Y2UoKCh0LHIpPT5PYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30sdCkse1tyXTplW3JdfSkpLHt9KSkoT2JqZWN0LmFzc2lnbih7Y2xpZW50X2lkOnR9LHIpKSkudG9TdHJpbmcoKX07bGV0IG89e307Y29uc3Qgbj0oZSx0KT0+YCR7ZX18JHt0fWA7YWRkRXZlbnRMaXN0ZW5lcigibWVzc2FnZSIsKGFzeW5jKHtkYXRhOnt0aW1lb3V0OmUsYXV0aDpyLGZldGNoVXJsOmksZmV0Y2hPcHRpb25zOmMsdXNlRm9ybURhdGE6YX0scG9ydHM6W3BdfSk9PntsZXQgZjtjb25zdHthdWRpZW5jZTp1LHNjb3BlOmx9PXJ8fHt9O3RyeXtjb25zdCByPWE/KGU9Pntjb25zdCB0PW5ldyBVUkxTZWFyY2hQYXJhbXMoZSkscj17fTtyZXR1cm4gdC5mb3JFYWNoKCgoZSx0KT0+e3JbdF09ZX0pKSxyfSkoYy5ib2R5KTpKU09OLnBhcnNlKGMuYm9keSk7aWYoIXIucmVmcmVzaF90b2tlbiYmInJlZnJlc2hfdG9rZW4iPT09ci5ncmFudF90eXBlKXtjb25zdCBlPSgoZSx0KT0+b1tuKGUsdCldKSh1LGwpO2lmKCFlKXRocm93IG5ldyB0KHUsbCk7Yy5ib2R5PWE/cyhPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKTpKU09OLnN0cmluZ2lmeShPYmplY3QuYXNzaWduKE9iamVjdC5hc3NpZ24oe30scikse3JlZnJlc2hfdG9rZW46ZX0pKX1sZXQgaCxnOyJmdW5jdGlvbiI9PXR5cGVvZiBBYm9ydENvbnRyb2xsZXImJihoPW5ldyBBYm9ydENvbnRyb2xsZXIsYy5zaWduYWw9aC5zaWduYWwpO3RyeXtnPWF3YWl0IFByb21pc2UucmFjZShbKGQ9ZSxuZXcgUHJvbWlzZSgoZT0+c2V0VGltZW91dChlLGQpKSkpLGZldGNoKGksT2JqZWN0LmFzc2lnbih7fSxjKSldKX1jYXRjaChlKXtyZXR1cm4gdm9pZCBwLnBvc3RNZXNzYWdlKHtlcnJvcjplLm1lc3NhZ2V9KX1pZighZylyZXR1cm4gaCYmaC5hYm9ydCgpLHZvaWQgcC5wb3N0TWVzc2FnZSh7ZXJyb3I6IlRpbWVvdXQgd2hlbiBleGVjdXRpbmcgJ2ZldGNoJyJ9KTtmPWF3YWl0IGcuanNvbigpLGYucmVmcmVzaF90b2tlbj8oKChlLHQscik9PntvW24odCxyKV09ZX0pKGYucmVmcmVzaF90b2tlbix1LGwpLGRlbGV0ZSBmLnJlZnJlc2hfdG9rZW4pOigoZSx0KT0+e2RlbGV0ZSBvW24oZSx0KV19KSh1LGwpLHAucG9zdE1lc3NhZ2Uoe29rOmcub2ssanNvbjpmfSl9Y2F0Y2goZSl7cC5wb3N0TWVzc2FnZSh7b2s6ITEsanNvbjp7ZXJyb3I6ZS5lcnJvcixlcnJvcl9kZXNjcmlwdGlvbjplLm1lc3NhZ2V9fSl9dmFyIGR9KSl9KCk7Cgo=", Y = null, G = false, function(e13) {
+    return V = V || F(H, Y, G), new Worker(V, e13);
+  });
+  var A = {};
+  var B = class {
+    constructor(e13, t7) {
+      this.cache = e13, this.clientId = t7, this.manifestKey = this.createManifestKeyFrom(this.clientId);
+    }
+    async add(e13) {
+      var t7;
+      const i9 = new Set((null === (t7 = await this.cache.get(this.manifestKey)) || void 0 === t7 ? void 0 : t7.keys) || []);
+      i9.add(e13), await this.cache.set(this.manifestKey, { keys: [...i9] });
+    }
+    async remove(e13) {
+      const t7 = await this.cache.get(this.manifestKey);
+      if (t7) {
+        const i9 = new Set(t7.keys);
+        return i9.delete(e13), i9.size > 0 ? await this.cache.set(this.manifestKey, { keys: [...i9] }) : await this.cache.remove(this.manifestKey);
+      }
+    }
+    get() {
+      return this.cache.get(this.manifestKey);
+    }
+    clear() {
+      return this.cache.remove(this.manifestKey);
+    }
+    createManifestKeyFrom(e13) {
+      return `@@auth0spajs@@::${e13}`;
+    }
+  };
+  var $ = { memory: () => new P().enclosedCache, localstorage: () => new z2() };
+  var q = (e13) => $[e13];
+  var Q = (t7) => {
+    const { openUrl: i9, onRedirect: o11 } = t7, n9 = e(t7, ["openUrl", "onRedirect"]);
+    return Object.assign(Object.assign({}, n9), { openUrl: false === i9 || i9 ? i9 : o11 });
+  };
+  var ee = new a();
+  var te = class {
+    constructor(e13) {
+      let t7, i9;
+      if (this.userCache = new P().enclosedCache, this.defaultOptions = { authorizationParams: { scope: "openid profile email" }, useRefreshTokensFallback: false, useFormData: true }, this._releaseLockOnPageHide = async () => {
+        await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
+      }, this.options = Object.assign(Object.assign(Object.assign({}, this.defaultOptions), e13), { authorizationParams: Object.assign(Object.assign({}, this.defaultOptions.authorizationParams), e13.authorizationParams) }), "undefined" != typeof window && (() => {
+        if (!w()) throw new Error("For security reasons, `window.crypto` is required to run `auth0-spa-js`.");
+        if (void 0 === w().subtle) throw new Error("\n      auth0-spa-js must run on a secure origin. See https://github.com/auth0/auth0-spa-js/blob/main/FAQ.md#why-do-i-get-auth0-spa-js-must-run-on-a-secure-origin for more information.\n    ");
+      })(), e13.cache && e13.cacheLocation && console.warn("Both `cache` and `cacheLocation` options have been specified in the Auth0Client configuration; ignoring `cacheLocation` and using `cache`."), e13.cache) i9 = e13.cache;
+      else {
+        if (t7 = e13.cacheLocation || "memory", !q(t7)) throw new Error(`Invalid cache location "${t7}"`);
+        i9 = q(t7)();
+      }
+      this.httpTimeoutMs = e13.httpTimeoutInSeconds ? 1e3 * e13.httpTimeoutInSeconds : 1e4, this.cookieStorage = false === e13.legacySameSiteCookie ? X : N, this.orgHintCookieName = `auth0.${this.options.clientId}.organization_hint`, this.isAuthenticatedCookieName = ((e14) => `auth0.${e14}.is.authenticated`)(this.options.clientId), this.sessionCheckExpiryDays = e13.sessionCheckExpiryDays || 1;
+      const o11 = e13.useCookiesForTransactions ? this.cookieStorage : J;
+      var n9;
+      this.scope = j("openid", this.options.authorizationParams.scope, this.options.useRefreshTokens ? "offline_access" : ""), this.transactionManager = new Z(o11, this.options.clientId, this.options.cookieDomain), this.nowProvider = this.options.nowProvider || c, this.cacheManager = new x(i9, i9.allKeys ? void 0 : new B(i9, this.options.clientId), this.nowProvider), this.domainUrl = (n9 = this.options.domain, /^https?:\/\//.test(n9) ? n9 : `https://${n9}`), this.tokenIssuer = ((e14, t8) => e14 ? e14.startsWith("https://") ? e14 : `https://${e14}/` : `${t8}/`)(this.options.issuer, this.domainUrl), "undefined" != typeof window && window.Worker && this.options.useRefreshTokens && "memory" === t7 && (this.options.workerUrl ? this.worker = new Worker(this.options.workerUrl) : this.worker = new M());
+    }
+    _url(e13) {
+      const t7 = encodeURIComponent(btoa(JSON.stringify(this.options.auth0Client || s)));
+      return `${this.domainUrl}${e13}&auth0Client=${t7}`;
+    }
+    _authorizeUrl(e13) {
+      return this._url(`/authorize?${v(e13)}`);
+    }
+    async _verifyIdToken(e13, t7, i9) {
+      const o11 = await this.nowProvider();
+      return E({ iss: this.tokenIssuer, aud: this.options.clientId, id_token: e13, nonce: t7, organization: i9, leeway: this.options.leeway, max_age: (n9 = this.options.authorizationParams.max_age, "string" != typeof n9 ? n9 : parseInt(n9, 10) || void 0), now: o11 });
+      var n9;
+    }
+    _processOrgHint(e13) {
+      e13 ? this.cookieStorage.save(this.orgHintCookieName, e13, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }) : this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain });
+    }
+    async _prepareAuthorizeUrl(e13, t7, i9) {
+      const o11 = k(y()), n9 = k(y()), a5 = y(), r10 = ((e14) => {
+        const t8 = new Uint8Array(e14);
+        return ((e15) => {
+          const t9 = { "+": "-", "/": "_", "=": "" };
+          return e15.replace(/[+/=]/g, (e16) => t9[e16]);
+        })(window.btoa(String.fromCharCode(...Array.from(t8))));
+      })(await (async (e14) => {
+        const t8 = w().subtle.digest({ name: "SHA-256" }, new TextEncoder().encode(e14));
+        return await t8;
+      })(a5)), s5 = ((e14, t8, i10, o12, n10, a6, r11, s6) => Object.assign(Object.assign(Object.assign({ client_id: e14.clientId }, e14.authorizationParams), i10), { scope: j(t8, i10.scope), response_type: "code", response_mode: s6 || "query", state: o12, nonce: n10, redirect_uri: r11 || e14.authorizationParams.redirect_uri, code_challenge: a6, code_challenge_method: "S256" }))(this.options, this.scope, e13, o11, n9, r10, e13.redirect_uri || this.options.authorizationParams.redirect_uri || i9, null == t7 ? void 0 : t7.response_mode), c7 = this._authorizeUrl(s5);
+      return { nonce: n9, code_verifier: a5, scope: s5.scope, audience: s5.audience || "default", redirect_uri: s5.redirect_uri, state: o11, url: c7 };
+    }
+    async loginWithPopup(e13, t7) {
+      var i9;
+      if (e13 = e13 || {}, !(t7 = t7 || {}).popup && (t7.popup = ((e14) => {
+        const t8 = window.screenX + (window.innerWidth - 400) / 2, i10 = window.screenY + (window.innerHeight - 600) / 2;
+        return window.open(e14, "auth0:authorize:popup", `left=${t8},top=${i10},width=400,height=600,resizable,scrollbars=yes,status=1`);
+      })(""), !t7.popup)) throw new Error("Unable to open a popup for loginWithPopup - window.open returned `null`");
+      const o11 = await this._prepareAuthorizeUrl(e13.authorizationParams || {}, { response_mode: "web_message" }, window.location.origin);
+      t7.popup.location.href = o11.url;
+      const n9 = await ((e14) => new Promise((t8, i10) => {
+        let o12;
+        const n10 = setInterval(() => {
+          e14.popup && e14.popup.closed && (clearInterval(n10), clearTimeout(a6), window.removeEventListener("message", o12, false), i10(new p(e14.popup)));
+        }, 1e3), a6 = setTimeout(() => {
+          clearInterval(n10), i10(new h(e14.popup)), window.removeEventListener("message", o12, false);
+        }, 1e3 * (e14.timeoutInSeconds || 60));
+        o12 = function(r10) {
+          if (r10.data && "authorization_response" === r10.data.type) {
+            if (clearTimeout(a6), clearInterval(n10), window.removeEventListener("message", o12, false), e14.popup.close(), r10.data.response.error) return i10(d.fromPayload(r10.data.response));
+            t8(r10.data.response);
+          }
+        }, window.addEventListener("message", o12);
+      }))(Object.assign(Object.assign({}, t7), { timeoutInSeconds: t7.timeoutInSeconds || this.options.authorizeTimeoutInSeconds || 60 }));
+      if (o11.state !== n9.state) throw new d("state_mismatch", "Invalid state");
+      const a5 = (null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization;
+      await this._requestToken({ audience: o11.audience, scope: o11.scope, code_verifier: o11.code_verifier, grant_type: "authorization_code", code: n9.code, redirect_uri: o11.redirect_uri }, { nonceIn: o11.nonce, organization: a5 });
+    }
+    async getUser() {
+      var e13;
+      const t7 = await this._getIdTokenFromCache();
+      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.user;
+    }
+    async getIdTokenClaims() {
+      var e13;
+      const t7 = await this._getIdTokenFromCache();
+      return null === (e13 = null == t7 ? void 0 : t7.decodedToken) || void 0 === e13 ? void 0 : e13.claims;
+    }
+    async loginWithRedirect(t7 = {}) {
+      var i9;
+      const o11 = Q(t7), { openUrl: n9, fragment: a5, appState: r10 } = o11, s5 = e(o11, ["openUrl", "fragment", "appState"]), c7 = (null === (i9 = s5.authorizationParams) || void 0 === i9 ? void 0 : i9.organization) || this.options.authorizationParams.organization, d4 = await this._prepareAuthorizeUrl(s5.authorizationParams || {}), { url: u6 } = d4, l6 = e(d4, ["url"]);
+      this.transactionManager.create(Object.assign(Object.assign(Object.assign({}, l6), { appState: r10 }), c7 && { organization: c7 }));
+      const h6 = a5 ? `${u6}#${a5}` : u6;
+      n9 ? await n9(h6) : window.location.assign(h6);
+    }
+    async handleRedirectCallback(e13 = window.location.href) {
+      const t7 = e13.split("?").slice(1);
+      if (0 === t7.length) throw new Error("There are no query params available for parsing.");
+      const { state: i9, code: o11, error: n9, error_description: a5 } = ((e14) => {
+        e14.indexOf("#") > -1 && (e14 = e14.substring(0, e14.indexOf("#")));
+        const t8 = new URLSearchParams(e14);
+        return { state: t8.get("state"), code: t8.get("code") || void 0, error: t8.get("error") || void 0, error_description: t8.get("error_description") || void 0 };
+      })(t7.join("")), r10 = this.transactionManager.get();
+      if (!r10) throw new d("missing_transaction", "Invalid state");
+      if (this.transactionManager.remove(), n9) throw new u(n9, a5 || n9, i9, r10.appState);
+      if (!r10.code_verifier || r10.state && r10.state !== i9) throw new d("state_mismatch", "Invalid state");
+      const s5 = r10.organization, c7 = r10.nonce, l6 = r10.redirect_uri;
+      return await this._requestToken(Object.assign({ audience: r10.audience, scope: r10.scope, code_verifier: r10.code_verifier, grant_type: "authorization_code", code: o11 }, l6 ? { redirect_uri: l6 } : {}), { nonceIn: c7, organization: s5 }), { appState: r10.appState };
+    }
+    async checkSession(e13) {
+      if (!this.cookieStorage.get(this.isAuthenticatedCookieName)) {
+        if (!this.cookieStorage.get("auth0.is.authenticated")) return;
+        this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove("auth0.is.authenticated");
+      }
+      try {
+        await this.getTokenSilently(e13);
+      } catch (e14) {
+      }
+    }
+    async getTokenSilently(e13 = {}) {
+      var t7;
+      const i9 = Object.assign(Object.assign({ cacheMode: "on" }, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (t7 = e13.authorizationParams) || void 0 === t7 ? void 0 : t7.scope) }) }), o11 = await ((e14, t8) => {
+        let i10 = A[t8];
+        return i10 || (i10 = e14().finally(() => {
+          delete A[t8], i10 = null;
+        }), A[t8] = i10), i10;
+      })(() => this._getTokenSilently(i9), `${this.options.clientId}::${i9.authorizationParams.audience}::${i9.authorizationParams.scope}`);
+      return e13.detailedResponse ? o11 : null == o11 ? void 0 : o11.access_token;
+    }
+    async _getTokenSilently(t7) {
+      const { cacheMode: i9 } = t7, o11 = e(t7, ["cacheMode"]);
+      if ("off" !== i9) {
+        const e13 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
+        if (e13) return e13;
+      }
+      if ("cache-only" !== i9) {
+        if (!await (async (e13, t8 = 3) => {
+          for (let i10 = 0; i10 < t8; i10++) if (await e13()) return true;
+          return false;
+        })(() => ee.acquireLock("auth0.lock.getTokenSilently", 5e3), 10)) throw new l();
+        try {
+          if (window.addEventListener("pagehide", this._releaseLockOnPageHide), "off" !== i9) {
+            const e14 = await this._getEntryFromCache({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId });
+            if (e14) return e14;
+          }
+          const e13 = this.options.useRefreshTokens ? await this._getTokenUsingRefreshToken(o11) : await this._getTokenFromIFrame(o11), { id_token: t8, access_token: n9, oauthTokenScope: a5, expires_in: r10 } = e13;
+          return Object.assign(Object.assign({ id_token: t8, access_token: n9 }, a5 ? { scope: a5 } : null), { expires_in: r10 });
+        } finally {
+          await ee.releaseLock("auth0.lock.getTokenSilently"), window.removeEventListener("pagehide", this._releaseLockOnPageHide);
+        }
+      }
+    }
+    async getTokenWithPopup(e13 = {}, t7 = {}) {
+      var i9;
+      const o11 = Object.assign(Object.assign({}, e13), { authorizationParams: Object.assign(Object.assign(Object.assign({}, this.options.authorizationParams), e13.authorizationParams), { scope: j(this.scope, null === (i9 = e13.authorizationParams) || void 0 === i9 ? void 0 : i9.scope) }) });
+      t7 = Object.assign(Object.assign({}, r), t7), await this.loginWithPopup(o11, t7);
+      return (await this.cacheManager.get(new C({ scope: o11.authorizationParams.scope, audience: o11.authorizationParams.audience || "default", clientId: this.options.clientId }))).access_token;
+    }
+    async isAuthenticated() {
+      return !!await this.getUser();
+    }
+    _buildLogoutUrl(t7) {
+      null !== t7.clientId ? t7.clientId = t7.clientId || this.options.clientId : delete t7.clientId;
+      const i9 = t7.logoutParams || {}, { federated: o11 } = i9, n9 = e(i9, ["federated"]), a5 = o11 ? "&federated" : "";
+      return this._url(`/v2/logout?${v(Object.assign({ clientId: t7.clientId }, n9))}`) + a5;
+    }
+    async logout(t7 = {}) {
+      const i9 = Q(t7), { openUrl: o11 } = i9, n9 = e(i9, ["openUrl"]);
+      null === t7.clientId ? await this.cacheManager.clear() : await this.cacheManager.clear(t7.clientId || this.options.clientId), this.cookieStorage.remove(this.orgHintCookieName, { cookieDomain: this.options.cookieDomain }), this.cookieStorage.remove(this.isAuthenticatedCookieName, { cookieDomain: this.options.cookieDomain }), this.userCache.remove("@@user@@");
+      const a5 = this._buildLogoutUrl(n9);
+      o11 ? await o11(a5) : false !== o11 && window.location.assign(a5);
+    }
+    async _getTokenFromIFrame(e13) {
+      const t7 = Object.assign(Object.assign({}, e13.authorizationParams), { prompt: "none" }), i9 = this.cookieStorage.get(this.orgHintCookieName);
+      i9 && !t7.organization && (t7.organization = i9);
+      const { url: o11, state: n9, nonce: a5, code_verifier: r10, redirect_uri: s5, scope: c7, audience: u6 } = await this._prepareAuthorizeUrl(t7, { response_mode: "web_message" }, window.location.origin);
+      try {
+        if (window.crossOriginIsolated) throw new d("login_required", "The application is running in a Cross-Origin Isolated context, silently retrieving a token without refresh token is not possible.");
+        const i10 = e13.timeoutInSeconds || this.options.authorizeTimeoutInSeconds, h6 = await ((e14, t8, i11 = 60) => new Promise((o12, n10) => {
+          const a6 = window.document.createElement("iframe");
+          a6.setAttribute("width", "0"), a6.setAttribute("height", "0"), a6.style.display = "none";
+          const r11 = () => {
+            window.document.body.contains(a6) && (window.document.body.removeChild(a6), window.removeEventListener("message", s6, false));
+          };
+          let s6;
+          const c8 = setTimeout(() => {
+            n10(new l()), r11();
+          }, 1e3 * i11);
+          s6 = function(e15) {
+            if (e15.origin != t8) return;
+            if (!e15.data || "authorization_response" !== e15.data.type) return;
+            const i12 = e15.source;
+            i12 && i12.close(), e15.data.response.error ? n10(d.fromPayload(e15.data.response)) : o12(e15.data.response), clearTimeout(c8), window.removeEventListener("message", s6, false), setTimeout(r11, 2e3);
+          }, window.addEventListener("message", s6, false), window.document.body.appendChild(a6), a6.setAttribute("src", e14);
+        }))(o11, this.domainUrl, i10);
+        if (n9 !== h6.state) throw new d("state_mismatch", "Invalid state");
+        const p4 = await this._requestToken(Object.assign(Object.assign({}, e13.authorizationParams), { code_verifier: r10, code: h6.code, grant_type: "authorization_code", redirect_uri: s5, timeout: e13.authorizationParams.timeout || this.httpTimeoutMs }), { nonceIn: a5, organization: t7.organization });
+        return Object.assign(Object.assign({}, p4), { scope: c7, oauthTokenScope: p4.scope, audience: u6 });
+      } catch (e14) {
+        throw "login_required" === e14.error && this.logout({ openUrl: false }), e14;
+      }
+    }
+    async _getTokenUsingRefreshToken(e13) {
+      const t7 = await this.cacheManager.get(new C({ scope: e13.authorizationParams.scope, audience: e13.authorizationParams.audience || "default", clientId: this.options.clientId }));
+      if (!(t7 && t7.refresh_token || this.worker)) {
+        if (this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
+        throw new f2(e13.authorizationParams.audience || "default", e13.authorizationParams.scope);
+      }
+      const i9 = e13.authorizationParams.redirect_uri || this.options.authorizationParams.redirect_uri || window.location.origin, o11 = "number" == typeof e13.timeoutInSeconds ? 1e3 * e13.timeoutInSeconds : null;
+      try {
+        const n9 = await this._requestToken(Object.assign(Object.assign(Object.assign({}, e13.authorizationParams), { grant_type: "refresh_token", refresh_token: t7 && t7.refresh_token, redirect_uri: i9 }), o11 && { timeout: o11 }));
+        return Object.assign(Object.assign({}, n9), { scope: e13.authorizationParams.scope, oauthTokenScope: n9.scope, audience: e13.authorizationParams.audience || "default" });
+      } catch (t8) {
+        if ((t8.message.indexOf("Missing Refresh Token") > -1 || t8.message && t8.message.indexOf("invalid refresh token") > -1) && this.options.useRefreshTokensFallback) return await this._getTokenFromIFrame(e13);
+        throw t8;
+      }
+    }
+    async _saveEntryInCache(t7) {
+      const { id_token: i9, decodedToken: o11 } = t7, n9 = e(t7, ["id_token", "decodedToken"]);
+      this.userCache.set("@@user@@", { id_token: i9, decodedToken: o11 }), await this.cacheManager.setIdToken(this.options.clientId, t7.id_token, t7.decodedToken), await this.cacheManager.set(n9);
+    }
+    async _getIdTokenFromCache() {
+      const e13 = this.options.authorizationParams.audience || "default", t7 = await this.cacheManager.getIdToken(new C({ clientId: this.options.clientId, audience: e13, scope: this.scope })), i9 = this.userCache.get("@@user@@");
+      return t7 && t7.id_token === (null == i9 ? void 0 : i9.id_token) ? i9 : (this.userCache.set("@@user@@", t7), t7);
+    }
+    async _getEntryFromCache({ scope: e13, audience: t7, clientId: i9 }) {
+      const o11 = await this.cacheManager.get(new C({ scope: e13, audience: t7, clientId: i9 }), 60);
+      if (o11 && o11.access_token) {
+        const { access_token: e14, oauthTokenScope: t8, expires_in: i10 } = o11, n9 = await this._getIdTokenFromCache();
+        return n9 && Object.assign(Object.assign({ id_token: n9.id_token, access_token: e14 }, t8 ? { scope: t8 } : null), { expires_in: i10 });
+      }
+    }
+    async _requestToken(e13, t7) {
+      const { nonceIn: i9, organization: o11 } = t7 || {}, n9 = await T(Object.assign({ baseUrl: this.domainUrl, client_id: this.options.clientId, auth0Client: this.options.auth0Client, useFormData: this.options.useFormData, timeout: this.httpTimeoutMs }, e13), this.worker), a5 = await this._verifyIdToken(n9.id_token, i9, o11);
+      return await this._saveEntryInCache(Object.assign(Object.assign(Object.assign(Object.assign({}, n9), { decodedToken: a5, scope: e13.scope, audience: e13.audience || "default" }), n9.scope ? { oauthTokenScope: n9.scope } : null), { client_id: this.options.clientId })), this.cookieStorage.save(this.isAuthenticatedCookieName, true, { daysUntilExpire: this.sessionCheckExpiryDays, cookieDomain: this.options.cookieDomain }), this._processOrgHint(o11 || a5.claims.org_id), Object.assign(Object.assign({}, n9), { decodedToken: a5 });
+    }
+  };
+  async function oe(e13) {
+    const t7 = new te(e13);
+    return await t7.checkSession(), t7;
+  }
+
+  // src/domains/authentication/infrastructure/Auth0Adapter.ts
+  var Auth0Adapter = class {
+    config;
+    client;
+    constructor(config) {
+      this.config = config;
+      Object.freeze(this.config);
+    }
+    async initialize() {
+      const { domain, clientId, authorizationParams } = this.config;
+      this.client = await oe({
+        domain,
+        clientId,
+        authorizationParams
+      });
+      if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
+        try {
+          const result = await this.client.handleRedirectCallback();
+          console.log({ result });
+        } catch (err) {
+          const { error, error_description } = err;
+          console.error("Error handling redirect callback:", {
+            error,
+            error_description
+          });
+        }
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+    async login() {
+      console.log("login");
+      return await this.client.loginWithRedirect();
+    }
+    async logout() {
+      this.client.logout({
+        openUrl(url) {
+          window.location.replace(url);
+        }
+      });
+    }
+    async isAuthenticated() {
+      return await this.client.isAuthenticated();
+    }
+    async getAuthData() {
+      const res = await this.client.isAuthenticated() ? await this.client.getIdTokenClaims() : void 0;
+      return res;
+    }
+    async getAccessToken() {
+      return await this.client.getTokenSilently();
+    }
+  };
+
+  // src/domains/authentication/createAuthenticationAdaper.ts
+  var createAuthenticationAdaper = async (auth0COnfig) => {
+    const instance = new Auth0Adapter(auth0COnfig);
+    await instance.initialize();
+    return instance;
+  };
+
+  // src/solid-js/application/withReactiveState.ts
+  var withReactiveState = (instance) => {
+    if (!(instance instanceof _State)) {
+      throw new Error("Passed instanc must extend `_State`");
+    }
+    const [state, setState] = createSignal(instance.state());
+    const originalSetState = instance.setState.bind(instance);
+    instance.setState = (value) => {
+      originalSetState(value);
+      setState(instance.state());
+    };
+    const proxy = new Proxy(instance, {
+      get(target, prop) {
+        if (prop === "state") {
+          return state;
+        }
+        return target[prop];
+      },
+      set(target, prop, value) {
+        if (prop === "state" || prop === "setState") {
+          throw new Error(`Cannot overwrite ${String(prop)}.`);
+        }
+        target[prop] = value;
+        return true;
+      }
+    });
+    return proxy;
   };
 
   // src/shared/models/ExposeDataAsSchemaProps.ts
@@ -16998,10 +17007,10 @@
   }
 
   // src/domains/directory/Tag.ts
-  var TagSchema = z2.object({
-    key: z2.string(),
-    name: z2.string(),
-    usageCount: z2.number()
+  var TagSchema = z.object({
+    key: z.string(),
+    name: z.string(),
+    usageCount: z.number()
   });
   var Tag = class {
     data;
@@ -17018,21 +17027,21 @@
   ], Tag);
 
   // src/domains/directory/Listing.ts
-  var ListingSchema = z2.object({
-    isActive: z2.boolean(),
-    title: z2.string(),
-    description: z2.string(),
-    address: z2.string(),
-    muncipiality: z2.string(),
-    zip: z2.string().regex(/^\d{4}$/),
-    phone: z2.string(),
-    email: z2.string().email(),
-    links: z2.array(
-      z2.object({
-        href: z2.string()
+  var ListingSchema = z.object({
+    isActive: z.boolean(),
+    title: z.string(),
+    description: z.string(),
+    address: z.string(),
+    muncipiality: z.string(),
+    zip: z.string().regex(/^\d{4}$/),
+    phone: z.string(),
+    email: z.string().email(),
+    links: z.array(
+      z.object({
+        href: z.string()
       })
     ),
-    tags: z2.array(TagSchema.omit({ usageCount: true }))
+    tags: z.array(TagSchema.omit({ usageCount: true }))
   });
   var Listing = class {
     data;
@@ -17049,9 +17058,9 @@
   ], Listing);
 
   // src/domains/directory/IndexLetter.ts
-  var IndexLetterSchema = z2.object({
-    letter: z2.string().length(1),
-    count: z2.number()
+  var IndexLetterSchema = z.object({
+    letter: z.string().length(1),
+    count: z.number()
   });
   var IndexLetter = class {
     data;
@@ -17098,7 +17107,9 @@
 
   // src/solid-js/application/createDirectoryServiceAdaper.ts
   var createDirectoryServiceAdapter = async (db) => {
-    const filters = withReactiveState(Filters.from({ indexLetter: "s" }));
+    const filters = withReactiveState(Filters.from({
+      tagsMatchType: "ANY" /* ANY */
+    }));
     const instance = new DirectoryService(db);
     const [tags] = createResource(() => instance.loadTags());
     const [indexLetters] = createResource(() => instance.loadIndexLetters());
@@ -17625,35 +17636,31 @@
           });
         },
         get children() {
-          return listings()?.map(({
-            title,
-            description,
-            links,
-            tags,
-            ...contact
-          }) => (() => {
+          return listings()?.map((listing) => (() => {
             var _el$4 = _tmpl$32(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
             _el$4._$owner = getOwner();
-            insert(_el$6, title);
+            insert(_el$6, () => listing.title);
             insert(_el$7, createComponent(IconLabel, {
               label: "beskrivelse",
               icon: "info-circle",
-              children: description
+              get children() {
+                return listing.description;
+              }
             }));
             insert(_el$8, createComponent(Phone, {
               get phoneNumber() {
-                return contact.phone;
+                return listing.phone;
               }
             }));
-            insert(_el$11, createComponent(Address, contact));
-            insert(_el$12, () => links.map((link) => (() => {
+            insert(_el$11, createComponent(Address, listing));
+            insert(_el$12, () => listing.links.map((link) => (() => {
               var _el$14 = _tmpl$42(), _el$15 = _el$14.firstChild;
               insert(_el$14, createComponent(WebLink, {
                 link
               }), _el$15);
               return _el$14;
             })()));
-            insert(_el$13, () => tags.map((tag) => (() => {
+            insert(_el$13, () => listing.tags.map((tag) => (() => {
               var _el$16 = _tmpl$52();
               addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
               _el$16.style.setProperty("cursor", "pointer");

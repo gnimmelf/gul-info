@@ -29,23 +29,18 @@ const SystemContext = createContext<TSystemContext>();
 export const CoreProvider: Component<{
   children: JSXElement;
 }> = (props) => {
-  const [resolved, setResolved] = createSignal<TSystemContext | undefined>();
-
-  createEffect(async () => {
+  const initialize = async () => {
     const configs = await createConfigsServiceAdaper(
       'https://intergate.io/configs/gul-info-hurdal',
     );
     const db = await createDatabaseAdapter(configs.surreal);
-    setResolved({
+    return {
       configs: () => configs,
       db: () => db,
-    });
-  });
+    };
+  };
 
-  const [system] = createResource(
-    () => resolved(),
-    (resolved) => resolved,
-  );
+  const [system] = createResource(initialize);
 
   return (
     <Show when={system()}>

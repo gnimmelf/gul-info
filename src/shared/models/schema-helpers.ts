@@ -1,7 +1,7 @@
 import { Setter } from 'solid-js';
 import { z, ZodSchema } from 'zod';
 
-// TODO! Move parts of this to core definitions
+// TODO! Move parts of this to new core models
 
 const reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
 const rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);

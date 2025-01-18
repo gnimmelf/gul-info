@@ -1,7 +1,7 @@
 import Surreal from 'surrealdb';
 import { UserSchemaType } from '~/domains/account/User';
 import { IDatabase } from '~/domains/database/IDatabase';
-import { TFilterState } from '~/domains/directory/Filters';
+import { TFilterState, TagsMatchType } from '~/domains/directory/Filters';
 import { IndexLetterSchemaType } from '~/domains/directory/IndexLetter';
 import { ListingSchemaType } from '~/domains/directory/Listing';
 import { TagSchemaType } from '~/domains/directory/Tag';
@@ -79,7 +79,12 @@ export class SurrealDbAdapter implements IDatabase {
 
     if (filters?.tagKeys?.length) {
       const tagstr = filters.tagKeys.map((key) => key).join("', '");
-      conditions.push(`tags[WHERE key ALLINSIDE ['${tagstr}']]`);
+      if (filters.tagsMatchType === TagsMatchType.ALL) {
+        conditions.push(`array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`);
+      }
+      else {
+        conditions.push(`tags[WHERE key IN ['${tagstr}']];`)
+      }
     }
 
     if (conditions.length) {
