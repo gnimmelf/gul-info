@@ -2,9 +2,10 @@ import { createSignal } from 'solid-js';
 import { _State } from '~/shared/application/_State';
 
 /**
- * wraps `state()` and setState()` as a signal.
+ * Wraps `instance.state()` and `instance.setState()` with a reactive signal().
+ * TODO! Is a store better?
  * @param instance instance that implements `state()` and setState()`
- * @returns
+ * @returns instance proxy
  */
 export const withReactiveState = <TInstance extends _State<TState>, TState>(
   instance: TInstance,
@@ -14,21 +15,22 @@ export const withReactiveState = <TInstance extends _State<TState>, TState>(
   }
 
   // `createSignal` for SolidJs, `useState` for React. Vue?
-  const [state, setState] = createSignal(instance.state());
+  const [state, setState] = createSignal<TState>(instance.state());
 
   // Wrap the instance's setState method to propagate changes to the reactive system
   const originalSetState = instance.setState.bind(instance);
-
-  instance.setState = (value) => {
-    originalSetState(value); // Update the instance's internal state
-    //@ts-expect-error
-    setState(instance.state()); // Sync the reactive state with the updated instance state
-  };
 
   const proxy = new Proxy(instance, {
     get(target, prop) {
       if (prop === 'state') {
         return state;
+      }
+      if (prop === "setState" && typeof originalSetState === "function") {
+        return (value: Partial<TState> | ((prev: TState) => TState)) => {
+          originalSetState(value);
+          //@ts-expect-error
+          setState(instance.state());
+        };
       }
       // Delegate to the original target for other properties
       return (target as any)[prop];

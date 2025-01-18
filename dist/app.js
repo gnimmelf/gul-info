@@ -16960,14 +16960,16 @@
     }
     const [state, setState] = createSignal(instance.state());
     const originalSetState = instance.setState.bind(instance);
-    instance.setState = (value) => {
-      originalSetState(value);
-      setState(instance.state());
-    };
     const proxy = new Proxy(instance, {
       get(target, prop) {
         if (prop === "state") {
           return state;
+        }
+        if (prop === "setState" && typeof originalSetState === "function") {
+          return (value) => {
+            originalSetState(value);
+            setState(instance.state());
+          };
         }
         return target[prop];
       },
@@ -17100,7 +17102,7 @@
     }
   };
 
-  // src/solid-js/application/ensureAdapterShape.ts
+  // src/solid-js/application/checkAdapterReturnType.ts
   var checkAdapterReturnType = (config) => {
     return config;
   };
