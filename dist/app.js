@@ -17555,7 +17555,7 @@
   delegateEvents(["click"]);
 
   // src/solid-js/ui/components/ListingsFilters.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<section><div></div><div></div><div><sl-switch>`, true, false);
+  var _tmpl$8 = /* @__PURE__ */ template(`<section><div></div><div><sl-switch>:</sl-switch></div><div>`, true, false);
   var css5 = styler.css({
     section: ({
       theme
@@ -17588,7 +17588,7 @@
     };
     createEffect(() => console.log(filters()));
     return (() => {
-      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild;
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$3.nextSibling;
       insert(_el$2, () => indexLetters()?.map(({
         letter,
         count
@@ -17603,7 +17603,11 @@
         },
         onClick: () => filters()?.setIndexLetter(letter)
       })));
-      insert(_el$3, () => tags()?.map((tag) => createComponent(BadgeButton, {
+      addEventListener(_el$4, "click", () => toggleTagMatchType());
+      _el$4.size = "small";
+      _el$4._$owner = getOwner();
+      insert(_el$4, () => isTagMatchTypeAll() ? "M\xE5 match alle valgte tagger" : "Match p\xE5 minst \xE9n av valgte tager", _el$5);
+      insert(_el$6, () => tags()?.map((tag) => createComponent(BadgeButton, {
         size: "small",
         get isActive() {
           return !!filters()?.hasTag(tag.key);
@@ -17619,18 +17623,14 @@
         },
         onClick: () => filters()?.setTag(tag.key, true)
       })));
-      addEventListener(_el$5, "click", () => toggleTagMatchType());
-      _el$5.size = "small";
-      _el$5._$owner = getOwner();
-      insert(_el$5, () => isTagMatchTypeAll() ? "Match p\xE5 alle valgte tagger" : "Match p\xE5 minst \xE9n av valgte tager");
       insert(_el$, () => props.children, null);
       createRenderEffect((_p$) => {
-        var _v$ = css5.section, _v$2 = css5.filter, _v$3 = css5.filter, _v$4 = isTagMatchTypeAll(), _v$5 = isLoading();
+        var _v$ = css5.section, _v$2 = css5.filter, _v$3 = isTagMatchTypeAll(), _v$4 = isLoading(), _v$5 = css5.filter;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$3, _p$.a = _v$3);
-        _v$4 !== _p$.o && (_el$5.checked = _p$.o = _v$4);
-        _v$5 !== _p$.i && (_el$5.disabled = _p$.i = _v$5);
+        _v$3 !== _p$.a && (_el$4.checked = _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$4.disabled = _p$.o = _v$4);
+        _v$5 !== _p$.i && className(_el$6, _p$.i = _v$5);
         return _p$;
       }, {
         e: void 0,
@@ -17694,7 +17694,7 @@
       directory
     } = useService();
     const [hitCount, setHitCount] = createSignal(0);
-    const filters = () => directory()?.filters;
+    const filters = () => directory()?.filters();
     const listings = () => {
       const res = directory()?.resources.listings();
       setHitCount(res?.length || 0);

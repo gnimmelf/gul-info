@@ -60,5 +60,3 @@ export class Filters extends _State<TFilterState> {
     return this.state().tagKeys.includes(tagKey);
   }
 }
-
-export interface Filters extends TFilterState {}

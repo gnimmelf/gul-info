@@ -57,7 +57,7 @@ export const PageListings: Component = () => {
 
   const [hitCount, setHitCount] = createSignal(0);
 
-  const filters = () => directory()?.filters;
+  const filters = () => directory()?.filters();
   const listings = () => {
     const res = directory()?.resources.listings();
     setHitCount(res?.length || 0);

@@ -1,4 +1,4 @@
-export class _State<TState> {
+export abstract class _State<TState> {
   private _state: TState;
 
   constructor(initialState: Partial<TState>) {
