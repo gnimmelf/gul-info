@@ -3,7 +3,11 @@ import { Component, createEffect, createMemo, JSXElement } from 'solid-js';
 import { styler } from '~/shared/lib/styler';
 
 import { BadgeButton } from './BadgeButton';
-import { Filters, TFilterState } from '~/domains/directory/Filters';
+import {
+  Filters,
+  TagsMatchType,
+  TFilterState,
+} from '~/domains/directory/Filters';
 import { useService } from '../providers/ServiceProvider';
 
 const css = styler.css({
@@ -30,11 +34,18 @@ export const ListingsFilters: Component<{
   const indexLetters = () => directory()?.resources.indexLetters();
   const isLoading = () => directory()?.resources.listings.loading;
 
+  const isTagMatchTypeAll = () =>
+    filters()?.state().tagsMatchType === TagsMatchType.ALL;
+
+  const toggleTagMatchType = () => {
+    const next = isTagMatchTypeAll() ? TagsMatchType.ANY : TagsMatchType.ALL;
+    filters()?.setTagsMatchType(next);
+  };
+
   createEffect(() => console.log(filters()));
 
   return (
     <section class={css.section}>
-      <div>Filter {filters()?.state().indexLetter}</div>
       <div class={css.filter}>
         {indexLetters()?.map(({ letter, count }) => (
           <BadgeButton
@@ -58,6 +69,16 @@ export const ListingsFilters: Component<{
             onClick={() => filters()?.setTag(tag.key, true)}
           />
         ))}
+      </div>
+      <div>
+        <sl-switch
+          prop:size="small"
+          prop:checked={isTagMatchTypeAll()}
+          prop:disabled={isLoading()}
+          on:click={() => toggleTagMatchType()}
+        >
+          {isTagMatchTypeAll() ? 'Match på alle valgte tagger' : 'Match på minst én av valgte tager'}
+        </sl-switch>
       </div>
       {props.children}
     </section>

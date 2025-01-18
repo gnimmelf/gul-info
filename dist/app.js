@@ -15740,6 +15740,9 @@
       );
       this.setState({ tagKeys: next });
     }
+    setTagsMatchType(matchType) {
+      this.setState({ tagsMatchType: matchType });
+    }
     isActiveIndexLetter(letter) {
       return this.state().indexLetter === letter.toLocaleLowerCase();
     }
@@ -17552,7 +17555,7 @@
   delegateEvents(["click"]);
 
   // src/solid-js/ui/components/ListingsFilters.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<section><div>Filter </div><div></div><div>`);
+  var _tmpl$8 = /* @__PURE__ */ template(`<section><div></div><div></div><div><sl-switch>`, true, false);
   var css5 = styler.css({
     section: ({
       theme
@@ -17578,11 +17581,15 @@
     const tags = () => directory()?.resources.tags();
     const indexLetters = () => directory()?.resources.indexLetters();
     const isLoading = () => directory()?.resources.listings.loading;
+    const isTagMatchTypeAll = () => filters()?.state().tagsMatchType === "ALL" /* ALL */;
+    const toggleTagMatchType = () => {
+      const next = isTagMatchTypeAll() ? "ANY" /* ANY */ : "ALL" /* ALL */;
+      filters()?.setTagsMatchType(next);
+    };
     createEffect(() => console.log(filters()));
     return (() => {
-      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.nextSibling;
-      insert(_el$2, () => filters()?.state().indexLetter, null);
-      insert(_el$4, () => indexLetters()?.map(({
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild;
+      insert(_el$2, () => indexLetters()?.map(({
         letter,
         count
       }) => createComponent(BadgeButton, {
@@ -17596,7 +17603,7 @@
         },
         onClick: () => filters()?.setIndexLetter(letter)
       })));
-      insert(_el$5, () => tags()?.map((tag) => createComponent(BadgeButton, {
+      insert(_el$3, () => tags()?.map((tag) => createComponent(BadgeButton, {
         size: "small",
         get isActive() {
           return !!filters()?.hasTag(tag.key);
@@ -17612,17 +17619,25 @@
         },
         onClick: () => filters()?.setTag(tag.key, true)
       })));
+      addEventListener(_el$5, "click", () => toggleTagMatchType());
+      _el$5.size = "small";
+      _el$5._$owner = getOwner();
+      insert(_el$5, () => isTagMatchTypeAll() ? "Match p\xE5 alle valgte tagger" : "Match p\xE5 minst \xE9n av valgte tager");
       insert(_el$, () => props.children, null);
       createRenderEffect((_p$) => {
-        var _v$ = css5.section, _v$2 = css5.filter, _v$3 = css5.filter;
+        var _v$ = css5.section, _v$2 = css5.filter, _v$3 = css5.filter, _v$4 = isTagMatchTypeAll(), _v$5 = isLoading();
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$4, _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$5, _p$.a = _v$3);
+        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$3, _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$5.checked = _p$.o = _v$4);
+        _v$5 !== _p$.i && (_el$5.disabled = _p$.i = _v$5);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
-        a: void 0
+        a: void 0,
+        o: void 0,
+        i: void 0
       });
       return _el$;
     })();
@@ -17846,7 +17861,7 @@
   var _tmpl$11 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
   var _tmpl$26 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
-    const [selectedPage, setSelectedPage] = createSignal("PAGE_ACCOUNT" /* ACCOUNT */);
+    const [selectedPage, setSelectedPage] = createSignal("PAGE_LISTINGS" /* LISTINGS */);
     return [_tmpl$11(), (() => {
       var _el$2 = _tmpl$26();
       insert(_el$2, () => styler.resolveGlobals(), null);
@@ -25303,6 +25318,388 @@
 
   // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.RNJRBJGZ.js
   SlBadge.define("sl-badge");
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.EU44RQUN.js
+  var switch_styles_default = i2`
+  :host {
+    display: inline-block;
+  }
+
+  :host([size='small']) {
+    --height: var(--sl-toggle-size-small);
+    --thumb-size: calc(var(--sl-toggle-size-small) + 4px);
+    --width: calc(var(--height) * 2);
+
+    font-size: var(--sl-input-font-size-small);
+  }
+
+  :host([size='medium']) {
+    --height: var(--sl-toggle-size-medium);
+    --thumb-size: calc(var(--sl-toggle-size-medium) + 4px);
+    --width: calc(var(--height) * 2);
+
+    font-size: var(--sl-input-font-size-medium);
+  }
+
+  :host([size='large']) {
+    --height: var(--sl-toggle-size-large);
+    --thumb-size: calc(var(--sl-toggle-size-large) + 4px);
+    --width: calc(var(--height) * 2);
+
+    font-size: var(--sl-input-font-size-large);
+  }
+
+  .switch {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    font-family: var(--sl-input-font-family);
+    font-size: inherit;
+    font-weight: var(--sl-input-font-weight);
+    color: var(--sl-input-label-color);
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  .switch__control {
+    flex: 0 0 auto;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--width);
+    height: var(--height);
+    background-color: var(--sl-color-neutral-400);
+    border: solid var(--sl-input-border-width) var(--sl-color-neutral-400);
+    border-radius: var(--height);
+    transition:
+      var(--sl-transition-fast) border-color,
+      var(--sl-transition-fast) background-color;
+  }
+
+  .switch__control .switch__thumb {
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    background-color: var(--sl-color-neutral-0);
+    border-radius: 50%;
+    border: solid var(--sl-input-border-width) var(--sl-color-neutral-400);
+    translate: calc((var(--width) - var(--height)) / -2);
+    transition:
+      var(--sl-transition-fast) translate ease,
+      var(--sl-transition-fast) background-color,
+      var(--sl-transition-fast) border-color,
+      var(--sl-transition-fast) box-shadow;
+  }
+
+  .switch__input {
+    position: absolute;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  /* Hover */
+  .switch:not(.switch--checked):not(.switch--disabled) .switch__control:hover {
+    background-color: var(--sl-color-neutral-400);
+    border-color: var(--sl-color-neutral-400);
+  }
+
+  .switch:not(.switch--checked):not(.switch--disabled) .switch__control:hover .switch__thumb {
+    background-color: var(--sl-color-neutral-0);
+    border-color: var(--sl-color-neutral-400);
+  }
+
+  /* Focus */
+  .switch:not(.switch--checked):not(.switch--disabled) .switch__input:focus-visible ~ .switch__control {
+    background-color: var(--sl-color-neutral-400);
+    border-color: var(--sl-color-neutral-400);
+  }
+
+  .switch:not(.switch--checked):not(.switch--disabled) .switch__input:focus-visible ~ .switch__control .switch__thumb {
+    background-color: var(--sl-color-neutral-0);
+    border-color: var(--sl-color-primary-600);
+    outline: var(--sl-focus-ring);
+    outline-offset: var(--sl-focus-ring-offset);
+  }
+
+  /* Checked */
+  .switch--checked .switch__control {
+    background-color: var(--sl-color-primary-600);
+    border-color: var(--sl-color-primary-600);
+  }
+
+  .switch--checked .switch__control .switch__thumb {
+    background-color: var(--sl-color-neutral-0);
+    border-color: var(--sl-color-primary-600);
+    translate: calc((var(--width) - var(--height)) / 2);
+  }
+
+  /* Checked + hover */
+  .switch.switch--checked:not(.switch--disabled) .switch__control:hover {
+    background-color: var(--sl-color-primary-600);
+    border-color: var(--sl-color-primary-600);
+  }
+
+  .switch.switch--checked:not(.switch--disabled) .switch__control:hover .switch__thumb {
+    background-color: var(--sl-color-neutral-0);
+    border-color: var(--sl-color-primary-600);
+  }
+
+  /* Checked + focus */
+  .switch.switch--checked:not(.switch--disabled) .switch__input:focus-visible ~ .switch__control {
+    background-color: var(--sl-color-primary-600);
+    border-color: var(--sl-color-primary-600);
+  }
+
+  .switch.switch--checked:not(.switch--disabled) .switch__input:focus-visible ~ .switch__control .switch__thumb {
+    background-color: var(--sl-color-neutral-0);
+    border-color: var(--sl-color-primary-600);
+    outline: var(--sl-focus-ring);
+    outline-offset: var(--sl-focus-ring-offset);
+  }
+
+  /* Disabled */
+  .switch--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .switch__label {
+    display: inline-block;
+    line-height: var(--height);
+    margin-inline-start: 0.5em;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  :host([required]) .switch__label::after {
+    content: var(--sl-input-required-content);
+    color: var(--sl-input-required-content-color);
+    margin-inline-start: var(--sl-input-required-content-offset);
+  }
+
+  @media (forced-colors: active) {
+    .switch.switch--checked:not(.switch--disabled) .switch__control:hover .switch__thumb,
+    .switch--checked .switch__control .switch__thumb {
+      background-color: ButtonText;
+    }
+  }
+`;
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.HGGN4WX3.js
+  var SlSwitch = class extends ShoelaceElement {
+    constructor() {
+      super(...arguments);
+      this.formControlController = new FormControlController(this, {
+        value: (control) => control.checked ? control.value || "on" : void 0,
+        defaultValue: (control) => control.defaultChecked,
+        setValue: (control, checked) => control.checked = checked
+      });
+      this.hasSlotController = new HasSlotController(this, "help-text");
+      this.hasFocus = false;
+      this.title = "";
+      this.name = "";
+      this.size = "medium";
+      this.disabled = false;
+      this.checked = false;
+      this.defaultChecked = false;
+      this.form = "";
+      this.required = false;
+      this.helpText = "";
+    }
+    /** Gets the validity state object */
+    get validity() {
+      return this.input.validity;
+    }
+    /** Gets the validation message */
+    get validationMessage() {
+      return this.input.validationMessage;
+    }
+    firstUpdated() {
+      this.formControlController.updateValidity();
+    }
+    handleBlur() {
+      this.hasFocus = false;
+      this.emit("sl-blur");
+    }
+    handleInput() {
+      this.emit("sl-input");
+    }
+    handleInvalid(event) {
+      this.formControlController.setValidity(false);
+      this.formControlController.emitInvalidEvent(event);
+    }
+    handleClick() {
+      this.checked = !this.checked;
+      this.emit("sl-change");
+    }
+    handleFocus() {
+      this.hasFocus = true;
+      this.emit("sl-focus");
+    }
+    handleKeyDown(event) {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        this.checked = false;
+        this.emit("sl-change");
+        this.emit("sl-input");
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        this.checked = true;
+        this.emit("sl-change");
+        this.emit("sl-input");
+      }
+    }
+    handleCheckedChange() {
+      this.input.checked = this.checked;
+      this.formControlController.updateValidity();
+    }
+    handleDisabledChange() {
+      this.formControlController.setValidity(true);
+    }
+    /** Simulates a click on the switch. */
+    click() {
+      this.input.click();
+    }
+    /** Sets focus on the switch. */
+    focus(options) {
+      this.input.focus(options);
+    }
+    /** Removes focus from the switch. */
+    blur() {
+      this.input.blur();
+    }
+    /** Checks for validity but does not show a validation message. Returns `true` when valid and `false` when invalid. */
+    checkValidity() {
+      return this.input.checkValidity();
+    }
+    /** Gets the associated form, if one exists. */
+    getForm() {
+      return this.formControlController.getForm();
+    }
+    /** Checks for validity and shows the browser's validation message if the control is invalid. */
+    reportValidity() {
+      return this.input.reportValidity();
+    }
+    /** Sets a custom validation message. Pass an empty string to restore validity. */
+    setCustomValidity(message) {
+      this.input.setCustomValidity(message);
+      this.formControlController.updateValidity();
+    }
+    render() {
+      const hasHelpTextSlot = this.hasSlotController.test("help-text");
+      const hasHelpText = this.helpText ? true : !!hasHelpTextSlot;
+      return x2`
+      <div
+        class=${e9({
+        "form-control": true,
+        "form-control--small": this.size === "small",
+        "form-control--medium": this.size === "medium",
+        "form-control--large": this.size === "large",
+        "form-control--has-help-text": hasHelpText
+      })}
+      >
+        <label
+          part="base"
+          class=${e9({
+        switch: true,
+        "switch--checked": this.checked,
+        "switch--disabled": this.disabled,
+        "switch--focused": this.hasFocus,
+        "switch--small": this.size === "small",
+        "switch--medium": this.size === "medium",
+        "switch--large": this.size === "large"
+      })}
+        >
+          <input
+            class="switch__input"
+            type="checkbox"
+            title=${this.title}
+            name=${this.name}
+            value=${o7(this.value)}
+            .checked=${l5(this.checked)}
+            .disabled=${this.disabled}
+            .required=${this.required}
+            role="switch"
+            aria-checked=${this.checked ? "true" : "false"}
+            aria-describedby="help-text"
+            @click=${this.handleClick}
+            @input=${this.handleInput}
+            @invalid=${this.handleInvalid}
+            @blur=${this.handleBlur}
+            @focus=${this.handleFocus}
+            @keydown=${this.handleKeyDown}
+          />
+
+          <span part="control" class="switch__control">
+            <span part="thumb" class="switch__thumb"></span>
+          </span>
+
+          <div part="label" class="switch__label">
+            <slot></slot>
+          </div>
+        </label>
+
+        <div
+          aria-hidden=${hasHelpText ? "false" : "true"}
+          class="form-control__help-text"
+          id="help-text"
+          part="form-control-help-text"
+        >
+          <slot name="help-text">${this.helpText}</slot>
+        </div>
+      </div>
+    `;
+    }
+  };
+  SlSwitch.styles = [component_styles_default, form_control_styles_default, switch_styles_default];
+  __decorateClass2([
+    e6('input[type="checkbox"]')
+  ], SlSwitch.prototype, "input", 2);
+  __decorateClass2([
+    r7()
+  ], SlSwitch.prototype, "hasFocus", 2);
+  __decorateClass2([
+    n5()
+  ], SlSwitch.prototype, "title", 2);
+  __decorateClass2([
+    n5()
+  ], SlSwitch.prototype, "name", 2);
+  __decorateClass2([
+    n5()
+  ], SlSwitch.prototype, "value", 2);
+  __decorateClass2([
+    n5({ reflect: true })
+  ], SlSwitch.prototype, "size", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlSwitch.prototype, "disabled", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlSwitch.prototype, "checked", 2);
+  __decorateClass2([
+    defaultValue("checked")
+  ], SlSwitch.prototype, "defaultChecked", 2);
+  __decorateClass2([
+    n5({ reflect: true })
+  ], SlSwitch.prototype, "form", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlSwitch.prototype, "required", 2);
+  __decorateClass2([
+    n5({ attribute: "help-text" })
+  ], SlSwitch.prototype, "helpText", 2);
+  __decorateClass2([
+    watch("checked", { waitUntilFirstUpdate: true })
+  ], SlSwitch.prototype, "handleCheckedChange", 1);
+  __decorateClass2([
+    watch("disabled", { waitUntilFirstUpdate: true })
+  ], SlSwitch.prototype, "handleDisabledChange", 1);
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.S2DUEYZU.js
+  SlSwitch.define("sl-switch");
 
   // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KZJNDGFO.js
   var menu_item_styles_default = i2`

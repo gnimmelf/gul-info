@@ -48,6 +48,10 @@ export class Filters extends _State<TFilterState> {
     this.setState({ tagKeys: next });
   }
 
+  setTagsMatchType(matchType: TagsMatchType) {
+    this.setState({ tagsMatchType: matchType });
+  }
+
   isActiveIndexLetter(letter: string) {
     return this.state().indexLetter === letter.toLocaleLowerCase();
   }

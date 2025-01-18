@@ -18,7 +18,7 @@ const App: Component<{
   database: string;
   datapoint: string;
 }> = (props) => {
-  const [selectedPage, setSelectedPage] = createSignal<PAGES>(PAGES.ACCOUNT);
+  const [selectedPage, setSelectedPage] = createSignal<PAGES>(PAGES.LISTINGS);
   return (
     <>
       <link
