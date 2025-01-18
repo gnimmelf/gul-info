@@ -25,7 +25,7 @@ export const ListingsFilters: Component<{
 }> = (props) => {
   const { directory } = useService();
 
-  const filters = () => directory()?.filters;
+  const filters = () => directory()?.filters();
   const tags = () => directory()?.resources.tags();
   const indexLetters = () => directory()?.resources.indexLetters();
   const isLoading = () => directory()?.resources.listings.loading;

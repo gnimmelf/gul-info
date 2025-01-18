@@ -1,31 +1,47 @@
-import { createEffect, createResource, createSignal, Resource } from 'solid-js';
+import { createResource, createSignal } from 'solid-js';
 
-import { ConfigsService } from '~/domains/configs/ConfigsService';
-import { withReactiveState } from './withReactiveState';
-import { _State } from '~/shared/application/_State';
-import { IAccount } from '~/domains/account/IAccount';
+import { AccountService } from '~/domains/account/AccountService';
+import { IDatabase } from '~/domains/database/IDatabase';
 import { IAuthentication } from '~/domains/authentication/IAuthentication';
-import { Auth0Adapter } from '~/domains/authentication/infrastructure/Auth0Adapter';
+import { IAuthData } from '~/domains/authentication/infrastructure/Auth0Adapter';
+import { checkAdapterReturnType } from './checkAdapterReturnType';
 
-export const createAccountServiceAdaper = (url: string) => {
-  const auth = new Auth0Adapter(configs.auth0);
+export const createAccountServiceAdaper = (
+  db: IDatabase,
+  auth: IAuthentication,
+) => {
+  const instance = new AccountService(db, auth);
 
-  const auth = withReactiveState<ConfigsService, IAuthentication>(
-    new Auth0Adapter(url),
+  const [doInitialize, setDoInitialize] = createSignal(false);
+
+  const [isAuthenticated] = createResource(
+    () => doInitialize(),
+    () => instance.authenticate(),
   );
 
-  const [initialize] = createResource<IConfigs>(async () => {
-    await instance.initialize();
-    return instance.state();
-  });
+  const [authData] = createResource<IAuthData, boolean>(
+    () => isAuthenticated(),
+    () => auth.getAuthData!(),
+  );
 
-  const adapter = {
-    resources: {
-      initialize,
+  const [userData] = createResource(
+    () => authData(),
+    async () => {
+      const userData = db.getUserData();
+      return userData;
     },
-    signals: {},
-    state: instance.state.bind(instance) as () => IConfigs,
-  };
+  );
+
+  const adapter = checkAdapterReturnType({
+    resources: {
+      isAuthenticated,
+      userData,
+      authData,
+    },
+    initialize: () => setDoInitialize(true),
+    login: instance.login.bind(instance),
+    logout: instance.logout.bind(instance),
+  });
 
   return adapter;
 };

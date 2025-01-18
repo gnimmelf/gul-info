@@ -12,7 +12,7 @@ import {
 } from 'solid-js';
 
 import { createDatabaseAdapter } from '~/domains/database/createDatabaseAdapter';
-import { createConfigsServiceAdaper } from '~/solid-js/application/createConfigsServiceAdaper';
+import { createConfigsServiceAdaper } from '~/domains/configs/infrastructure/createConfigsServiceAdaper';
 
 type TConfigsAdapter = Awaited<ReturnType<typeof createConfigsServiceAdaper>>;
 type TDbAdapter = Awaited<ReturnType<typeof createDatabaseAdapter>>;

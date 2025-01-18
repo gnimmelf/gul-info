@@ -1,4 +1,4 @@
-import { Component, createMemo, Show } from 'solid-js';
+import { Component, createEffect, createMemo, onMount, Show } from 'solid-js';
 
 import { join, styler } from '~/shared/lib/styler';
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
@@ -8,9 +8,13 @@ const css = styler.css({});
 export const PageAccount: Component<{}> = (props) => {
   const { account } = useService();
 
-  const isAuthenticated = createMemo(() => account()?.isAuthenticated());
-  const isVerifiying = createMemo(() => account()?.isAwaitingVerification());
+  const isAuthenticated = createMemo(() =>
+    account()?.resources.isAuthenticated(),
+  );
+  const isVerifiying = createMemo(() => account()?.resources.authData()?.email_verified === false);
   const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
+
+  createEffect(() => account()?.initialize());
 
   return (
     <section>
@@ -19,7 +23,7 @@ export const PageAccount: Component<{}> = (props) => {
           <sl-icon slot="icon" prop:name="exclamation-triangle"></sl-icon>
           <strong>
             Vi har sendt en verifiserings-e-post til{' '}
-            {account()?.authData()?.email}.
+            {account()?.resources.authData()?.email}.
           </strong>
           <br />
           Verifiser e-postadressen din der og fortsett deretter innlogging
@@ -48,7 +52,7 @@ export const PageAccount: Component<{}> = (props) => {
 
       <Show when={isLoggedIn()}>
         <sl-button on:click={() => account()?.logout()}>Logout</sl-button>
-        <pre>{JSON.stringify(account()?.userData())}</pre>
+        <pre>{JSON.stringify(account()?.resources.userData())}</pre>
       </Show>
     </section>
   );

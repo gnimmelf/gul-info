@@ -11,16 +11,19 @@ import {
 
 import { useSystem } from '~/solid-js/ui/providers/CoreProvider';
 
-import { createDatabaseAdapter } from '~/domains/database/createDatabaseAdapter';
 import { createAuthenticationAdaper } from '~/domains/authentication/createAuthenticationAdaper';
 import { createDirectoryServiceAdapter } from '~/solid-js/application/createDirectoryServiceAdaper';
+import { createAccountServiceAdaper } from '~/solid-js/application/createAccountServiceAdaper';
 
 type TDirectoryAdapter = Awaited<
   ReturnType<typeof createDirectoryServiceAdapter>
 >;
 
+type TAccountAdapter = Awaited<ReturnType<typeof createAccountServiceAdaper>>;
+
 type IServiceContext = {
   directory: Resource<TDirectoryAdapter>;
+  account: Resource<TAccountAdapter>;
 };
 
 const ServiceContext = createContext<IServiceContext>();
@@ -38,6 +41,11 @@ export const ServiceProvider: Component<{
     (configs) => createAuthenticationAdaper(configs.auth0),
   );
 
+  const [account] = createResource(
+    () => auth(),
+    (auth) => createAccountServiceAdaper(system.db(), auth),
+  );
+
   const [directory] = createResource(
     () => system.db(),
     (db) => createDirectoryServiceAdapter(db),
@@ -45,6 +53,7 @@ export const ServiceProvider: Component<{
 
   const services = {
     directory,
+    account,
   };
 
   return (

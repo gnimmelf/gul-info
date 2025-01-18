@@ -1,8 +1,4 @@
-import {
-  Component,
-  createSignal,
-  Suspense,
-} from 'solid-js';
+import { Component, createEffect, createSignal, Suspense } from 'solid-js';
 
 import { styler } from '~/shared/lib/styler';
 
@@ -59,6 +55,8 @@ const css = styler.css({
 export const PageListings: Component = () => {
   const { directory } = useService();
 
+  const [hitCount, setHitCount] = createSignal(0);
+
   const filters = () => directory()?.filters;
   const listings = () => {
     const res = directory()?.resources.listings();
@@ -66,7 +64,7 @@ export const PageListings: Component = () => {
     return res;
   };
 
-  const [hitCount, setHitCount] = createSignal(0);
+  createEffect(() => directory()?.initialize());
 
   return (
     <section>

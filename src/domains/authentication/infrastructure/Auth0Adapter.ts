@@ -1,5 +1,12 @@
-import { createAuth0Client, Auth0Client, User } from '@auth0/auth0-spa-js';
+import {
+  createAuth0Client,
+  Auth0Client,
+  User,
+  IdToken,
+} from '@auth0/auth0-spa-js';
 import { IAuthentication } from '~/domains/authentication/IAuthentication';
+
+export interface IAuthData extends IdToken {}
 
 export interface Auth0Config {
   domain: string;
@@ -70,7 +77,7 @@ export class Auth0Adapter implements IAuthentication {
       ? await this.client!.getIdTokenClaims()
       : undefined;
 
-    return res as unknown as Promise<Record<string, any>>;
+    return res as IdToken;
   }
 
   async getAccessToken() {

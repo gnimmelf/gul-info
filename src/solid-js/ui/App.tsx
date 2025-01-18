@@ -18,7 +18,7 @@ const App: Component<{
   database: string;
   datapoint: string;
 }> = (props) => {
-  const [selectedPage, setSelectedPage] = createSignal<PAGES>(PAGES.LISTINGS);
+  const [selectedPage, setSelectedPage] = createSignal<PAGES>(PAGES.ACCOUNT);
   return (
     <>
       <link
@@ -52,9 +52,9 @@ const App: Component<{
                 <Match when={selectedPage() === PAGES.LISTINGS}>
                   <PageListings />
                 </Match>
-                {/* <Match when={selectedPage() === PAGES.ACCOUNT}>
+                <Match when={selectedPage() === PAGES.ACCOUNT}>
                   <PageAccount />
-                </Match> */}
+                </Match>
               </Switch>
             </Layout>
           </ServiceProvider>

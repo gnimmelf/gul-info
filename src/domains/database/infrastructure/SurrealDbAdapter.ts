@@ -80,10 +80,11 @@ export class SurrealDbAdapter implements IDatabase {
     if (filters?.tagKeys?.length) {
       const tagstr = filters.tagKeys.map((key) => key).join("', '");
       if (filters.tagsMatchType === TagsMatchType.ALL) {
-        conditions.push(`array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`);
-      }
-      else {
-        conditions.push(`tags[WHERE key IN ['${tagstr}']];`)
+        conditions.push(
+          `array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`,
+        );
+      } else {
+        conditions.push(`tags[WHERE key IN ['${tagstr}']];`);
       }
     }
 

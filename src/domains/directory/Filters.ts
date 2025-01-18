@@ -10,7 +10,7 @@ export const FilterStateSchema = z.object({
   text: z.string().optional().default(''),
   tagKeys: z.array(z.string()).optional().default([]),
   indexLetter: z.string().optional().default(''),
-  tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL)
+  tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL),
 });
 
 export type TFilterState = z.infer<typeof FilterStateSchema>;
@@ -31,7 +31,8 @@ export class Filters extends _State<TFilterState> {
   }
 
   setIndexLetter(value: string) {
-    const next = value.toLocaleLowerCase() != this.state().indexLetter ? value : '';
+    const next =
+      value.toLocaleLowerCase() != this.state().indexLetter ? value : '';
     this.setState({ indexLetter: next.toLocaleLowerCase() });
   }
 
@@ -48,10 +49,7 @@ export class Filters extends _State<TFilterState> {
   }
 
   isActiveIndexLetter(letter: string) {
-    return (
-      this.state().indexLetter ===
-      letter.toLocaleLowerCase()
-    );
+    return this.state().indexLetter === letter.toLocaleLowerCase();
   }
 
   hasTag(tagKey: string) {

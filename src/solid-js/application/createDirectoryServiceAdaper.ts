@@ -1,4 +1,4 @@
-import { createResource } from 'solid-js';
+import { createEffect, createMemo, createResource, createSignal } from 'solid-js';
 
 import { withReactiveState } from './withReactiveState';
 import { Filters, TagsMatchType } from '../../domains/directory/Filters';
@@ -7,28 +7,33 @@ import { IDatabase } from '../../domains/database/IDatabase';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
 
 export const createDirectoryServiceAdapter = async (db: IDatabase) => {
-  const filters = withReactiveState(Filters.from({
-    tagsMatchType: TagsMatchType.ANY
-  }));
+  const filters = withReactiveState(
+    Filters.from({
+      tagsMatchType: TagsMatchType.ANY,
+    }),
+  );
 
   const instance = new DirectoryService(db);
+
+  const [doInitialize, setDoInitialize] = createSignal(false);
 
   const [tags] = createResource(() => instance.loadTags());
 
   const [indexLetters] = createResource(() => instance.loadIndexLetters());
 
   const [listings] = createResource(
-    () => filters.state(),
-    (filters) => instance.loadListings(filters),
+    () => doInitialize() || filters.state() ? filters.state() : false,
+    (filterState) => instance.loadListings(filterState),
   );
 
   const adapter = checkAdapterReturnType({
-    filters,
     resources: {
       tags,
       indexLetters,
       listings,
     },
+    initialize: () => setDoInitialize(true),
+    filters: () => filters,
   });
 
   return adapter;

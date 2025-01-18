@@ -25,7 +25,7 @@ export const withReactiveState = <TInstance extends _State<TState>, TState>(
       if (prop === 'state') {
         return state;
       }
-      if (prop === "setState" && typeof originalSetState === "function") {
+      if (prop === 'setState' && typeof originalSetState === 'function') {
         return (value: Partial<TState> | ((prev: TState) => TState)) => {
           originalSetState(value);
           //@ts-expect-error

@@ -98,7 +98,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css7 = this.source;
+          let css8 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -111,7 +111,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css7.split(/\r?\n/);
+          let lines = css8.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1380,9 +1380,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css7, opts) {
+        constructor(css8, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css7);
+          this.loadAnnotation(css8);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1421,13 +1421,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css7) {
-          let comments = css7.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css8) {
+          let comments = css8.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css7.lastIndexOf(comments.pop());
-          let end = css7.indexOf("*/", start);
+          let start = css8.lastIndexOf(comments.pop());
+          let end = css8.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css7.substring(start, end));
+            this.annotation = this.getAnnotationURL(css8.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1500,11 +1500,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css7, opts = {}) {
-          if (css7 === null || typeof css7 === "undefined" || typeof css7 === "object" && !css7.toString) {
-            throw new Error(`PostCSS received ${css7} instead of CSS string`);
+        constructor(css8, opts = {}) {
+          if (css8 === null || typeof css8 === "undefined" || typeof css8 === "object" && !css8.toString) {
+            throw new Error(`PostCSS received ${css8} instead of CSS string`);
           }
-          this.css = css7.toString();
+          this.css = css8.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2231,11 +2231,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css7 = input.css.valueOf();
+        let css8 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n9, prev;
-        let length = css7.length;
+        let length = css8.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2252,7 +2252,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css7.charCodeAt(pos);
+          code = css8.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2262,9 +2262,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css7.charCodeAt(next);
+                code = css8.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css7.slice(pos, next)];
+              currentToken = ["space", css8.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2281,12 +2281,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n9 = css7.charCodeAt(pos + 1);
+              n9 = css8.charCodeAt(pos + 1);
               if (prev === "url" && n9 !== SINGLE_QUOTE && n9 !== DOUBLE_QUOTE && n9 !== SPACE && n9 !== NEWLINE && n9 !== TAB && n9 !== FEED && n9 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css7.indexOf(")", next + 1);
+                  next = css8.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2296,16 +2296,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css8.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css7.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css8.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css7.indexOf(")", pos + 1);
-                content = css7.slice(pos, next + 1);
+                next = css8.indexOf(")", pos + 1);
+                content = css8.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2321,7 +2321,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css7.indexOf(quote, next + 1);
+                next = css8.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2331,71 +2331,71 @@
                   }
                 }
                 escapePos = next;
-                while (css7.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css8.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css7.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css8.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css7);
+              RE_AT_END.test(css8);
               if (RE_AT_END.lastIndex === 0) {
-                next = css7.length - 1;
+                next = css8.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css7.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css8.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css7.charCodeAt(next + 1) === BACKSLASH) {
+              while (css8.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css7.charCodeAt(next + 1);
+              code = css8.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css7.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css7.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css8.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css8.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css7.charCodeAt(next + 1) === SPACE) {
+                  if (css8.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css7.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css8.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css7.charCodeAt(pos + 1) === ASTERISK) {
-                next = css7.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css8.charCodeAt(pos + 1) === ASTERISK) {
+                next = css8.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css7.length;
+                    next = css8.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css7.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css8.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css7);
+                RE_WORD_END.test(css8);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css7.length - 1;
+                  next = css8.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css7.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css8.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2957,8 +2957,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css7, opts) {
-        let input = new Input2(css7, opts);
+      function parse3(css8, opts) {
+        let input = new Input2(css8, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3171,18 +3171,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css7, opts) {
+        constructor(processor, css8, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css7 === "object" && css7 !== null && (css7.type === "root" || css7.type === "document")) {
-            root2 = cleanMarks(css7);
-          } else if (css7 instanceof _LazyResult || css7 instanceof Result2) {
-            root2 = cleanMarks(css7.root);
-            if (css7.map) {
+          if (typeof css8 === "object" && css8 !== null && (css8.type === "root" || css8.type === "document")) {
+            root2 = cleanMarks(css8);
+          } else if (css8 instanceof _LazyResult || css8 instanceof Result2) {
+            root2 = cleanMarks(css8.root);
+            if (css8.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css7.map;
+              opts.map.prev = css8.map;
             }
           } else {
             let parser2 = parse3;
@@ -3190,7 +3190,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css7, opts);
+              root2 = parser2(css8, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3558,24 +3558,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css7, opts) {
-          css7 = css7.toString();
+        constructor(processor, css8, opts) {
+          css8 = css8.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css7;
+          this._css = css8;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css7;
+          this.result.css = css8;
           let self2 = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self2.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css7);
+          let map = new MapGenerator(str, root2, this._opts, css8);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3703,11 +3703,11 @@
           }
           return normalized;
         }
-        process(css7, opts = {}) {
+        process(css8, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css7, opts);
+            return new NoWorkResult(this, css8, opts);
           } else {
-            return new LazyResult(this, css7, opts);
+            return new LazyResult(this, css8, opts);
           }
         }
         use(plugin2) {
@@ -3776,8 +3776,8 @@
             return cache;
           }
         });
-        creator.process = function(css7, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css7, processOpts);
+        creator.process = function(css8, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css8, processOpts);
         };
         return creator;
       };
@@ -6109,31 +6109,31 @@
         hex[hexChars.charCodeAt(i9)] = true;
       }
       var i9;
-      function consumeWord(css7, start) {
+      function consumeWord(css8, start) {
         var next = start;
         var code;
         do {
-          code = css7.charCodeAt(next);
+          code = css8.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t7.backslash) {
-            next = consumeEscape(css7, next) + 1;
+            next = consumeEscape(css8, next) + 1;
           } else {
             next++;
           }
-        } while (next < css7.length);
+        } while (next < css8.length);
         return next - 1;
       }
-      function consumeEscape(css7, start) {
+      function consumeEscape(css8, start) {
         var next = start;
-        var code = css7.charCodeAt(next + 1);
+        var code = css8.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css7.charCodeAt(next + 1);
+            code = css8.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t7.space) {
             next++;
@@ -6155,8 +6155,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css7 = input.css.valueOf();
-        var _css = css7, length = _css.length;
+        var css8 = input.css.valueOf();
+        var _css = css8, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6164,14 +6164,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css7 += fix;
-            next = css7.length - 1;
+            css8 += fix;
+            next = css8.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css7.charCodeAt(start);
+          code = css8.charCodeAt(start);
           if (code === t7.newline) {
             offset3 = start;
             line += 1;
@@ -6185,7 +6185,7 @@
               next = start;
               do {
                 next += 1;
-                code = css7.charCodeAt(next);
+                code = css8.charCodeAt(next);
                 if (code === t7.newline) {
                   offset3 = next;
                   line += 1;
@@ -6203,7 +6203,7 @@
               next = start;
               do {
                 next += 1;
-                code = css7.charCodeAt(next);
+                code = css8.charCodeAt(next);
               } while (code === t7.plus || code === t7.greaterThan || code === t7.tilde || code === t7.pipe);
               tokenType = t7.combinator;
               endLine = line;
@@ -6236,12 +6236,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css7.indexOf(quote, next + 1);
+                next = css8.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css7.charCodeAt(escapePos - 1) === t7.backslash) {
+                while (css8.charCodeAt(escapePos - 1) === t7.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6252,12 +6252,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t7.slash && css7.charCodeAt(start + 1) === t7.asterisk) {
-                next = css7.indexOf("*/", start + 2) + 1;
+              if (code === t7.slash && css8.charCodeAt(start + 1) === t7.asterisk) {
+                next = css8.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css7.slice(start, next + 1);
+                content = css8.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6278,7 +6278,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css7, start);
+                next = consumeWord(css8, start);
                 tokenType = t7.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -15700,7 +15700,6 @@
         ...this._state,
         ...value
       };
-      console.log("setState()", this._state);
     }
   };
 
@@ -15797,7 +15796,9 @@
       if (filters?.tagKeys?.length) {
         const tagstr = filters.tagKeys.map((key) => key).join("', '");
         if (filters.tagsMatchType === "ALL" /* ALL */) {
-          conditions.push(`array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`);
+          conditions.push(
+            `array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`
+          );
         } else {
           conditions.push(`tags[WHERE key IN ['${tagstr}']];`);
         }
@@ -15886,7 +15887,7 @@
     }
   };
 
-  // src/solid-js/application/createConfigsServiceAdaper.ts
+  // src/domains/configs/infrastructure/createConfigsServiceAdaper.ts
   var createConfigsServiceAdaper = async (url) => {
     const adapter = new ConfigsService(url);
     const configs = await adapter.loadConfigs();
@@ -17109,23 +17110,83 @@
 
   // src/solid-js/application/createDirectoryServiceAdaper.ts
   var createDirectoryServiceAdapter = async (db) => {
-    const filters = withReactiveState(Filters.from({
-      tagsMatchType: "ANY" /* ANY */
-    }));
+    const filters = withReactiveState(
+      Filters.from({
+        tagsMatchType: "ANY" /* ANY */
+      })
+    );
     const instance = new DirectoryService(db);
+    const [doInitialize, setDoInitialize] = createSignal(false);
     const [tags] = createResource(() => instance.loadTags());
     const [indexLetters] = createResource(() => instance.loadIndexLetters());
     const [listings] = createResource(
-      () => filters.state(),
-      (filters2) => instance.loadListings(filters2)
+      () => doInitialize() || filters.state() ? filters.state() : false,
+      (filterState) => instance.loadListings(filterState)
     );
     const adapter = checkAdapterReturnType({
-      filters,
       resources: {
         tags,
         indexLetters,
         listings
+      },
+      initialize: () => setDoInitialize(true),
+      filters: () => filters
+    });
+    return adapter;
+  };
+
+  // src/domains/account/AccountService.ts
+  var AccountService = class {
+    db;
+    auth;
+    constructor(db, auth) {
+      this.db = db;
+      this.auth = auth;
+    }
+    async authenticate() {
+      if (await this.auth.isAuthenticated()) {
+        const token = await this.auth.getAccessToken();
+        let res = await this.db.authenticate(token, true);
+        return res;
       }
+      return false;
+    }
+    async login() {
+      return this.auth.login();
+    }
+    async logout() {
+      return this.auth.logout();
+    }
+  };
+
+  // src/solid-js/application/createAccountServiceAdaper.ts
+  var createAccountServiceAdaper = (db, auth) => {
+    const instance = new AccountService(db, auth);
+    const [doInitialize, setDoInitialize] = createSignal(false);
+    const [isAuthenticated] = createResource(
+      () => doInitialize(),
+      () => instance.authenticate()
+    );
+    const [authData] = createResource(
+      () => isAuthenticated(),
+      () => auth.getAuthData()
+    );
+    const [userData] = createResource(
+      () => authData(),
+      async () => {
+        const userData2 = db.getUserData();
+        return userData2;
+      }
+    );
+    const adapter = checkAdapterReturnType({
+      resources: {
+        isAuthenticated,
+        userData,
+        authData
+      },
+      initialize: () => setDoInitialize(true),
+      login: instance.login.bind(instance),
+      logout: instance.logout.bind(instance)
     });
     return adapter;
   };
@@ -17135,9 +17196,11 @@
   var ServiceProvider = (props) => {
     const system = useSystem();
     const [auth] = createResource(() => system.configs(), (configs) => createAuthenticationAdaper(configs.auth0));
+    const [account] = createResource(() => auth(), (auth2) => createAccountServiceAdaper(system.db(), auth2));
     const [directory] = createResource(() => system.db(), (db) => createDirectoryServiceAdapter(db));
     const services = {
-      directory
+      directory,
+      account
     };
     return createComponent(ServiceContext.Provider, {
       value: services,
@@ -17511,7 +17574,7 @@
     const {
       directory
     } = useService();
-    const filters = () => directory()?.filters;
+    const filters = () => directory()?.filters();
     const tags = () => directory()?.resources.tags();
     const indexLetters = () => directory()?.resources.indexLetters();
     const isLoading = () => directory()?.resources.listings.loading;
@@ -17615,13 +17678,14 @@
     const {
       directory
     } = useService();
+    const [hitCount, setHitCount] = createSignal(0);
     const filters = () => directory()?.filters;
     const listings = () => {
       const res = directory()?.resources.listings();
       setHitCount(res?.length || 0);
       return res;
     };
-    const [hitCount, setHitCount] = createSignal(0);
+    createEffect(() => directory()?.initialize());
     return (() => {
       var _el$ = _tmpl$24();
       insert(_el$, createComponent(ListingsFilters, {
@@ -17691,13 +17755,100 @@
     })();
   };
 
+  // src/solid-js/ui/pages/PageAccount.tsx
+  var _tmpl$10 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
+  var _tmpl$25 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
+  var _tmpl$33 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Log inn med en annen e-post`, true, false);
+  var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
+  var _tmpl$53 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
+  var _tmpl$62 = /* @__PURE__ */ template(`<pre>`);
+  var _tmpl$72 = /* @__PURE__ */ template(`<section>`);
+  var css7 = styler.css({});
+  var PageAccount = (props) => {
+    const {
+      account
+    } = useService();
+    const isAuthenticated = createMemo(() => account()?.resources.isAuthenticated());
+    const isVerifiying = createMemo(() => account()?.resources.authData()?.email_verified === false);
+    const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
+    createEffect(() => account()?.initialize());
+    return (() => {
+      var _el$ = _tmpl$72();
+      insert(_el$, createComponent(Show, {
+        get when() {
+          return !isAuthenticated();
+        },
+        get children() {
+          return [(() => {
+            var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$7 = _el$8.nextSibling;
+            _el$2.variant = "warning";
+            _el$2._$owner = getOwner();
+            _el$3.name = "exclamation-triangle";
+            _el$3._$owner = getOwner();
+            insert(_el$4, () => account()?.resources.authData()?.email, _el$8);
+            createRenderEffect(() => _el$2.open = isVerifiying());
+            return _el$2;
+          })(), (() => {
+            var _el$9 = _tmpl$43();
+            insert(_el$9, createComponent(Show, {
+              get when() {
+                return !isVerifiying();
+              },
+              get children() {
+                var _el$10 = _tmpl$25();
+                addEventListener(_el$10, "click", () => account()?.login());
+                _el$10._$owner = getOwner();
+                return _el$10;
+              }
+            }), null);
+            insert(_el$9, createComponent(Show, {
+              get when() {
+                return isVerifiying();
+              },
+              get children() {
+                var _el$11 = _tmpl$33(), _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling;
+                _el$11.label = "Alignment";
+                _el$11._$owner = getOwner();
+                addEventListener(_el$12, "click", () => account()?.login());
+                _el$12.variant = "primary";
+                _el$12._$owner = getOwner();
+                addEventListener(_el$13, "click", () => account()?.logout());
+                _el$13._$owner = getOwner();
+                return _el$11;
+              }
+            }), null);
+            return _el$9;
+          })()];
+        }
+      }), null);
+      insert(_el$, createComponent(Show, {
+        get when() {
+          return isLoggedIn();
+        },
+        get children() {
+          return [(() => {
+            var _el$14 = _tmpl$53();
+            addEventListener(_el$14, "click", () => account()?.logout());
+            _el$14._$owner = getOwner();
+            return _el$14;
+          })(), (() => {
+            var _el$15 = _tmpl$62();
+            insert(_el$15, () => JSON.stringify(account()?.resources.userData()));
+            return _el$15;
+          })()];
+        }
+      }), null);
+      return _el$;
+    })();
+  };
+
   // src/solid-js/ui/App.tsx
-  var _tmpl$10 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
-  var _tmpl$25 = /* @__PURE__ */ template(`<style id=styler>`);
+  var _tmpl$11 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$26 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
-    const [selectedPage, setSelectedPage] = createSignal("PAGE_LISTINGS" /* LISTINGS */);
-    return [_tmpl$10(), (() => {
-      var _el$2 = _tmpl$25();
+    const [selectedPage, setSelectedPage] = createSignal("PAGE_ACCOUNT" /* ACCOUNT */);
+    return [_tmpl$11(), (() => {
+      var _el$2 = _tmpl$26();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);
       return _el$2;
@@ -17723,14 +17874,21 @@
                   get children() {
                     return createComponent(Switch, {
                       get children() {
-                        return createComponent(Match, {
+                        return [createComponent(Match, {
                           get when() {
                             return selectedPage() === "PAGE_LISTINGS" /* LISTINGS */;
                           },
                           get children() {
                             return createComponent(PageListings, {});
                           }
-                        });
+                        }), createComponent(Match, {
+                          get when() {
+                            return selectedPage() === "PAGE_ACCOUNT" /* ACCOUNT */;
+                          },
+                          get children() {
+                            return createComponent(PageAccount, {});
+                          }
+                        })];
                       }
                     });
                   }
@@ -23599,8 +23757,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css7 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css7.transform !== "none" || css7.perspective !== "none" || (css7.containerType ? css7.containerType !== "normal" : false) || !webkit && (css7.backdropFilter ? css7.backdropFilter !== "none" : false) || !webkit && (css7.filter ? css7.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css7.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css7.contain || "").includes(value));
+    const css8 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css8.transform !== "none" || css8.perspective !== "none" || (css8.containerType ? css8.containerType !== "normal" : false) || !webkit && (css8.backdropFilter ? css8.backdropFilter !== "none" : false) || !webkit && (css8.filter ? css8.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css8.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css8.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -23682,9 +23840,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css7 = getComputedStyle2(element);
-    let width = parseFloat(css7.width) || 0;
-    let height = parseFloat(css7.height) || 0;
+    const css8 = getComputedStyle2(element);
+    let width = parseFloat(css8.width) || 0;
+    let height = parseFloat(css8.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -23778,9 +23936,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css7 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css7.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css7.paddingTop)) * iframeScale.y;
+        const css8 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css8.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css8.paddingTop)) * iframeScale.y;
         x3 *= iframeScale.x;
         y4 *= iframeScale.y;
         width *= iframeScale.x;

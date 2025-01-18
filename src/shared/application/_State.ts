@@ -18,6 +18,5 @@ export class _State<TState> {
             ...this._state,
             ...value,
           };
-    console.log('setState()', this._state);
   }
 }
