@@ -9,7 +9,8 @@ import {
 
 import { useSystem } from '~/solid-js/ui/providers/SystemProvider';
 
-import { createAuthenticationAdaper } from '~/domains/authentication/createAuthenticationAdaper';
+import { createAuthenticationAdaper } from '~/domains/infrastructure/authentication/createAuthenticationAdaper';
+
 import { createDirectoryServiceAdapter } from '~/solid-js/application/createDirectoryServiceAdaper';
 import { createAccountServiceAdaper } from '~/solid-js/application/createAccountServiceAdaper';
 

@@ -15,6 +15,10 @@ export const join = (...classnames: string[]) => {
   return classnames.join(' ');
 };
 
+/**
+ * A css styling singleton for modularized style-classes.
+ * Uses postcss to render css from css-in-js object literals.
+ */
 class StyleReg {
   private globalStyles: Map<string, object | Function>;
   private moduleStyles: Map<string, object | Function>;

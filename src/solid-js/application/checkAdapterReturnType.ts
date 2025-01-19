@@ -1,5 +1,5 @@
 import { Resource, Setter } from 'solid-js';
-import { StateGetter, StateSetter } from '~/shared/application/_State';
+import { StateGetter, StateSetter } from '~/shared/lib/_State';
 
 type ConfigShape = {
   resources?: Record<string, Resource<any>>;

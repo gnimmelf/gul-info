@@ -1,12 +1,12 @@
-import { _State } from '~/shared/application/_State';
+import { _State } from '~/shared/lib/_State';
 
-import { IDatabase } from '~/domains/database/IDatabase';
+import { IDatabase } from '../../infrastructure/database/IDatabase';
 
-import { Filters, TFilterState } from './Filters';
+import { TFilterState } from './Filters';
 
-import { Tag } from './Tag';
-import { Listing } from './Listing';
-import { IndexLetter } from './IndexLetter';
+import { TagViewModel } from './TagViewModel';
+import { ListingViewModel } from './ListingViewModel';
+import { IndexLetterViewModel } from './IndexLetterViewModel';
 import { timeout } from '~/shared/lib/utils';
 
 /**
@@ -23,7 +23,7 @@ export class DirectoryService {
     const details = await this.db.getIndexLetters();
     const res = details
       .sort((a, b) => (a.letter < b.letter ? -1 : 1))
-      .map((data) => IndexLetter.from(data));
+      .map((data) => IndexLetterViewModel.from(data));
     return res;
   }
 
@@ -32,7 +32,7 @@ export class DirectoryService {
     const res = details
       .filter(({ usageCount }) => usageCount)
       .sort((a, b) => (a.name < b.name ? -1 : 1))
-      .map((data) => Tag.from(data));
+      .map((data) => TagViewModel.from(data));
     return res;
   }
 
@@ -41,7 +41,7 @@ export class DirectoryService {
     const details = await this.db.getListings(filters);
     const res = details
       .sort((a, b) => (a.title < b.title ? -1 : 1))
-      .map((data) => Listing.from(data));
+      .map((data) => ListingViewModel.from(data));
     return res;
   }
 }

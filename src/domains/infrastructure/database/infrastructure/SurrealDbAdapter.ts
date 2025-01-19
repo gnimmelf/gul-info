@@ -1,10 +1,11 @@
 import Surreal from 'surrealdb';
-import { UserSchemaType } from '~/domains/account/User';
-import { IDatabase } from '~/domains/database/IDatabase';
-import { TFilterState, TagsMatchType } from '~/domains/directory/Filters';
-import { IndexLetterSchemaType } from '~/domains/directory/IndexLetter';
-import { ListingSchemaType } from '~/domains/directory/Listing';
-import { TagSchemaType } from '~/domains/directory/Tag';
+import { IDatabase } from '../IDatabase';
+import { TFilterState, TagsMatchType } from '~/domains/ui/directory/Filters';
+
+import { UserViewSchemaType } from '~/domains/ui/account/UserViewModel';
+import { IndexLetterViewSchemaType } from '~/domains/ui/directory/IndexLetterViewModel';
+import { ListingViewSchemaType } from '~/domains/ui/directory/ListingViewModel';
+import { TagViewSchemaType } from '~/domains/ui/directory/TagViewModel';
 
 type NestedArray<T> = T | NestedArray<T>[];
 /**
@@ -94,13 +95,13 @@ export class SurrealDbAdapter implements IDatabase {
 
     const query = `SELECT *, tags.*.* FROM ${TABLES.LISTINGS}${whereClause};`;
     console.log({ query });
-    const res = pop<ListingSchemaType[]>(await this.client.query(query));
+    const res = pop<ListingViewSchemaType[]>(await this.client.query(query));
     return res;
   }
 
   async getIndexLetters() {
     const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
-    const res = pop<IndexLetterSchemaType[]>(await this.client.query(query));
+    const res = pop<IndexLetterViewSchemaType[]>(await this.client.query(query));
     return res;
   }
 
@@ -113,7 +114,7 @@ export class SurrealDbAdapter implements IDatabase {
       ) as usageCount
       FROM tags;
     `;
-    const res = pop<TagSchemaType[]>(await this.client.query(query));
+    const res = pop<TagViewSchemaType[]>(await this.client.query(query));
     return res;
   }
 
@@ -131,7 +132,7 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getUserData() {
     const query = `SELECT * FROM ${TABLES.USER};`;
-    const res = pop<UserSchemaType>(await this.client.query(query), 2);
+    const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
     return res;
   }
 }

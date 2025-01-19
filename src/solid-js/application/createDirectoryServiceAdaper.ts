@@ -1,9 +1,9 @@
 import { createResource, createSignal } from 'solid-js';
 
 import { withReactiveState } from './withReactiveState';
-import { Filters, TagsMatchType } from '../../domains/directory/Filters';
-import { DirectoryService } from '../../domains/directory/DirectoryService';
-import { IDatabase } from '../../domains/database/IDatabase';
+import { Filters, TagsMatchType } from '../../domains/ui/directory/Filters';
+import { DirectoryService } from '../../domains/ui/directory/DirectoryService';
+import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
 
 export const createDirectoryServiceAdapter = async (db: IDatabase) => {

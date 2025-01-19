@@ -5325,17 +5325,17 @@
         };
         return _setPrototypeOf(o11, p4);
       }
-      var Tag2 = /* @__PURE__ */ function(_Namespace) {
-        _inheritsLoose(Tag3, _Namespace);
-        function Tag3(opts) {
+      var Tag = /* @__PURE__ */ function(_Namespace) {
+        _inheritsLoose(Tag2, _Namespace);
+        function Tag2(opts) {
           var _this;
           _this = _Namespace.call(this, opts) || this;
           _this.type = _types.TAG;
           return _this;
         }
-        return Tag3;
+        return Tag2;
       }(_namespace["default"]);
-      exports["default"] = Tag2;
+      exports["default"] = Tag;
       module.exports = exports.default;
     }
   });
@@ -15685,7 +15685,7 @@
     ZodError
   });
 
-  // src/shared/application/_State.ts
+  // src/shared/lib/_State.ts
   var _State = class {
     _state;
     constructor(initialState) {
@@ -15703,7 +15703,7 @@
     };
   };
 
-  // src/domains/directory/Filters.ts
+  // src/domains/ui/directory/Filters.ts
   var TagsMatchType = /* @__PURE__ */ ((TagsMatchType2) => {
     TagsMatchType2["ALL"] = "ALL";
     TagsMatchType2["ANY"] = "ANY";
@@ -15751,7 +15751,7 @@
     }
   };
 
-  // src/domains/database/infrastructure/SurrealDbAdapter.ts
+  // src/domains/infrastructure/database/infrastructure/SurrealDbAdapter.ts
   var pop = (data, count = 1) => {
     let tmp = data;
     while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
@@ -15849,7 +15849,7 @@
     }
   };
 
-  // src/domains/database/createDatabaseAdapter.ts
+  // src/domains/infrastructure/database/createDatabaseAdapter.ts
   var createDatabaseAdapter = async (surrealConfig) => {
     const instance = new SurrealDbAdapter(surrealConfig);
     await instance.initialize();
@@ -15863,7 +15863,7 @@
     );
   };
 
-  // src/domains/configs/ConfigsService.ts
+  // src/domains/infrastructure/configs/infrastructure/ConfigsService.ts
   var ConfigsService = class {
     configsUrl;
     constructor(configsUrl) {
@@ -15890,7 +15890,7 @@
     }
   };
 
-  // src/domains/configs/createConfigsServiceAdaper.ts
+  // src/domains/infrastructure/configs/createConfigsServiceAdaper.ts
   var createConfigsServiceAdaper = async (url) => {
     const adapter = new ConfigsService(url);
     const configs = await adapter.loadConfigs();
@@ -16898,7 +16898,7 @@
     return await t7.checkSession(), t7;
   }
 
-  // src/domains/authentication/infrastructure/Auth0Adapter.ts
+  // src/domains/infrastructure/authentication/infrastructure/Auth0Adapter.ts
   var Auth0Adapter = class {
     config;
     client;
@@ -16950,7 +16950,7 @@
     }
   };
 
-  // src/domains/authentication/createAuthenticationAdaper.ts
+  // src/domains/infrastructure/authentication/createAuthenticationAdaper.ts
   var createAuthenticationAdaper = async (auth0COnfig) => {
     const instance = new Auth0Adapter(auth0COnfig);
     await instance.initialize();
@@ -16988,7 +16988,7 @@
     return proxy;
   };
 
-  // src/shared/models/ExposeDataAsSchemaProps.ts
+  // src/shared/lib/ExposeDataAsSchemaProps.ts
   function ExposeDataAsSchemaProps(schema) {
     return function(constructor) {
       const schemaKeys = Object.keys(schema.shape);
@@ -16999,11 +16999,6 @@
             Object.defineProperty(this, key, {
               get() {
                 return this.data[key];
-              },
-              set(value) {
-                const fieldSchema = schema.shape[key];
-                fieldSchema.parse(value);
-                this.data[key] = value;
               }
             });
           });
@@ -17012,29 +17007,28 @@
     };
   }
 
-  // src/domains/directory/Tag.ts
-  var TagSchema = z.object({
+  // src/domains/ui/directory/TagViewModel.ts
+  var TagViewSchema = z.object({
     key: z.string(),
     name: z.string(),
     usageCount: z.number()
   });
-  var Tag = class {
+  var TagViewModel = class {
     data;
     constructor(data) {
       this.data = data;
     }
     static from(data) {
-      const parsedData = TagSchema.parse(data);
-      return new Tag(parsedData);
+      const parsedData = TagViewSchema.parse(data);
+      return new TagViewModel(parsedData);
     }
   };
-  Tag = __decorateClass([
-    ExposeDataAsSchemaProps(TagSchema)
-  ], Tag);
+  TagViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(TagViewSchema)
+  ], TagViewModel);
 
-  // src/domains/directory/Listing.ts
-  var ListingSchema = z.object({
-    isActive: z.boolean(),
+  // src/domains/ui/directory/ListingViewModel.ts
+  var ListingViewSchema = z.object({
     title: z.string(),
     description: z.string(),
     address: z.string(),
@@ -17047,42 +17041,42 @@
         href: z.string()
       })
     ),
-    tags: z.array(TagSchema.omit({ usageCount: true }))
+    tags: z.array(TagViewSchema.omit({ usageCount: true }))
   });
-  var Listing = class {
+  var ListingViewModel = class {
     data;
     constructor(data) {
       this.data = data;
     }
     static from(data) {
-      const parsedData = ListingSchema.parse(data);
-      return new Listing(parsedData);
+      const parsedData = ListingViewSchema.parse(data);
+      return new ListingViewModel(parsedData);
     }
   };
-  Listing = __decorateClass([
-    ExposeDataAsSchemaProps(ListingSchema)
-  ], Listing);
+  ListingViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(ListingViewSchema)
+  ], ListingViewModel);
 
-  // src/domains/directory/IndexLetter.ts
-  var IndexLetterSchema = z.object({
+  // src/domains/ui/directory/IndexLetterViewModel.ts
+  var IndexLetterViewSchema = z.object({
     letter: z.string().length(1),
     count: z.number()
   });
-  var IndexLetter = class {
+  var IndexLetterViewModel = class {
     data;
     constructor(data) {
       this.data = data;
     }
     static from(data) {
-      const parsedData = IndexLetterSchema.parse(data);
-      return new IndexLetter(parsedData);
+      const parsedData = IndexLetterViewSchema.parse(data);
+      return new IndexLetterViewModel(parsedData);
     }
   };
-  IndexLetter = __decorateClass([
-    ExposeDataAsSchemaProps(IndexLetterSchema)
-  ], IndexLetter);
+  IndexLetterViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(IndexLetterViewSchema)
+  ], IndexLetterViewModel);
 
-  // src/domains/directory/DirectoryService.ts
+  // src/domains/ui/directory/DirectoryService.ts
   var DirectoryService = class {
     db;
     constructor(db) {
@@ -17090,18 +17084,18 @@
     }
     async loadIndexLetters() {
       const details = await this.db.getIndexLetters();
-      const res = details.sort((a5, b4) => a5.letter < b4.letter ? -1 : 1).map((data) => IndexLetter.from(data));
+      const res = details.sort((a5, b4) => a5.letter < b4.letter ? -1 : 1).map((data) => IndexLetterViewModel.from(data));
       return res;
     }
     async loadTags() {
       const details = await this.db.getTags();
-      const res = details.filter(({ usageCount }) => usageCount).sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data) => Tag.from(data));
+      const res = details.filter(({ usageCount }) => usageCount).sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data) => TagViewModel.from(data));
       return res;
     }
     async loadListings(filters) {
       await timeout();
       const details = await this.db.getListings(filters);
-      const res = details.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data) => Listing.from(data));
+      const res = details.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data) => ListingViewModel.from(data));
       return res;
     }
   };
@@ -17138,7 +17132,7 @@
     return adapter;
   };
 
-  // src/domains/account/AccountService.ts
+  // src/domains/ui/account/AccountService.ts
   var AccountService = class {
     db;
     auth;
@@ -17159,6 +17153,9 @@
     }
     async logout() {
       return this.auth.logout();
+    }
+    getMyListings(email) {
+      return;
     }
   };
 

@@ -1,4 +1,4 @@
-import { ConfigsService } from '~/domains/configs/ConfigsService';
+import { ConfigsService } from './infrastructure/ConfigsService';
 import { IConfigs } from './IConfigs';
 
 export const createConfigsServiceAdaper = async (

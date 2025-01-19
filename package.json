@@ -10,7 +10,7 @@
     "dev-tls": "node .build/build.mjs --useTls",
     "start-db-tls": "bash ./scripts/start-surrealdb.sh useTls",
     "prettify": "npx prettier --write \"**/*.{ts,tsx}\"",
-    "type-check": "npx tsc --noEmit"
+    "type-check": "npx tsc --noEmit --watch"
   },
   "keywords": [],
   "author": "",

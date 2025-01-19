@@ -1,10 +1,9 @@
 import {
   createAuth0Client,
   Auth0Client,
-  User,
   IdToken,
 } from '@auth0/auth0-spa-js';
-import { IAuthentication } from '~/domains/authentication/IAuthentication';
+import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 
 export interface IAuthData extends IdToken {}
 

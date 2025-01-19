@@ -1,7 +1,7 @@
-import { IDatabase } from '../database/IDatabase';
-import { IAuthentication } from '../authentication/IAuthentication';
+import { IDatabase } from '../../infrastructure/database/IDatabase';
+import { IAuthentication } from '../../infrastructure/authentication/IAuthentication';
 
-import { User } from './User';
+import { UserViewModel } from './UserViewModel';
 
 /**
  * Class
@@ -30,5 +30,9 @@ export class AccountService {
 
   public async logout() {
     return this.auth.logout();
+  }
+
+  public getMyListings(email: string) {
+    return
   }
 }

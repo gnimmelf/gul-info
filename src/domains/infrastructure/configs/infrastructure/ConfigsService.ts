@@ -1,4 +1,4 @@
-import { _State } from '~/shared/application/_State';
+import { _State } from '~/shared/lib/_State';
 import { timeout } from '~/shared/lib/utils';
 
 /**

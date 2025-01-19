@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import { _State } from '~/shared/application/_State';
+import { _State } from '~/shared/lib/_State';
 
 /**
  * Wraps `instance.state()` and `instance.setState()` with a reactive signal().

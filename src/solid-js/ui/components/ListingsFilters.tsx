@@ -3,7 +3,7 @@ import { Component, createEffect, JSXElement } from 'solid-js';
 import { styler } from '~/shared/lib/styler';
 
 import { BadgeButton } from './BadgeButton';
-import { TagsMatchType } from '~/domains/directory/Filters';
+import { TagsMatchType } from '~/domains/ui/directory/Filters';
 import { useService } from '../providers/ServiceProvider';
 
 const css = styler.css({

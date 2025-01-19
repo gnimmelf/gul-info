@@ -1,9 +1,9 @@
 import { createResource, createSignal } from 'solid-js';
 
-import { AccountService } from '~/domains/account/AccountService';
-import { IDatabase } from '~/domains/database/IDatabase';
-import { IAuthentication } from '~/domains/authentication/IAuthentication';
-import { IAuthData } from '~/domains/authentication/infrastructure/Auth0Adapter';
+import { AccountService } from '~/domains/ui/account/AccountService';
+import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
+import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
+import { IAuthData } from '~/domains/infrastructure/authentication/infrastructure/Auth0Adapter';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
 
 export const createAccountServiceAdaper = (

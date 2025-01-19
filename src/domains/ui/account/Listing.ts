@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import { TagSchema } from './Tag';
-import { ExposeDataAsSchemaProps } from '~/shared/models/ExposeDataAsSchemaProps';
+import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const ListingSchema = z.object({
-  isActive: z.boolean(),
   title: z.string(),
   description: z.string(),
   address: z.string(),
@@ -15,8 +13,7 @@ export const ListingSchema = z.object({
     z.object({
       href: z.string(),
     }),
-  ),
-  tags: z.array(TagSchema.omit({ usageCount: true })),
+  )
 });
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;

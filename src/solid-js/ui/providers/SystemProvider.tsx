@@ -11,8 +11,8 @@ import {
   useContext,
 } from 'solid-js';
 
-import { createDatabaseAdapter } from '~/domains/database/createDatabaseAdapter';
-import { createConfigsServiceAdaper } from '~/domains/configs/createConfigsServiceAdaper';
+import { createDatabaseAdapter } from '~/domains/infrastructure/database/createDatabaseAdapter';
+import { createConfigsServiceAdaper } from '~/domains/infrastructure/configs/createConfigsServiceAdaper';
 
 type TConfigsAdapter = Awaited<ReturnType<typeof createConfigsServiceAdaper>>;
 type TDbAdapter = Awaited<ReturnType<typeof createDatabaseAdapter>>;

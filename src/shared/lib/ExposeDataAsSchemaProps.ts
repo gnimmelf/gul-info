@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
 /**
- * Class decorator to expose prop `data` as
+ * DTO Model decorator to define property getter for each prop in passed `schema`.
+ * Props will be retrieved from the private `data`
  * @param schema zod schema
- * @returns
+ * @returns class instance with getters defined
  */
 export function ExposeDataAsSchemaProps<S extends z.ZodObject<any>>(schema: S) {
   return function <T extends { new (...args: any[]): {} }>(constructor: T): T {
@@ -17,12 +18,7 @@ export function ExposeDataAsSchemaProps<S extends z.ZodObject<any>>(schema: S) {
           Object.defineProperty(this, key, {
             get() {
               return this.data[key];
-            },
-            set(value) {
-              const fieldSchema = schema.shape[key];
-              fieldSchema.parse(value); // Validate before setting
-              this.data[key] = value;
-            },
+            }
           });
         });
       }
