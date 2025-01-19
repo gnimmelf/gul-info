@@ -1,15 +1,13 @@
 import {
   Component,
   createContext,
-  createMemo,
   createResource,
   JSXElement,
   Resource,
-  Show,
   useContext,
 } from 'solid-js';
 
-import { useSystem } from '~/solid-js/ui/providers/CoreProvider';
+import { useSystem } from '~/solid-js/ui/providers/SystemProvider';
 
 import { createAuthenticationAdaper } from '~/domains/authentication/createAuthenticationAdaper';
 import { createDirectoryServiceAdapter } from '~/solid-js/application/createDirectoryServiceAdaper';

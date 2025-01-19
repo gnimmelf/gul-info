@@ -12,7 +12,7 @@ import {
 } from 'solid-js';
 
 import { createDatabaseAdapter } from '~/domains/database/createDatabaseAdapter';
-import { createConfigsServiceAdaper } from '~/domains/configs/infrastructure/createConfigsServiceAdaper';
+import { createConfigsServiceAdaper } from '~/domains/configs/createConfigsServiceAdaper';
 
 type TConfigsAdapter = Awaited<ReturnType<typeof createConfigsServiceAdaper>>;
 type TDbAdapter = Awaited<ReturnType<typeof createDatabaseAdapter>>;
@@ -29,11 +29,14 @@ const SystemContext = createContext<TSystemContext>();
 export const CoreProvider: Component<{
   children: JSXElement;
 }> = (props) => {
+
   const initialize = async () => {
     const configs = await createConfigsServiceAdaper(
       'https://intergate.io/configs/gul-info-hurdal',
     );
+
     const db = await createDatabaseAdapter(configs.surreal);
+
     return {
       configs: () => configs,
       db: () => db,

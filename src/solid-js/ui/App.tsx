@@ -5,7 +5,7 @@ import { PAGES } from '../lib/enums';
 import { styler } from '~/shared/lib/styler';
 
 import { ServiceProvider } from '~/solid-js/ui/providers/ServiceProvider';
-import { CoreProvider } from '~/solid-js/ui/providers/CoreProvider';
+import { CoreProvider } from '~/solid-js/ui/providers/SystemProvider';
 
 import { Layout } from './components/Layout';
 import { Loading } from './components/Loading';

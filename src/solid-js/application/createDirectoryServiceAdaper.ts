@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createResource, createSignal } from 'solid-js';
+import { createResource, createSignal } from 'solid-js';
 
 import { withReactiveState } from './withReactiveState';
 import { Filters, TagsMatchType } from '../../domains/directory/Filters';

@@ -9,7 +9,8 @@
     "make-tls-keys": "bash ./scripts/make-tls-keys.sh",
     "dev-tls": "node .build/build.mjs --useTls",
     "start-db-tls": "bash ./scripts/start-surrealdb.sh useTls",
-    "prettify": "npx prettier --write \"**/*.{ts,tsx}\""
+    "prettify": "npx prettier --write \"**/*.{ts,tsx}\"",
+    "type-check": "npx tsc --noEmit"
   },
   "keywords": [],
   "author": "",

@@ -1,7 +1,9 @@
 import { ConfigsService } from '~/domains/configs/ConfigsService';
-import { _State } from '../../../shared/application/_State';
+import { IConfigs } from './IConfigs';
 
-export const createConfigsServiceAdaper = async (url: string) => {
+export const createConfigsServiceAdaper = async (
+  url: string
+): Promise<IConfigs> => {
   const adapter = new ConfigsService(url);
   const configs = await adapter.loadConfigs();
   return configs;

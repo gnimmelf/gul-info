@@ -1,8 +1,9 @@
-import { Accessor, Resource, Setter, Signal } from 'solid-js';
-import { StateGetter, StateSetter } from '../types';
+import { Resource, Setter } from 'solid-js';
+import { StateGetter, StateSetter } from '~/shared/application/_State';
 
 type ConfigShape = {
   resources?: Record<string, Resource<any>>;
+  // Only setters for signals; use to trigger resources with data
   signals?: Record<string, Setter<any>>;
   state?: StateGetter<any>;
   setState?: StateSetter<any>;

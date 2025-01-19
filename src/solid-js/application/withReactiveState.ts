@@ -7,7 +7,7 @@ import { _State } from '~/shared/application/_State';
  * @param instance instance that implements `state()` and setState()`
  * @returns instance proxy
  */
-export const withReactiveState = <TInstance extends _State<TState>, TState>(
+export const withReactiveState = <TInstance>(
   instance: TInstance,
 ): TInstance => {
   if (!(instance instanceof _State)) {
@@ -15,7 +15,7 @@ export const withReactiveState = <TInstance extends _State<TState>, TState>(
   }
 
   // `createSignal` for SolidJs, `useState` for React. Vue?
-  const [state, setState] = createSignal<TState>(instance.state());
+  const [state, setState] = createSignal(instance.state());
 
   // Wrap the instance's setState method to propagate changes to the reactive system
   const originalSetState = instance.setState.bind(instance);
@@ -26,9 +26,8 @@ export const withReactiveState = <TInstance extends _State<TState>, TState>(
         return state;
       }
       if (prop === 'setState' && typeof originalSetState === 'function') {
-        return (value: Partial<TState> | ((prev: TState) => TState)) => {
+        return (value: any) => {
           originalSetState(value);
-          //@ts-expect-error
           setState(instance.state());
         };
       }
@@ -46,8 +45,5 @@ export const withReactiveState = <TInstance extends _State<TState>, TState>(
     },
   });
 
-  return proxy as MergeServiceState<TInstance, _State<TState>>;
+  return proxy;
 };
-
-export type MergeServiceState<ServiceClass, TState> = ServiceClass &
-  _State<TState>;

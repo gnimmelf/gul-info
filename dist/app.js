@@ -15691,16 +15691,16 @@
     constructor(initialState) {
       this._state = initialState;
     }
-    state() {
+    state = () => {
       console.log("state()", this._state);
       return { ...this._state };
-    }
-    setState(value) {
+    };
+    setState = (value) => {
       this._state = typeof value === "function" ? value(this._state) : {
         ...this._state,
         ...value
       };
-    }
+    };
   };
 
   // src/domains/directory/Filters.ts
@@ -15890,14 +15890,14 @@
     }
   };
 
-  // src/domains/configs/infrastructure/createConfigsServiceAdaper.ts
+  // src/domains/configs/createConfigsServiceAdaper.ts
   var createConfigsServiceAdaper = async (url) => {
     const adapter = new ConfigsService(url);
     const configs = await adapter.loadConfigs();
     return configs;
   };
 
-  // src/solid-js/ui/providers/CoreProvider.tsx
+  // src/solid-js/ui/providers/SystemProvider.tsx
   var SystemContext = createContext();
   var CoreProvider = (props) => {
     const initialize = async () => {
