@@ -53,6 +53,15 @@ class StyleReg {
   }
 
   /**
+   * Return a function that, when called inside a component, will run with an initialized context
+   * @param producer callback function to curry with context
+   * @returns a function curried with context
+   */
+  public withContext(producer: (ctx: Context) => any) {
+    return () => producer(this.context)
+  }
+
+  /**
    * Add global styling.
    * @param styles - Object with keys as css-selectors and values as styles or function returning styles
    */

@@ -9269,6 +9269,27 @@
       node.addEventListener(name, handler[0] = (e13) => handlerFn.call(node, handler[1], e13));
     } else node.addEventListener(name, handler, typeof handler !== "function" && handler);
   }
+  function style(node, value, prev) {
+    if (!value) return prev ? setAttribute(node, "style") : value;
+    const nodeStyle = node.style;
+    if (typeof value === "string") return nodeStyle.cssText = value;
+    typeof prev === "string" && (nodeStyle.cssText = prev = void 0);
+    prev || (prev = {});
+    value || (value = {});
+    let v3, s5;
+    for (s5 in prev) {
+      value[s5] == null && nodeStyle.removeProperty(s5);
+      delete prev[s5];
+    }
+    for (s5 in value) {
+      v3 = value[s5];
+      if (v3 !== prev[s5]) {
+        nodeStyle.setProperty(s5, v3);
+        prev[s5] = v3;
+      }
+    }
+    return prev;
+  }
   function insert(parent, accessor, marker, initial) {
     if (marker !== void 0 && !initial) initial = [];
     if (typeof accessor !== "function") return insertExpression(parent, accessor, initial, marker);
@@ -9575,6 +9596,14 @@
         ...newContext
       };
       return this;
+    }
+    /**
+     * Return a function that, when called inside a component, will run with an initialized context
+     * @param producer callback function to curry with context
+     * @returns a function curried with context
+     */
+    withContext(producer) {
+      return () => producer(this.context);
     }
     /**
      * Add global styling.
@@ -17174,6 +17203,7 @@
     const [userData] = createResource(
       () => authData(),
       async () => {
+        await timeout(600);
         const userData2 = db.getUserData();
         return userData2;
       }
@@ -17218,7 +17248,13 @@
   };
 
   // src/solid-js/ui/components/Loading.tsx
-  var _tmpl$ = /* @__PURE__ */ template(`<div><sl-spinner style=font-size:50px;--track-width:10px;></sl-spinner><div>`, true, false);
+  var _tmpl$ = /* @__PURE__ */ template(`<div><sl-spinner></sl-spinner><div>`, true, false);
+  var SIZES = /* @__PURE__ */ function(SIZES2) {
+    SIZES2["small"] = "small";
+    SIZES2["medium"] = "medium";
+    SIZES2["large"] = "large";
+    return SIZES2;
+  }(SIZES || {});
   var css = styler.css({
     centered: ({
       theme
@@ -17226,17 +17262,55 @@
       textAlign: "center"
     })
   });
-  var Loading = (props) => (() => {
-    var _el$ = _tmpl$(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
-    _el$2._$owner = getOwner();
-    insert(_el$3, () => props.children);
-    createRenderEffect(() => className(_el$, join("loading", css.centered)));
-    return _el$;
-  })();
+  var styleSizes = styler.withContext(({
+    theme
+  }) => ({
+    small: `font-size: ${theme.fontSizeSm}; --trackwidth: 3px;`,
+    medium: `font-size: ${theme.fontSizeMd}; --trackwidth: 5px;`,
+    large: `font-size: ${theme.fontSizeLg}; --trackwidth: 10px;`
+  }));
+  var Loading = (props) => {
+    const spinnerKey = props.size || SIZES.large;
+    const spinnerStyle = styleSizes()[spinnerKey];
+    return (() => {
+      var _el$ = _tmpl$(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      _el$2._$owner = getOwner();
+      insert(_el$3, () => props.children);
+      createRenderEffect((_p$) => {
+        var _v$ = join("loading", css.centered), _v$2 = spinnerStyle;
+        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
+        _p$.t = style(_el$2, _v$2, _p$.t);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // src/solid-js/ui/components/AccountHead.tsx
+  var AccountHead = (props) => {
+    const {
+      account
+    } = useService();
+    createEffect(() => account()?.initialize());
+    return createComponent(Suspense, {
+      get fallback() {
+        return createComponent(Loading, {
+          size: "small"
+        });
+      },
+      get children() {
+        return [createMemo(() => props.children), createMemo(() => account()?.resources.userData()?.name)];
+      }
+    });
+  };
 
   // src/solid-js/ui/components/Layout.tsx
-  var _tmpl$2 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div><sl-icon-button style=font-size:20px;>`, true, false);
-  var _tmpl$22 = /* @__PURE__ */ template(`<div>Error: `);
+  var _tmpl$2 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
+  var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div>`);
+  var _tmpl$3 = /* @__PURE__ */ template(`<div>Error: `);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
     "font-optical-sizing": "auto",
     "font-weight": "400",
@@ -17250,6 +17324,7 @@
       colorAccent: "var(--gifo-color-accent)",
       fontSizeLg: "2rem",
       fontSizeMd: "1.2rem",
+      fontSizeSm: "1.0rem",
       breakPointSm: "600px",
       spaceY: "var(--sl-spacing-medium)"
     }
@@ -17333,15 +17408,22 @@
   });
   var Layout = (props) => {
     return (() => {
-      var _el$ = _tmpl$2(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling, _el$6 = _el$5.firstChild;
+      var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
       insert(_el$4, () => props.title);
-      addEventListener(_el$6, "click", props.toggleMainPages);
-      _el$6._$owner = getOwner();
+      insert(_el$5, createComponent(AccountHead, {
+        get children() {
+          var _el$6 = _tmpl$2();
+          addEventListener(_el$6, "click", props.toggleMainPages);
+          _el$6._$owner = getOwner();
+          createRenderEffect(() => _el$6.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
+          return _el$6;
+        }
+      }));
       insert(_el$, createComponent(ErrorBoundary, {
         fallback: (error) => {
           console.error(error);
           return (() => {
-            var _el$7 = _tmpl$22(), _el$8 = _el$7.firstChild;
+            var _el$7 = _tmpl$3(), _el$8 = _el$7.firstChild;
             insert(_el$7, () => error.message, null);
             return _el$7;
           })();
@@ -17360,26 +17442,24 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title, _v$4 = css2.user, _v$5 = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle";
+        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title, _v$4 = css2.user;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
         _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
         _v$4 !== _p$.o && className(_el$5, _p$.o = _v$4);
-        _v$5 !== _p$.i && (_el$6.name = _p$.i = _v$5);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
         a: void 0,
-        o: void 0,
-        i: void 0
+        o: void 0
       });
       return _el$;
     })();
   };
 
   // src/solid-js/ui/components/IconLabel.tsx
-  var _tmpl$3 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
+  var _tmpl$4 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
   var css3 = styler.css({
     wrapper: {
       display: "flex"
@@ -17393,7 +17473,7 @@
   });
   var IconLabel = (props) => {
     return (() => {
-      var _el$ = _tmpl$3(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      var _el$ = _tmpl$4(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
       _el$2._$owner = getOwner();
       insert(_el$3, () => props.children);
       createRenderEffect((_p$) => {
@@ -17416,7 +17496,7 @@
   };
 
   // src/solid-js/ui/components/WebLink.tsx
-  var _tmpl$4 = /* @__PURE__ */ template(`<a target=_blank>`);
+  var _tmpl$5 = /* @__PURE__ */ template(`<a target=_blank>`);
   var WebLink = (props) => {
     const {
       pathname,
@@ -17442,7 +17522,7 @@
       },
       label: hostname,
       get children() {
-        var _el$ = _tmpl$4();
+        var _el$ = _tmpl$5();
         insert(_el$, () => link.title);
         createRenderEffect(() => setAttribute(_el$, "href", props.link.href));
         return _el$;
@@ -17451,7 +17531,7 @@
   };
 
   // src/solid-js/ui/components/Phone.tsx
-  var _tmpl$5 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
+  var _tmpl$6 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
   var Phone = (props) => {
     const copyToClipboard = () => {
       navigator.clipboard.writeText(props.phoneNumber);
@@ -17460,7 +17540,7 @@
       window.location.href = `tel:${props.phoneNumber}`;
     };
     return (() => {
-      var _el$ = _tmpl$5(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
+      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
       _el$._$owner = getOwner();
       _el$2.slot = "trigger";
       _el$2.caret = true;
@@ -17482,13 +17562,13 @@
   };
 
   // src/solid-js/ui/components/Address.tsx
-  var _tmpl$6 = /* @__PURE__ */ template(`<br>`);
+  var _tmpl$7 = /* @__PURE__ */ template(`<br>`);
   var Address = (props) => {
-    return [createMemo(() => props.address), _tmpl$6(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
+    return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
   };
 
   // src/solid-js/ui/components/BadgeButton.tsx
-  var _tmpl$7 = /* @__PURE__ */ template(`<div><div class=text>`);
+  var _tmpl$8 = /* @__PURE__ */ template(`<div><div class=text>`);
   var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
   var css4 = styler.css({
     button: {
@@ -17527,7 +17607,7 @@
           return props.badgeLabel;
         },
         get children() {
-          var _el$3 = _tmpl$7(), _el$4 = _el$3.firstChild;
+          var _el$3 = _tmpl$8(), _el$4 = _el$3.firstChild;
           insert(_el$4, () => props.badgeLabel);
           createRenderEffect(() => className(_el$3, css4.badge));
           return _el$3;
@@ -17552,7 +17632,7 @@
   delegateEvents(["click"]);
 
   // src/solid-js/ui/components/ListingsFilters.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<section><div></div><div><sl-switch>:</sl-switch></div><div>`, true, false);
+  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div><sl-switch>:</sl-switch></div><div>`, true, false);
   var css5 = styler.css({
     section: ({
       theme
@@ -17585,7 +17665,7 @@
     };
     createEffect(() => console.log(filters()));
     return (() => {
-      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$3.nextSibling;
+      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$3.nextSibling;
       insert(_el$2, () => indexLetters()?.map(({
         letter,
         count
@@ -17641,7 +17721,7 @@
   };
 
   // src/solid-js/ui/pages/PageListings.tsx
-  var _tmpl$9 = /* @__PURE__ */ template(`<div> treff.`);
+  var _tmpl$10 = /* @__PURE__ */ template(`<div> treff.`);
   var _tmpl$24 = /* @__PURE__ */ template(`<section>`);
   var _tmpl$32 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
   var _tmpl$42 = /* @__PURE__ */ template(`<span><br>`);
@@ -17702,7 +17782,7 @@
       var _el$ = _tmpl$24();
       insert(_el$, createComponent(ListingsFilters, {
         get children() {
-          var _el$2 = _tmpl$9(), _el$3 = _el$2.firstChild;
+          var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild;
           insert(_el$2, hitCount, _el$3);
           return _el$2;
         }
@@ -17768,7 +17848,7 @@
   };
 
   // src/solid-js/ui/pages/PageAccount.tsx
-  var _tmpl$10 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
+  var _tmpl$11 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
   var _tmpl$33 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Log inn med en annen e-post`, true, false);
   var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
@@ -17783,7 +17863,6 @@
     const isAuthenticated = createMemo(() => account()?.resources.isAuthenticated());
     const isVerifiying = createMemo(() => account()?.resources.authData()?.email_verified === false);
     const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
-    createEffect(() => account()?.initialize());
     return (() => {
       var _el$ = _tmpl$72();
       insert(_el$, createComponent(Show, {
@@ -17792,7 +17871,7 @@
         },
         get children() {
           return [(() => {
-            var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$7 = _el$8.nextSibling;
+            var _el$2 = _tmpl$11(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$7 = _el$8.nextSibling;
             _el$2.variant = "warning";
             _el$2._$owner = getOwner();
             _el$3.name = "exclamation-triangle";
@@ -17855,11 +17934,11 @@
   };
 
   // src/solid-js/ui/App.tsx
-  var _tmpl$11 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$12 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
   var _tmpl$26 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
     const [selectedPage, setSelectedPage] = createSignal("PAGE_LISTINGS" /* LISTINGS */);
-    return [_tmpl$11(), (() => {
+    return [_tmpl$12(), (() => {
       var _el$2 = _tmpl$26();
       insert(_el$2, () => styler.resolveGlobals(), null);
       insert(_el$2, () => styler.resolveStyles(), null);

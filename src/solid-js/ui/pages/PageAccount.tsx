@@ -14,8 +14,6 @@ export const PageAccount: Component<{}> = (props) => {
   const isVerifiying = createMemo(() => account()?.resources.authData()?.email_verified === false);
   const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
 
-  createEffect(() => account()?.initialize());
-
   return (
     <section>
       <Show when={!isAuthenticated()}>

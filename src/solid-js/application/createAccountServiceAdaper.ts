@@ -5,6 +5,7 @@ import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 import { IAuthData } from '~/domains/infrastructure/authentication/infrastructure/Auth0Adapter';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
+import { timeout } from '~/shared/lib/utils';
 
 export const createAccountServiceAdaper = (
   db: IDatabase,
@@ -27,6 +28,7 @@ export const createAccountServiceAdaper = (
   const [userData] = createResource(
     () => authData(),
     async () => {
+      await timeout(600)
       const userData = db.getUserData();
       return userData;
     },

@@ -3,7 +3,7 @@ import { Component, ErrorBoundary, JSXElement, Suspense } from 'solid-js';
 import { join, styler, loadFontFace } from '~/shared/lib/styler';
 import { PAGES } from '../../lib/enums';
 import { Loading } from './Loading';
-import { useService } from '~/solid-js/ui/providers/ServiceProvider';
+import { AccountHead } from './AccountHead';
 
 loadFontFace(
   'Playwrite HU',
@@ -24,6 +24,7 @@ styler
       colorAccent: 'var(--gifo-color-accent)',
       fontSizeLg: '2rem',
       fontSizeMd: '1.2rem',
+      fontSizeSm: '1.0rem',
       breakPointSm: '600px',
       spaceY: 'var(--sl-spacing-medium)',
     },
@@ -100,15 +101,17 @@ export const Layout: Component<{
           <h1 class={css.title}>{props.title}</h1>
         </div>
         <div class={css.user}>
-          <sl-icon-button
-            style="font-size: 20px;"
-            prop:name={
-              props.selectedPage === PAGES.LISTINGS
-                ? 'person-circle'
-                : 'arrow-left-circle'
-            }
-            on:click={props.toggleMainPages}
-          />
+          <AccountHead>
+            <sl-icon-button
+              style="font-size: 20px;"
+              prop:name={
+                props.selectedPage === PAGES.LISTINGS
+                  ? 'person-circle'
+                  : 'arrow-left-circle'
+              }
+              on:click={props.toggleMainPages}
+            />
+          </AccountHead>
         </div>
       </section>
       <ErrorBoundary
