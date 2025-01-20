@@ -6,8 +6,8 @@ export const ListingViewSchema = z.object({
   title: z.string(),
   description: z.string(),
   address: z.string(),
-  muncipiality: z.string(),
   zip: z.string().regex(/^\d{4}$/),
+  muncipiality: z.string(),
   phone: z.string(),
   email: z.string().email(),
   links: z.array(

@@ -1,4 +1,4 @@
-DEFINE TABLE OVERWRITE user SCHEMAFULL
+DEFINE TABLE OVERWRITE users SCHEMAFULL
   -- Authorized users can select, update, delete and create user records.
   -- Records that do not match the permissions will not be modified nor returned.
   PERMISSIONS FOR select, update, delete, create
@@ -10,10 +10,10 @@ DEFINE TABLE OVERWRITE user SCHEMAFULL
 ;
 
 -- In this example, we will use the email as the primary identifier for a user.
-DEFINE INDEX email ON user FIELDS email UNIQUE;
-DEFINE FIELD email ON user TYPE string ASSERT string::is::email($value);
+DEFINE INDEX email ON users FIELDS email UNIQUE;
+DEFINE FIELD email ON users TYPE string ASSERT string::is::email($value);
 -- We define some other information present in the token that we want to store.
-DEFINE FIELD name ON user TYPE string;
+DEFINE FIELD name ON users TYPE string;
 
 -- Define the public key to verify tokens issued by Auth0 for our application.
 -- The name of the token should match the custom claim that we configured before.
@@ -28,14 +28,14 @@ DEFINE ACCESS OVERWRITE auth0 ON DATABASE TYPE RECORD
             AND $token['https://surrealdb.com/email_verified'] = true
         ) {
             -- We return the only user that matches the email address claim found in the token.
-            LET $user = SELECT * FROM user WHERE email = $token['https://surrealdb.com/email'];
+            LET $user = SELECT * FROM users WHERE email = $token['https://surrealdb.com/email'];
             IF (!$user) {
                 CREATE user CONTENT {
                     email: $token['https://surrealdb.com/email'],
                     name: $token['https://surrealdb.com/name'],
                 }
             };
-            RETURN SELECT * FROM user WHERE email = $token['https://surrealdb.com/email'];
+            RETURN SELECT * FROM users WHERE email = $token['https://surrealdb.com/email'];
         };
     }
 ;

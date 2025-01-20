@@ -1,4 +1,4 @@
-import { createMemo, createResource, createSignal } from 'solid-js';
+import { createEffect, createMemo, createResource, createSignal } from 'solid-js';
 
 import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
@@ -34,27 +34,27 @@ export const createAccountServiceAdaper = (
       return true
     }
     setInitializing(true)
-  }
-)
+  })
 
-  const [userData] = createResource(
+  const [user] = createResource(
     () => ensureIsLoggedIn(),
     async () => {
       const token = await auth.getAccessToken()
-      const res = await db.authenticate(token, true)
-      const data = db.getUserData();
+      const data = await account.getUserData(token);
       return data;
-    },
+    }
   );
 
+  createEffect(() => console.log(user()))
+
   const [listings] = createResource(
-    () => userData(),
-    ({ email }) => account.loadListingsByEmail(email)
+    () => user(),
+    (user) => account.loadListingsByEmail(user.email)
   )
 
   const adapter = checkAdapterReturnType({
     resources: {
-      userData,
+      user,
       listings,
     },
     mustVerifyEmail,

@@ -8,11 +8,23 @@ CREATE tags CONTENT { id: tags:5, key: "butikk", name: "Butikk" };
 CREATE tags CONTENT { id: tags:6, key: "servering", name: "Servering" };
 CREATE tags CONTENT { id: tags:7, key: "overnatting", name: "Overnatting" };
 
+-- Table users --
+
+DELETE FROM users;
+CREATE users CONTENT
+{
+    name: "Flemming",
+    email: "gnimmelf@gmail.com"
+};
+
+LET $ownerRecord = (SELECT id FROM users WHERE email = 'gnimmelf@gmail.com')[0];
+
 -- Table listings
 DELETE FROM listings;
 CREATE listings CONTENT
 {
     "id": listings:1,
+    "owner": <record<users>>$ownerRecord.id,
     "address": "Hurdalsjøen 45",
     "description": "En koselig kafé ved innsjøen som tilbyr lokalt brent kaffe og hjemmebakte bakverk.",
     "email": "post@hurdalcafe.no",
@@ -29,6 +41,7 @@ CREATE listings CONTENT
 CREATE listings CONTENT
 {
     "id": listings:2,
+    "owner": <record<users>>$ownerRecord.id,
     "address": "Skogveien 12",
     "description": "En familieeid butikk for friluftsutstyr som spesialiserer seg på turlangs- og campingutstyr.",
     "email": "support@skogutstyr.no",
@@ -46,6 +59,7 @@ CREATE listings CONTENT
 CREATE listings CONTENT
 {
     "id": listings:3,
+    "owner": <record<users>>$ownerRecord.id,
     "address": "Fjellveien 7",
     "description": "En sjarmerende fjellhytte som tilbyr koselige rom og spektakulær utsikt over Hurdalsjøen.",
     "email": "booking@hurdalfjell.no",

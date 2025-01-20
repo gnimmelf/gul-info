@@ -1,4 +1,11 @@
-import { Component, createEffect, createSignal, onMount, Suspense } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createSignal,
+  For,
+  onMount,
+  Suspense,
+} from 'solid-js';
 
 import { styler } from '~/shared/lib/styler';
 
@@ -71,48 +78,50 @@ export const PageListings: Component = () => {
       </ListingsFilters>
 
       <Suspense fallback={<Loading>Listings</Loading>}>
-        {listings()?.map((listing) => (
-          <sl-card class={css.card}>
-            <div slot="header" class={css.cardHeader}>
-              <div class="title">{listing.title}</div>
-              <div class="flex-middle">
-                <IconLabel label="beskrivelse" icon="info-circle">
-                  {listing.description}
-                </IconLabel>
-              </div>
-              <div>
-                <Phone phoneNumber={listing.phone} />
-              </div>
-            </div>
-            <div>
-              <div class={css.cardBody}>
-                <div>
-                  <Address {...listing} />
+        <For each={listings()}>
+          {(listing) => (
+            <sl-card class={css.card}>
+              <div slot="header" class={css.cardHeader}>
+                <div class="title">{listing.title}</div>
+                <div class="flex-middle">
+                  <IconLabel label="beskrivelse" icon="info-circle">
+                    {listing.description}
+                  </IconLabel>
                 </div>
                 <div>
-                  {listing.links.map((link) => (
-                    <span>
-                      <WebLink link={link} />
-                      <br />
-                    </span>
+                  <Phone phoneNumber={listing.phone} />
+                </div>
+              </div>
+              <div>
+                <div class={css.cardBody}>
+                  <div>
+                    <Address {...listing} />
+                  </div>
+                  <div>
+                    {listing.links.map((link) => (
+                      <span>
+                        <WebLink link={link} />
+                        <br />
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  {listing.tags.map((tag) => (
+                    <sl-tag
+                      style={{ cursor: 'pointer' }}
+                      prop:variant="primary"
+                      prop:size="small"
+                      on:click={() => filters()?.setTag(tag.key)}
+                    >
+                      {tag.name}
+                    </sl-tag>
                   ))}
                 </div>
               </div>
-              <div>
-                {listing.tags.map((tag) => (
-                  <sl-tag
-                    style={{ cursor: 'pointer' }}
-                    prop:variant="primary"
-                    prop:size="small"
-                    on:click={() => filters()?.setTag(tag.key)}
-                  >
-                    {tag.name}
-                  </sl-tag>
-                ))}
-              </div>
-            </div>
-          </sl-card>
-        ))}
+            </sl-card>
+          )}
+        </For>
       </Suspense>
     </section>
   );

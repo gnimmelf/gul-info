@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const UserViewSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z.string(),
   email: z.string().email(),
 });
@@ -22,3 +22,5 @@ export class UserViewModel {
     return new UserViewModel(parsedData);
   }
 }
+
+export interface UserViewModel extends UserViewSchemaType {}

@@ -8950,6 +8950,96 @@
     };
   }
   var FALLBACK = Symbol("fallback");
+  function dispose(d4) {
+    for (let i9 = 0; i9 < d4.length; i9++) d4[i9]();
+  }
+  function mapArray(list2, mapFn, options = {}) {
+    let items = [], mapped = [], disposers = [], len = 0, indexes = mapFn.length > 1 ? [] : null;
+    onCleanup(() => dispose(disposers));
+    return () => {
+      let newItems = list2() || [], newLen = newItems.length, i9, j3;
+      newItems[$TRACK];
+      return untrack(() => {
+        let newIndices, newIndicesNext, temp, tempdisposers, tempIndexes, start, end, newEnd, item;
+        if (newLen === 0) {
+          if (len !== 0) {
+            dispose(disposers);
+            disposers = [];
+            items = [];
+            mapped = [];
+            len = 0;
+            indexes && (indexes = []);
+          }
+          if (options.fallback) {
+            items = [FALLBACK];
+            mapped[0] = createRoot((disposer) => {
+              disposers[0] = disposer;
+              return options.fallback();
+            });
+            len = 1;
+          }
+        } else if (len === 0) {
+          mapped = new Array(newLen);
+          for (j3 = 0; j3 < newLen; j3++) {
+            items[j3] = newItems[j3];
+            mapped[j3] = createRoot(mapper);
+          }
+          len = newLen;
+        } else {
+          temp = new Array(newLen);
+          tempdisposers = new Array(newLen);
+          indexes && (tempIndexes = new Array(newLen));
+          for (start = 0, end = Math.min(len, newLen); start < end && items[start] === newItems[start]; start++) ;
+          for (end = len - 1, newEnd = newLen - 1; end >= start && newEnd >= start && items[end] === newItems[newEnd]; end--, newEnd--) {
+            temp[newEnd] = mapped[end];
+            tempdisposers[newEnd] = disposers[end];
+            indexes && (tempIndexes[newEnd] = indexes[end]);
+          }
+          newIndices = /* @__PURE__ */ new Map();
+          newIndicesNext = new Array(newEnd + 1);
+          for (j3 = newEnd; j3 >= start; j3--) {
+            item = newItems[j3];
+            i9 = newIndices.get(item);
+            newIndicesNext[j3] = i9 === void 0 ? -1 : i9;
+            newIndices.set(item, j3);
+          }
+          for (i9 = start; i9 <= end; i9++) {
+            item = items[i9];
+            j3 = newIndices.get(item);
+            if (j3 !== void 0 && j3 !== -1) {
+              temp[j3] = mapped[i9];
+              tempdisposers[j3] = disposers[i9];
+              indexes && (tempIndexes[j3] = indexes[i9]);
+              j3 = newIndicesNext[j3];
+              newIndices.set(item, j3);
+            } else disposers[i9]();
+          }
+          for (j3 = start; j3 < newLen; j3++) {
+            if (j3 in temp) {
+              mapped[j3] = temp[j3];
+              disposers[j3] = tempdisposers[j3];
+              if (indexes) {
+                indexes[j3] = tempIndexes[j3];
+                indexes[j3](j3);
+              }
+            } else mapped[j3] = createRoot(mapper);
+          }
+          mapped = mapped.slice(0, len = newLen);
+          items = newItems.slice(0);
+        }
+        return mapped;
+      });
+      function mapper(disposer) {
+        disposers[j3] = disposer;
+        if (indexes) {
+          const [s5, set] = createSignal(j3);
+          indexes[j3] = set;
+          return mapFn(newItems[j3], s5);
+        }
+        return mapFn(newItems[j3]);
+      }
+    };
+  }
   var hydrationEnabled = false;
   function createComponent(Comp, props) {
     if (hydrationEnabled) {
@@ -8964,6 +9054,12 @@
     return untrack(() => Comp(props || {}));
   }
   var narrowedError = (name) => `Stale read from <${name}>.`;
+  function For(props) {
+    const fallback2 = "fallback" in props && {
+      fallback: () => props.fallback
+    };
+    return createMemo(mapArray(() => props.each, props.children, fallback2 || void 0));
+  }
   function Show(props) {
     const keyed = props.keyed;
     const condition = createMemo(() => props.when, void 0, {
@@ -9098,8 +9194,8 @@
     }
     const listContext = useContext(SuspenseListContext);
     if (listContext) show = listContext.register(store.inFallback);
-    let dispose;
-    onCleanup(() => dispose && dispose());
+    let dispose2;
+    onCleanup(() => dispose2 && dispose2());
     return createComponent(SuspenseContext2.Provider, {
       value: store,
       get children() {
@@ -9116,15 +9212,15 @@
             const inFallback2 = store.inFallback(), { showContent = true, showFallback = true } = show ? show() : {};
             if ((!inFallback2 || p4 && p4 !== "$$f") && showContent) {
               store.resolved = true;
-              dispose && dispose();
-              dispose = ctx = p4 = void 0;
+              dispose2 && dispose2();
+              dispose2 = ctx = p4 = void 0;
               resumeEffects(store.effects);
               return rendered();
             }
             if (!showFallback) return;
-            if (dispose) return prev;
+            if (dispose2) return prev;
             return createRoot((disposer) => {
-              dispose = disposer;
+              dispose2 = disposer;
               if (ctx) {
                 setHydrateContext({
                   id: ctx.id + "F",
@@ -9507,12 +9603,12 @@
   function withSolid(ComponentType) {
     return (rawProps, options) => {
       const { element } = options;
-      return createRoot((dispose) => {
+      return createRoot((dispose2) => {
         const props = createProps(rawProps);
         element.addPropertyChangedCallback((key, val) => props[key] = val);
         element.addReleaseCallback(() => {
           element.renderRoot.textContent = "";
-          dispose();
+          dispose2();
         });
         const comp = ComponentType(props, options);
         return insert(element.renderRoot, comp);
@@ -15781,14 +15877,6 @@
   };
 
   // src/domains/infrastructure/database/infrastructure/SurrealDbAdapter.ts
-  var pop = (data, count = 1) => {
-    let tmp = data;
-    while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
-      tmp = tmp[0];
-      count--;
-    }
-    return tmp;
-  };
   var SurrealDbAdapter = class {
     config;
     client = new Surreal();
@@ -15869,19 +15957,41 @@
       ) as usageCount
       FROM tags;
     `;
+      console.log({ query });
       const res = pop(await this.client.query(query));
       return res;
     }
     async getUserData() {
-      const query = `SELECT * FROM ${"user" /* USER */};`;
+      const query = `SELECT * FROM ${"users" /* USER */};`;
+      console.log({ query });
       const res = pop(await this.client.query(query), 2);
       return res;
     }
     async getListingsByEmail(email) {
       const query = `SELECT * FROM ${"listings" /* LISTINGS */} WHERE owner.email = '${email}';`;
+      console.log({ query });
       const res = pop(await this.client.query(query), 2);
       return res;
     }
+    async createListing(data) {
+      const query = `;`;
+      console.log({ query });
+      const res = pop(await this.client.query(query), 2);
+      return res;
+    }
+  };
+  var stringifyId = (record) => ({
+    ...record,
+    //@ts-expect-error
+    id: typeof record.id === "object" ? `${record.id.table}:${record.id.id}` : record.id
+  });
+  var pop = (data, count = 1) => {
+    let res = data;
+    while (count > 0 && Array.isArray(res) && res.length === 1) {
+      res = res[0];
+      count--;
+    }
+    return Array.isArray(res) ? res.map((record) => stringifyId(record)) : stringifyId(res);
   };
 
   // src/domains/infrastructure/database/createDatabaseAdapter.ts
@@ -15892,7 +16002,7 @@
   };
 
   // src/shared/lib/utils.ts
-  var timeout = async (ms = 600, fn) => {
+  var timeout = async (ms = 0, fn) => {
     return new Promise(
       (resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms)
     );
@@ -17067,8 +17177,8 @@
     title: z.string(),
     description: z.string(),
     address: z.string(),
-    muncipiality: z.string(),
     zip: z.string().regex(/^\d{4}$/),
+    muncipiality: z.string(),
     phone: z.string(),
     email: z.string().email(),
     links: z.array(
@@ -17167,7 +17277,7 @@
 
   // src/domains/ui/account/UserViewModel.ts
   var UserViewSchema = z.object({
-    id: z.number(),
+    id: z.string(),
     name: z.string(),
     email: z.string().email()
   });
@@ -17188,11 +17298,12 @@
   // src/domains/ui/account/Listing.ts
   var ListingSchema = z.object({
     id: z.string(),
+    owner: z.string(),
     title: z.string(),
     description: z.string(),
     address: z.string(),
-    muncipiality: z.string(),
     zip: z.string().regex(/^\d{4}$/),
+    muncipiality: z.string(),
     phone: z.string(),
     email: z.string().email(),
     links: z.array(
@@ -17214,19 +17325,26 @@
   // src/domains/ui/account/AccountService.ts
   var AccountService = class {
     db;
+    userId;
     constructor(db) {
       this.db = db;
     }
-    async getUserData() {
+    async getUserData(token) {
       await timeout();
-      const data = this.db.getUserData();
-      return UserViewModel.from(data);
+      await this.db.authenticate(token, true);
+      const data = await this.db.getUserData();
+      const model = UserViewModel.from(data);
+      return model;
     }
     async loadListingsByEmail(email) {
       await timeout();
       const data = await this.db.getListingsByEmail(email);
       const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => Listing.from(data2));
       return res;
+    }
+    async createListing(listing) {
+    }
+    async updateListing(listing) {
     }
   };
 
@@ -17246,30 +17364,28 @@
       }
     );
     const mustVerifyEmail = createMemo(() => authData()?.email_verified ? false : authData()?.email);
-    const ensureIsLoggedIn = createMemo(
-      () => {
-        if (authData() && !mustVerifyEmail()) {
-          return true;
-        }
-        setInitializing(true);
+    const ensureIsLoggedIn = createMemo(() => {
+      if (authData() && !mustVerifyEmail()) {
+        return true;
       }
-    );
-    const [userData] = createResource(
+      setInitializing(true);
+    });
+    const [user] = createResource(
       () => ensureIsLoggedIn(),
       async () => {
         const token = await auth.getAccessToken();
-        const res = await db.authenticate(token, true);
-        const data = db.getUserData();
+        const data = await account.getUserData(token);
         return data;
       }
     );
+    createEffect(() => console.log(user()));
     const [listings] = createResource(
-      () => userData(),
-      ({ email }) => account.loadListingsByEmail(email)
+      () => user(),
+      (user2) => account.loadListingsByEmail(user2.email)
     );
     const adapter = checkAdapterReturnType({
       resources: {
-        userData,
+        user,
         listings
       },
       mustVerifyEmail,
@@ -17353,10 +17469,12 @@
   };
 
   // src/solid-js/ui/components/AccountHead.tsx
+  var _tmpl$2 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
   var AccountHead = (props) => {
     const {
       account
     } = useService();
+    const user = createMemo(() => account()?.resources.user());
     return createComponent(Suspense, {
       get fallback() {
         return createComponent(Loading, {
@@ -17364,15 +17482,27 @@
         });
       },
       get children() {
-        return [createMemo(() => props.children), createMemo(() => account()?.resources.userData()?.name)];
+        return [createMemo(() => props.children), createComponent(Show, {
+          get when() {
+            return user();
+          },
+          get children() {
+            return [createMemo(() => user()?.name), (() => {
+              var _el$ = _tmpl$2();
+              addEventListener(_el$, "click", () => account()?.logout());
+              _el$._$owner = getOwner();
+              return _el$;
+            })()];
+          }
+        })];
       }
     });
   };
 
   // src/solid-js/ui/components/Layout.tsx
-  var _tmpl$2 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
+  var _tmpl$3 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
   var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div>`);
-  var _tmpl$3 = /* @__PURE__ */ template(`<div>Error: `);
+  var _tmpl$32 = /* @__PURE__ */ template(`<div>Error: `);
   loadFontFace("Playwrite HU", "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')", {
     "font-optical-sizing": "auto",
     "font-weight": "400",
@@ -17458,7 +17588,8 @@
       theme
     }) => ({
       fontFamily: "'Playwrite HU', sans-serif",
-      fontSize: theme.fontSizeLg
+      fontSize: theme.fontSizeLg,
+      cursor: "pointer"
     }),
     user: ({
       theme
@@ -17471,10 +17602,11 @@
   var Layout = (props) => {
     return (() => {
       var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
+      addEventListener(_el$4, "click", props.toggleMainPages);
       insert(_el$4, () => props.title);
       insert(_el$5, createComponent(AccountHead, {
         get children() {
-          var _el$6 = _tmpl$2();
+          var _el$6 = _tmpl$3();
           addEventListener(_el$6, "click", props.toggleMainPages);
           _el$6._$owner = getOwner();
           createRenderEffect(() => _el$6.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
@@ -17485,7 +17617,7 @@
         fallback: (error) => {
           console.error(error);
           return (() => {
-            var _el$7 = _tmpl$3(), _el$8 = _el$7.firstChild;
+            var _el$7 = _tmpl$32(), _el$8 = _el$7.firstChild;
             insert(_el$7, () => error.message, null);
             return _el$7;
           })();
@@ -17785,7 +17917,7 @@
   // src/solid-js/ui/pages/PageListings.tsx
   var _tmpl$10 = /* @__PURE__ */ template(`<div> treff.`);
   var _tmpl$24 = /* @__PURE__ */ template(`<section>`);
-  var _tmpl$32 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
+  var _tmpl$33 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
   var _tmpl$42 = /* @__PURE__ */ template(`<span><br>`);
   var _tmpl$52 = /* @__PURE__ */ template(`<sl-tag>`, true, false);
   var css6 = styler.css({
@@ -17855,53 +17987,58 @@
           });
         },
         get children() {
-          return listings()?.map((listing) => (() => {
-            var _el$4 = _tmpl$32(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
-            _el$4._$owner = getOwner();
-            insert(_el$6, () => listing.title);
-            insert(_el$7, createComponent(IconLabel, {
-              label: "beskrivelse",
-              icon: "info-circle",
-              get children() {
-                return listing.description;
-              }
-            }));
-            insert(_el$8, createComponent(Phone, {
-              get phoneNumber() {
-                return listing.phone;
-              }
-            }));
-            insert(_el$11, createComponent(Address, listing));
-            insert(_el$12, () => listing.links.map((link) => (() => {
-              var _el$14 = _tmpl$42(), _el$15 = _el$14.firstChild;
-              insert(_el$14, createComponent(WebLink, {
-                link
-              }), _el$15);
-              return _el$14;
-            })()));
-            insert(_el$13, () => listing.tags.map((tag) => (() => {
-              var _el$16 = _tmpl$52();
-              addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
-              _el$16.style.setProperty("cursor", "pointer");
-              _el$16.variant = "primary";
-              _el$16.size = "small";
-              _el$16._$owner = getOwner();
-              insert(_el$16, () => tag.name);
-              return _el$16;
-            })()));
-            createRenderEffect((_p$) => {
-              var _v$ = css6.card, _v$2 = css6.cardHeader, _v$3 = css6.cardBody;
-              _v$ !== _p$.e && className(_el$4, _p$.e = _v$);
-              _v$2 !== _p$.t && className(_el$5, _p$.t = _v$2);
-              _v$3 !== _p$.a && className(_el$10, _p$.a = _v$3);
-              return _p$;
-            }, {
-              e: void 0,
-              t: void 0,
-              a: void 0
-            });
-            return _el$4;
-          })());
+          return createComponent(For, {
+            get each() {
+              return listings();
+            },
+            children: (listing) => (() => {
+              var _el$4 = _tmpl$33(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
+              _el$4._$owner = getOwner();
+              insert(_el$6, () => listing.title);
+              insert(_el$7, createComponent(IconLabel, {
+                label: "beskrivelse",
+                icon: "info-circle",
+                get children() {
+                  return listing.description;
+                }
+              }));
+              insert(_el$8, createComponent(Phone, {
+                get phoneNumber() {
+                  return listing.phone;
+                }
+              }));
+              insert(_el$11, createComponent(Address, listing));
+              insert(_el$12, () => listing.links.map((link) => (() => {
+                var _el$14 = _tmpl$42(), _el$15 = _el$14.firstChild;
+                insert(_el$14, createComponent(WebLink, {
+                  link
+                }), _el$15);
+                return _el$14;
+              })()));
+              insert(_el$13, () => listing.tags.map((tag) => (() => {
+                var _el$16 = _tmpl$52();
+                addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
+                _el$16.style.setProperty("cursor", "pointer");
+                _el$16.variant = "primary";
+                _el$16.size = "small";
+                _el$16._$owner = getOwner();
+                insert(_el$16, () => tag.name);
+                return _el$16;
+              })()));
+              createRenderEffect((_p$) => {
+                var _v$ = css6.card, _v$2 = css6.cardHeader, _v$3 = css6.cardBody;
+                _v$ !== _p$.e && className(_el$4, _p$.e = _v$);
+                _v$2 !== _p$.t && className(_el$5, _p$.t = _v$2);
+                _v$3 !== _p$.a && className(_el$10, _p$.a = _v$3);
+                return _p$;
+              }, {
+                e: void 0,
+                t: void 0,
+                a: void 0
+              });
+              return _el$4;
+            })()
+          });
         }
       }), null);
       return _el$;
@@ -17911,20 +18048,21 @@
   // src/solid-js/ui/pages/PageAccount.tsx
   var _tmpl$11 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$33 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
+  var _tmpl$34 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
-  var _tmpl$53 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
-  var _tmpl$62 = /* @__PURE__ */ template(`<pre>`);
-  var _tmpl$72 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$53 = /* @__PURE__ */ template(`<sl-input>`, true, false);
+  var _tmpl$62 = /* @__PURE__ */ template(`<br>`);
+  var _tmpl$72 = /* @__PURE__ */ template(`<sl-switch>Aktiv (vises)`, true, false);
+  var _tmpl$82 = /* @__PURE__ */ template(`<section>`);
   var css7 = styler.css({});
   var PageAccount = (props) => {
     const {
       account
     } = useService();
     const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
-    const isLoggedIn = createMemo(() => account()?.resources.userData());
+    const isLoggedIn = createMemo(() => account()?.resources.user());
     return (() => {
-      var _el$ = _tmpl$72();
+      var _el$ = _tmpl$82();
       insert(_el$, createComponent(Show, {
         get when() {
           return !isLoggedIn();
@@ -17957,7 +18095,7 @@
                 return mustVerifyEmail();
               },
               get children() {
-                var _el$10 = _tmpl$33(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
+                var _el$10 = _tmpl$34(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
                 _el$10.label = "Alignment";
                 _el$10._$owner = getOwner();
                 addEventListener(_el$11, "click", () => account()?.login());
@@ -17979,17 +18117,18 @@
         get children() {
           return [(() => {
             var _el$13 = _tmpl$53();
-            addEventListener(_el$13, "click", () => account()?.logout());
+            _el$13.label = "Title";
             _el$13._$owner = getOwner();
             return _el$13;
           })(), (() => {
-            var _el$14 = _tmpl$62();
-            insert(_el$14, () => JSON.stringify(account()?.resources.userData()));
+            var _el$14 = _tmpl$53();
+            _el$14.label = "Description";
+            _el$14._$owner = getOwner();
             return _el$14;
-          })(), (() => {
-            var _el$15 = _tmpl$62();
-            insert(_el$15, () => JSON.stringify(account()?.resources.listings()));
-            return _el$15;
+          })(), _tmpl$62(), (() => {
+            var _el$16 = _tmpl$72();
+            _el$16._$owner = getOwner();
+            return _el$16;
           })()];
         }
       }), null);

@@ -1,4 +1,4 @@
-import Surreal from 'surrealdb';
+import Surreal, { RecordId } from 'surrealdb';
 import { IDatabase } from '../IDatabase';
 import { TFilterState, TagsMatchType } from '~/domains/ui/directory/Filters';
 
@@ -7,22 +7,9 @@ import { IndexLetterViewSchemaType } from '~/domains/ui/directory/IndexLetterVie
 import { ListingViewSchemaType } from '~/domains/ui/directory/ListingViewModel';
 import { TagViewSchemaType } from '~/domains/ui/directory/TagViewModel';
 import { Listing } from '~/domains/ui/account/Listing';
+import { CreateListingDtoSchemaType } from '~/domains/ui/account/CreateListingDto';
 
-type NestedArray<T> = T | NestedArray<T>[];
-/**
- * Popps from a nested array `count` times.
- * @param data flattenable array of n depth
- * @param count the number of times to pop
- * @returns last popped element of type <T>
- */
-export const pop = <T>(data: NestedArray<any>, count = 1): T => {
-  let tmp = data;
-  while (count > 0 && Array.isArray(tmp) && tmp.length === 1) {
-    tmp = tmp[0];
-    count--;
-  }
-  return tmp;
-};
+
 
 export interface SurrealConfig {
   namespace: string;
@@ -32,8 +19,10 @@ export interface SurrealConfig {
 
 enum TABLES {
   LISTINGS = 'listings',
-  USER = 'user',
+  USER = 'users',
 }
+
+
 
 /**
  * Class
@@ -129,19 +118,60 @@ export class SurrealDbAdapter implements IDatabase {
       ) as usageCount
       FROM tags;
     `;
+    console.log({ query });
     const res = pop<TagViewSchemaType[]>(await this.client.query(query));
     return res;
   }
 
   async getUserData() {
     const query = `SELECT * FROM ${TABLES.USER};`;
+    console.log({ query });
     const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
-    return res;
+    return res
   }
 
   async getListingsByEmail(email: string) {
-      const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
-      const res = pop<Listing[]>(await this.client.query(query), 2);
-      return res;
+    const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
+    console.log({ query });
+    const res = pop<Listing[]>(await this.client.query(query), 2);
+    return res;
+  }
+
+  async createListing(data: CreateListingDtoSchemaType) {
+    const query = `;`;
+    console.log({ query });
+    const res = pop<Listing[]>(await this.client.query(query), 2);
+    return res;
   }
 }
+
+/**
+ * Utils
+ */
+
+const stringifyId = <T>(record: T): T => ({
+  ...record,
+  //@ts-expect-error
+  id: typeof record.id === 'object' ? `${record.id.table}:${record.id.id}` : record.id
+})
+
+type NestedArray<T> = T | NestedArray<T>[];
+/**
+ * Popps from a nested array `count` times.
+ * @param data flattenable array of n depth
+ * @param count the number of times to pop
+ * @returns last popped element of type <T>
+ */
+export const pop = <T>(data: NestedArray<any>, count = 1): T => {
+  let res = data;
+  while (count > 0 && Array.isArray(res) && res.length === 1) {
+    res = res[0];
+    count--;
+  }
+  //@ts-ignore
+  return Array.isArray(res)
+    //@ts-ignore
+    ? res.map((record: T) => stringifyId<T>(record))
+    : stringifyId<T>(res)
+  ;
+};

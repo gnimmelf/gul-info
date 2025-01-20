@@ -80,6 +80,7 @@ const css = styler.css({
   title: ({ theme }) => ({
     fontFamily: "'Playwrite HU', sans-serif",
     fontSize: theme.fontSizeLg,
+    cursor: 'pointer'
   }),
   user: ({ theme }) => ({
     display: 'flex',
@@ -98,7 +99,10 @@ export const Layout: Component<{
     <div class={join(css.app, css.border)}>
       <section class={css.header}>
         <div>
-          <h1 class={css.title}>{props.title}</h1>
+          <h1
+            class={css.title}
+            on:click={props.toggleMainPages}
+          >{props.title}</h1>
         </div>
         <div class={css.user}>
           <AccountHead>

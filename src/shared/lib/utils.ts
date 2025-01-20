@@ -9,7 +9,7 @@ export const awaitCondition = async (conditionCheck: Function, ms = 10) => {
   }
 };
 
-export const timeout = async (ms = 600, fn?: () => void) => {
+export const timeout = async (ms = 0, fn?: () => void) => {
   return new Promise((resolve) =>
     setTimeout(() => resolve(fn ? fn() : undefined), ms),
   );

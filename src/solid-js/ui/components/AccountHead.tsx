@@ -1,4 +1,4 @@
-import { Component, createEffect, JSXElement, onMount, Suspense } from 'solid-js';
+import { Component, createEffect, createMemo, JSXElement, onMount, Show, Suspense } from 'solid-js';
 
 import { Loading } from './Loading';
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
@@ -8,10 +8,15 @@ export const AccountHead: Component<{
 }> = (props) => {
   const { account } = useService();
 
+  const user = createMemo(() => account()?.resources.user())
+
   return (
     <Suspense fallback={<Loading size="large"></Loading>}>
       {props.children}
-      {account()?.resources.userData()?.name}
+      <Show when={user()}>
+        {user()?.name}
+        <sl-button on:click={() => account()?.logout()}>Logout</sl-button>
+      </Show>
     </Suspense>
   );
 };

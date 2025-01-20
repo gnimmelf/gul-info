@@ -1,14 +1,14 @@
 import { z } from 'zod';
 import { _State } from '~/shared/lib/_State';
-import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const ListingSchema = z.object({
   id: z.string(),
+  owner: z.string(),
   title: z.string(),
   description: z.string(),
   address: z.string(),
-  muncipiality: z.string(),
   zip: z.string().regex(/^\d{4}$/),
+  muncipiality: z.string(),
   phone: z.string(),
   email: z.string().email(),
   links: z.array(
@@ -30,6 +30,7 @@ export class Listing extends _State<ListingSchemaType> {
     const parsedData = ListingSchema.parse(data);
     return new Listing(parsedData);
   }
+
 }
 
 export interface Listing extends ListingSchemaType {}

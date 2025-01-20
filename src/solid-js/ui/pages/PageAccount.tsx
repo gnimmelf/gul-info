@@ -9,7 +9,7 @@ export const PageAccount: Component<{}> = (props) => {
   const { account } = useService();
 
   const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
-  const isLoggedIn = createMemo(() => account()?.resources.userData());
+  const isLoggedIn = createMemo(() => account()?.resources.user());
 
   return (
     <section>
@@ -45,9 +45,11 @@ export const PageAccount: Component<{}> = (props) => {
       </Show>
 
       <Show when={isLoggedIn()}>
-        <sl-button on:click={() => account()?.logout()}>Logout</sl-button>
-        <pre>{JSON.stringify(account()?.resources.userData())}</pre>
-        <pre>{JSON.stringify(account()?.resources.listings())}</pre>
+        <sl-input prop:label="Title"></sl-input>
+        <sl-input prop:label="Description"></sl-input>
+        <br />
+        <sl-switch>Aktiv (vises)</sl-switch>
+
       </Show>
     </section>
   );

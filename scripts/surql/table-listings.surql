@@ -5,6 +5,7 @@ PERMISSIONS
     	WHERE isActive = true;
 
 -- Define fields for the listings table
+DEFINE FIELD owner ON TABLE listings TYPE record<users>;
 DEFINE FIELD address ON TABLE listings TYPE string;
 DEFINE FIELD description ON TABLE listings TYPE string;
 DEFINE FIELD email ON TABLE listings TYPE string ASSERT string::is::email($value);
