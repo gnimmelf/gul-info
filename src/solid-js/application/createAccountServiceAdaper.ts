@@ -1,4 +1,4 @@
-import { createResource, createSignal } from 'solid-js';
+import { createMemo, createResource, createSignal } from 'solid-js';
 
 import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
@@ -11,38 +11,55 @@ export const createAccountServiceAdaper = (
   db: IDatabase,
   auth: IAuthentication,
 ) => {
-  const instance = new AccountService(db, auth);
+  const account = new AccountService(db);
 
-  const [doInitialize, setDoInitialize] = createSignal(false);
+  const [initializing, setInitializing] = createSignal(false);
 
   const [isAuthenticated] = createResource(
-    () => doInitialize(),
-    () => instance.authenticate(),
+    () => initializing(),
+    () => auth.isAuthenticated()
   );
 
-  const [authData] = createResource<IAuthData, boolean>(
+  const [authData] = createResource(
     () => isAuthenticated(),
-    () => auth.getAuthData!(),
-  );
-
-  const [userData] = createResource(
-    () => authData(),
     async () => {
-      await timeout(600)
-      const userData = db.getUserData();
-      return userData;
+      const data = await auth.getAuthData!();
+      return data;
     },
   );
+
+  const mustVerifyEmail = createMemo(() => authData()?.email_verified ? false : authData()?.email)
+  const ensureIsLoggedIn = createMemo(() => {
+    if (authData() && !mustVerifyEmail()) {
+      return true
+    }
+    setInitializing(true)
+  }
+)
+
+  const [userData] = createResource(
+    () => ensureIsLoggedIn(),
+    async () => {
+      const token = await auth.getAccessToken()
+      const res = await db.authenticate(token, true)
+      const data = db.getUserData();
+      return data;
+    },
+  );
+
+  const [listings] = createResource(
+    () => userData(),
+    ({ email }) => account.loadListingsByEmail(email)
+  )
 
   const adapter = checkAdapterReturnType({
     resources: {
-      isAuthenticated,
       userData,
-      authData,
+      listings,
     },
-    initialize: () => setDoInitialize(true),
-    login: instance.login.bind(instance),
-    logout: instance.logout.bind(instance),
+    mustVerifyEmail,
+    login: auth.login.bind(auth),
+    logout: auth.logout.bind(auth),
   });
 
   return adapter;

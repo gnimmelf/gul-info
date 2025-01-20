@@ -18,8 +18,8 @@ type TConfigsAdapter = Awaited<ReturnType<typeof createConfigsServiceAdaper>>;
 type TDbAdapter = Awaited<ReturnType<typeof createDatabaseAdapter>>;
 
 interface TSystemContext {
-  configs: () => TConfigsAdapter;
-  db: () => TDbAdapter;
+  configs: TConfigsAdapter;
+  db: TDbAdapter;
 }
 
 // Create the context
@@ -38,8 +38,8 @@ export const CoreProvider: Component<{
     const db = await createDatabaseAdapter(configs.surreal);
 
     return {
-      configs: () => configs,
-      db: () => db,
+      configs,
+      db,
     };
   };
 

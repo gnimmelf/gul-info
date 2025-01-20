@@ -6,6 +6,7 @@ import { UserViewSchemaType } from '~/domains/ui/account/UserViewModel';
 import { IndexLetterViewSchemaType } from '~/domains/ui/directory/IndexLetterViewModel';
 import { ListingViewSchemaType } from '~/domains/ui/directory/ListingViewModel';
 import { TagViewSchemaType } from '~/domains/ui/directory/TagViewModel';
+import { Listing } from '~/domains/ui/account/Listing';
 
 type NestedArray<T> = T | NestedArray<T>[];
 /**
@@ -68,6 +69,20 @@ export class SurrealDbAdapter implements IDatabase {
     }
   }
 
+  async authenticate(token: string, failSilently: boolean) {
+    let res = false;
+    try {
+      res = await this.client.authenticate(token);
+    } catch (err: any) {
+      if (!failSilently) {
+        console.error(err.message);
+      }
+    }
+    return res;
+  }
+
+  // TODO! Methods below should be inside own features, getting passed the `client`
+
   async getListings(filters?: TFilterState) {
     let whereClause = '';
     const conditions: string[] = [];
@@ -118,21 +133,15 @@ export class SurrealDbAdapter implements IDatabase {
     return res;
   }
 
-  async authenticate(token: string, failSilently: boolean) {
-    let res = false;
-    try {
-      res = await this.client.authenticate(token);
-    } catch (err: any) {
-      if (!failSilently) {
-        console.error(err.message);
-      }
-    }
-    return res;
-  }
-
   async getUserData() {
     const query = `SELECT * FROM ${TABLES.USER};`;
     const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
     return res;
+  }
+
+  async getListingsByEmail(email: string) {
+      const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
+      const res = pop<Listing[]>(await this.client.query(query), 2);
+      return res;
   }
 }

@@ -33,21 +33,17 @@ const ServiceContext = createContext<IServiceContext>();
 export const ServiceProvider: Component<{
   children: JSXElement;
 }> = (props) => {
-  const system = useSystem();
+  const { db, configs } = useSystem();
 
-  const [auth] = createResource(
-    () => system.configs(),
-    (configs) => createAuthenticationAdaper(configs.auth0),
+  const [directory] = createResource(
+    () => createDirectoryServiceAdapter(db),
   );
 
   const [account] = createResource(
-    () => auth(),
-    (auth) => createAccountServiceAdaper(system.db(), auth),
-  );
-
-  const [directory] = createResource(
-    () => system.db(),
-    (db) => createDirectoryServiceAdapter(db),
+    async () => {
+      const auth = await createAuthenticationAdaper(db, configs.auth0);
+      return createAccountServiceAdaper(db, auth);
+    },
   );
 
   const services = {

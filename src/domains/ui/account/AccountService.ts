@@ -2,37 +2,31 @@ import { IDatabase } from '../../infrastructure/database/IDatabase';
 import { IAuthentication } from '../../infrastructure/authentication/IAuthentication';
 
 import { UserViewModel } from './UserViewModel';
+import { Listing } from './Listing';
+import { timeout } from '~/shared/lib/utils';
 
 /**
  * Class
  */
 export class AccountService {
   private db: IDatabase;
-  private auth: IAuthentication;
 
-  constructor(db: IDatabase, auth: IAuthentication) {
+  constructor(db: IDatabase) {
     this.db = db;
-    this.auth = auth;
   }
 
-  public async authenticate() {
-    if (await this.auth.isAuthenticated()) {
-      const token = await this.auth.getAccessToken();
-      let res = await this.db.authenticate(token, true);
-      return res;
-    }
-    return false;
+  public async getUserData() {
+    await timeout();
+    const data = this.db.getUserData()
+    return UserViewModel.from(data)
   }
 
-  public async login() {
-    return this.auth.login();
-  }
-
-  public async logout() {
-    return this.auth.logout();
-  }
-
-  public getMyListings(email: string) {
-    return
+  public async loadListingsByEmail(email: string) {
+    await timeout();
+    const data = await this.db.getListingsByEmail(email);
+    const res = data
+      .sort((a, b) => (a.title < b.title ? -1 : 1))
+      .map((data) => Listing.from(data));
+    return res;
   }
 }

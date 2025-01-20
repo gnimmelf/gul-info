@@ -15817,6 +15817,18 @@
         throw err;
       }
     }
+    async authenticate(token, failSilently) {
+      let res = false;
+      try {
+        res = await this.client.authenticate(token);
+      } catch (err) {
+        if (!failSilently) {
+          console.error(err.message);
+        }
+      }
+      return res;
+    }
+    // TODO! Methods below should be inside own features, getting passed the `client`
     async getListings(filters) {
       let whereClause = "";
       const conditions = [];
@@ -15860,19 +15872,13 @@
       const res = pop(await this.client.query(query));
       return res;
     }
-    async authenticate(token, failSilently) {
-      let res = false;
-      try {
-        res = await this.client.authenticate(token);
-      } catch (err) {
-        if (!failSilently) {
-          console.error(err.message);
-        }
-      }
-      return res;
-    }
     async getUserData() {
       const query = `SELECT * FROM ${"user" /* USER */};`;
+      const res = pop(await this.client.query(query), 2);
+      return res;
+    }
+    async getListingsByEmail(email) {
+      const query = `SELECT * FROM ${"listings" /* LISTINGS */} WHERE owner.email = '${email}';`;
       const res = pop(await this.client.query(query), 2);
       return res;
     }
@@ -15933,8 +15939,8 @@
       const configs = await createConfigsServiceAdaper("https://intergate.io/configs/gul-info-hurdal");
       const db = await createDatabaseAdapter(configs.surreal);
       return {
-        configs: () => configs,
-        db: () => db
+        configs,
+        db
       };
     };
     const [system] = createResource(initialize);
@@ -16980,7 +16986,7 @@
   };
 
   // src/domains/infrastructure/authentication/createAuthenticationAdaper.ts
-  var createAuthenticationAdaper = async (auth0COnfig) => {
+  var createAuthenticationAdaper = async (db, auth0COnfig) => {
     const instance = new Auth0Adapter(auth0COnfig);
     await instance.initialize();
     return instance;
@@ -17112,19 +17118,19 @@
       this.db = db;
     }
     async loadIndexLetters() {
-      const details = await this.db.getIndexLetters();
-      const res = details.sort((a5, b4) => a5.letter < b4.letter ? -1 : 1).map((data) => IndexLetterViewModel.from(data));
+      const data = await this.db.getIndexLetters();
+      const res = data.sort((a5, b4) => a5.letter < b4.letter ? -1 : 1).map((data2) => IndexLetterViewModel.from(data2));
       return res;
     }
     async loadTags() {
-      const details = await this.db.getTags();
-      const res = details.filter(({ usageCount }) => usageCount).sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data) => TagViewModel.from(data));
+      const data = await this.db.getTags();
+      const res = data.filter(({ usageCount }) => usageCount).sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data2) => TagViewModel.from(data2));
       return res;
     }
     async loadListings(filters) {
       await timeout();
-      const details = await this.db.getListings(filters);
-      const res = details.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data) => ListingViewModel.from(data));
+      const data = await this.db.getListings(filters);
+      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => ListingViewModel.from(data2));
       return res;
     }
   };
@@ -17142,11 +17148,10 @@
       })
     );
     const instance = new DirectoryService(db);
-    const [doInitialize, setDoInitialize] = createSignal(false);
     const [tags] = createResource(() => instance.loadTags());
     const [indexLetters] = createResource(() => instance.loadIndexLetters());
     const [listings] = createResource(
-      () => doInitialize() || filters.state() ? filters.state() : false,
+      () => filters.state() ? filters.state() : false,
       (filterState) => instance.loadListings(filterState)
     );
     const adapter = checkAdapterReturnType({
@@ -17155,68 +17160,121 @@
         indexLetters,
         listings
       },
-      initialize: () => setDoInitialize(true),
       filters: () => filters
     });
     return adapter;
   };
 
+  // src/domains/ui/account/UserViewModel.ts
+  var UserViewSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    email: z.string().email()
+  });
+  var UserViewModel = class {
+    data;
+    constructor(data) {
+      this.data = data;
+    }
+    static from(data) {
+      const parsedData = UserViewSchema.parse(data);
+      return new UserViewModel(parsedData);
+    }
+  };
+  UserViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(UserViewSchema)
+  ], UserViewModel);
+
+  // src/domains/ui/account/Listing.ts
+  var ListingSchema = z.object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    address: z.string(),
+    muncipiality: z.string(),
+    zip: z.string().regex(/^\d{4}$/),
+    phone: z.string(),
+    email: z.string().email(),
+    links: z.array(
+      z.object({
+        href: z.string()
+      })
+    )
+  });
+  var Listing = class _Listing extends _State {
+    constructor(data) {
+      super(data);
+    }
+    static from(data) {
+      const parsedData = ListingSchema.parse(data);
+      return new _Listing(parsedData);
+    }
+  };
+
   // src/domains/ui/account/AccountService.ts
   var AccountService = class {
     db;
-    auth;
-    constructor(db, auth) {
+    constructor(db) {
       this.db = db;
-      this.auth = auth;
     }
-    async authenticate() {
-      if (await this.auth.isAuthenticated()) {
-        const token = await this.auth.getAccessToken();
-        let res = await this.db.authenticate(token, true);
-        return res;
-      }
-      return false;
+    async getUserData() {
+      await timeout();
+      const data = this.db.getUserData();
+      return UserViewModel.from(data);
     }
-    async login() {
-      return this.auth.login();
-    }
-    async logout() {
-      return this.auth.logout();
-    }
-    getMyListings(email) {
-      return;
+    async loadListingsByEmail(email) {
+      await timeout();
+      const data = await this.db.getListingsByEmail(email);
+      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => Listing.from(data2));
+      return res;
     }
   };
 
   // src/solid-js/application/createAccountServiceAdaper.ts
   var createAccountServiceAdaper = (db, auth) => {
-    const instance = new AccountService(db, auth);
-    const [doInitialize, setDoInitialize] = createSignal(false);
+    const account = new AccountService(db);
+    const [initializing, setInitializing] = createSignal(false);
     const [isAuthenticated] = createResource(
-      () => doInitialize(),
-      () => instance.authenticate()
+      () => initializing(),
+      () => auth.isAuthenticated()
     );
     const [authData] = createResource(
       () => isAuthenticated(),
-      () => auth.getAuthData()
+      async () => {
+        const data = await auth.getAuthData();
+        return data;
+      }
+    );
+    const mustVerifyEmail = createMemo(() => authData()?.email_verified ? false : authData()?.email);
+    const ensureIsLoggedIn = createMemo(
+      () => {
+        if (authData() && !mustVerifyEmail()) {
+          return true;
+        }
+        setInitializing(true);
+      }
     );
     const [userData] = createResource(
-      () => authData(),
+      () => ensureIsLoggedIn(),
       async () => {
-        await timeout(600);
-        const userData2 = db.getUserData();
-        return userData2;
+        const token = await auth.getAccessToken();
+        const res = await db.authenticate(token, true);
+        const data = db.getUserData();
+        return data;
       }
+    );
+    const [listings] = createResource(
+      () => userData(),
+      ({ email }) => account.loadListingsByEmail(email)
     );
     const adapter = checkAdapterReturnType({
       resources: {
-        isAuthenticated,
         userData,
-        authData
+        listings
       },
-      initialize: () => setDoInitialize(true),
-      login: instance.login.bind(instance),
-      logout: instance.logout.bind(instance)
+      mustVerifyEmail,
+      login: auth.login.bind(auth),
+      logout: auth.logout.bind(auth)
     });
     return adapter;
   };
@@ -17224,10 +17282,15 @@
   // src/solid-js/ui/providers/ServiceProvider.tsx
   var ServiceContext = createContext();
   var ServiceProvider = (props) => {
-    const system = useSystem();
-    const [auth] = createResource(() => system.configs(), (configs) => createAuthenticationAdaper(configs.auth0));
-    const [account] = createResource(() => auth(), (auth2) => createAccountServiceAdaper(system.db(), auth2));
-    const [directory] = createResource(() => system.db(), (db) => createDirectoryServiceAdapter(db));
+    const {
+      db,
+      configs
+    } = useSystem();
+    const [directory] = createResource(() => createDirectoryServiceAdapter(db));
+    const [account] = createResource(async () => {
+      const auth = await createAuthenticationAdaper(db, configs.auth0);
+      return createAccountServiceAdaper(db, auth);
+    });
     const services = {
       directory,
       account
@@ -17294,11 +17357,10 @@
     const {
       account
     } = useService();
-    createEffect(() => account()?.initialize());
     return createComponent(Suspense, {
       get fallback() {
         return createComponent(Loading, {
-          size: "small"
+          size: "large"
         });
       },
       get children() {
@@ -17777,7 +17839,6 @@
       setHitCount(res?.length || 0);
       return res;
     };
-    createEffect(() => directory()?.initialize());
     return (() => {
       var _el$ = _tmpl$24();
       insert(_el$, createComponent(ListingsFilters, {
@@ -17850,7 +17911,7 @@
   // src/solid-js/ui/pages/PageAccount.tsx
   var _tmpl$11 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$33 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Log inn med en annen e-post`, true, false);
+  var _tmpl$33 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
   var _tmpl$53 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
   var _tmpl$62 = /* @__PURE__ */ template(`<pre>`);
@@ -17860,55 +17921,54 @@
     const {
       account
     } = useService();
-    const isAuthenticated = createMemo(() => account()?.resources.isAuthenticated());
-    const isVerifiying = createMemo(() => account()?.resources.authData()?.email_verified === false);
-    const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
+    const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
+    const isLoggedIn = createMemo(() => account()?.resources.userData());
     return (() => {
       var _el$ = _tmpl$72();
       insert(_el$, createComponent(Show, {
         get when() {
-          return !isAuthenticated();
+          return !isLoggedIn();
         },
         get children() {
           return [(() => {
-            var _el$2 = _tmpl$11(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$7 = _el$8.nextSibling;
+            var _el$2 = _tmpl$11(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$7 = _el$5.nextSibling, _el$6 = _el$7.nextSibling;
             _el$2.variant = "warning";
             _el$2._$owner = getOwner();
             _el$3.name = "exclamation-triangle";
             _el$3._$owner = getOwner();
-            insert(_el$4, () => account()?.resources.authData()?.email, _el$8);
-            createRenderEffect(() => _el$2.open = isVerifiying());
+            insert(_el$4, mustVerifyEmail, _el$7);
+            createRenderEffect(() => _el$2.open = !!mustVerifyEmail());
             return _el$2;
           })(), (() => {
-            var _el$9 = _tmpl$43();
-            insert(_el$9, createComponent(Show, {
+            var _el$8 = _tmpl$43();
+            insert(_el$8, createComponent(Show, {
               get when() {
-                return !isVerifiying();
+                return !mustVerifyEmail();
               },
               get children() {
-                var _el$10 = _tmpl$25();
-                addEventListener(_el$10, "click", () => account()?.login());
+                var _el$9 = _tmpl$25();
+                addEventListener(_el$9, "click", () => account()?.login());
+                _el$9._$owner = getOwner();
+                return _el$9;
+              }
+            }), null);
+            insert(_el$8, createComponent(Show, {
+              get when() {
+                return mustVerifyEmail();
+              },
+              get children() {
+                var _el$10 = _tmpl$33(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
+                _el$10.label = "Alignment";
                 _el$10._$owner = getOwner();
+                addEventListener(_el$11, "click", () => account()?.login());
+                _el$11.variant = "primary";
+                _el$11._$owner = getOwner();
+                addEventListener(_el$12, "click", () => account()?.logout());
+                _el$12._$owner = getOwner();
                 return _el$10;
               }
             }), null);
-            insert(_el$9, createComponent(Show, {
-              get when() {
-                return isVerifiying();
-              },
-              get children() {
-                var _el$11 = _tmpl$33(), _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling;
-                _el$11.label = "Alignment";
-                _el$11._$owner = getOwner();
-                addEventListener(_el$12, "click", () => account()?.login());
-                _el$12.variant = "primary";
-                _el$12._$owner = getOwner();
-                addEventListener(_el$13, "click", () => account()?.logout());
-                _el$13._$owner = getOwner();
-                return _el$11;
-              }
-            }), null);
-            return _el$9;
+            return _el$8;
           })()];
         }
       }), null);
@@ -17918,13 +17978,17 @@
         },
         get children() {
           return [(() => {
-            var _el$14 = _tmpl$53();
-            addEventListener(_el$14, "click", () => account()?.logout());
-            _el$14._$owner = getOwner();
+            var _el$13 = _tmpl$53();
+            addEventListener(_el$13, "click", () => account()?.logout());
+            _el$13._$owner = getOwner();
+            return _el$13;
+          })(), (() => {
+            var _el$14 = _tmpl$62();
+            insert(_el$14, () => JSON.stringify(account()?.resources.userData()));
             return _el$14;
           })(), (() => {
             var _el$15 = _tmpl$62();
-            insert(_el$15, () => JSON.stringify(account()?.resources.userData()));
+            insert(_el$15, () => JSON.stringify(account()?.resources.listings()));
             return _el$15;
           })()];
         }
@@ -17937,7 +18001,13 @@
   var _tmpl$12 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
   var _tmpl$26 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
-    const [selectedPage, setSelectedPage] = createSignal("PAGE_LISTINGS" /* LISTINGS */);
+    const PAGE_KEY = "pageKey";
+    const pageKey = window.localStorage.getItem(PAGE_KEY) || "PAGE_LISTINGS" /* LISTINGS */;
+    const [selectedPage, _setSelectedPage] = createSignal(pageKey);
+    const setSelectedPage = (pageKey2) => {
+      window.localStorage.setItem(PAGE_KEY, pageKey2);
+      _setSelectedPage(pageKey2);
+    };
     return [_tmpl$12(), (() => {
       var _el$2 = _tmpl$26();
       insert(_el$2, () => styler.resolveGlobals(), null);

@@ -20,16 +20,16 @@ export class DirectoryService {
   }
 
   public async loadIndexLetters() {
-    const details = await this.db.getIndexLetters();
-    const res = details
+    const data = await this.db.getIndexLetters();
+    const res = data
       .sort((a, b) => (a.letter < b.letter ? -1 : 1))
       .map((data) => IndexLetterViewModel.from(data));
     return res;
   }
 
   public async loadTags() {
-    const details = await this.db.getTags();
-    const res = details
+    const data = await this.db.getTags();
+    const res = data
       .filter(({ usageCount }) => usageCount)
       .sort((a, b) => (a.name < b.name ? -1 : 1))
       .map((data) => TagViewModel.from(data));
@@ -38,8 +38,8 @@ export class DirectoryService {
 
   public async loadListings(filters: TFilterState) {
     await timeout();
-    const details = await this.db.getListings(filters);
-    const res = details
+    const data = await this.db.getListings(filters);
+    const res = data
       .sort((a, b) => (a.title < b.title ? -1 : 1))
       .map((data) => ListingViewModel.from(data));
     return res;

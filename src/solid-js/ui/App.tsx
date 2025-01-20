@@ -18,7 +18,15 @@ const App: Component<{
   database: string;
   datapoint: string;
 }> = (props) => {
-  const [selectedPage, setSelectedPage] = createSignal<PAGES>(PAGES.LISTINGS);
+  const PAGE_KEY = 'pageKey';
+  const pageKey = window.localStorage.getItem(PAGE_KEY) || PAGES.LISTINGS;
+  const [selectedPage, _setSelectedPage] = createSignal<PAGES>(pageKey as PAGES);
+
+  const setSelectedPage = (pageKey: PAGES) => {
+    window.localStorage.setItem(PAGE_KEY, pageKey);
+    _setSelectedPage(pageKey);
+  }
+
   return (
     <>
       <link

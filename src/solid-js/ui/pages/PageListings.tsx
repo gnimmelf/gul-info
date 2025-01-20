@@ -1,4 +1,4 @@
-import { Component, createEffect, createSignal, Suspense } from 'solid-js';
+import { Component, createEffect, createSignal, onMount, Suspense } from 'solid-js';
 
 import { styler } from '~/shared/lib/styler';
 
@@ -63,8 +63,6 @@ export const PageListings: Component = () => {
     setHitCount(res?.length || 0);
     return res;
   };
-
-  createEffect(() => directory()?.initialize());
 
   return (
     <section>

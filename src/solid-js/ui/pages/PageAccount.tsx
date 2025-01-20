@@ -8,20 +8,16 @@ const css = styler.css({});
 export const PageAccount: Component<{}> = (props) => {
   const { account } = useService();
 
-  const isAuthenticated = createMemo(() =>
-    account()?.resources.isAuthenticated(),
-  );
-  const isVerifiying = createMemo(() => account()?.resources.authData()?.email_verified === false);
-  const isLoggedIn = createMemo(() => isAuthenticated() && !isVerifiying());
+  const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
+  const isLoggedIn = createMemo(() => account()?.resources.userData());
 
   return (
     <section>
-      <Show when={!isAuthenticated()}>
-        <sl-alert prop:variant="warning" prop:open={isVerifiying()}>
+      <Show when={!isLoggedIn()}>
+        <sl-alert prop:variant="warning" prop:open={!!mustVerifyEmail()}>
           <sl-icon slot="icon" prop:name="exclamation-triangle"></sl-icon>
           <strong>
-            Vi har sendt en verifiserings-e-post til{' '}
-            {account()?.resources.authData()?.email}.
+            Vi har sendt en verifiserings-e-post til {mustVerifyEmail()}.
           </strong>
           <br />
           Verifiser e-postadressen din der og fortsett deretter innlogging
@@ -29,10 +25,10 @@ export const PageAccount: Component<{}> = (props) => {
         </sl-alert>
 
         <div>
-          <Show when={!isVerifiying()}>
+          <Show when={!mustVerifyEmail()}>
             <sl-button on:click={() => account()?.login()}>Logg inn</sl-button>
           </Show>
-          <Show when={isVerifiying()}>
+          <Show when={mustVerifyEmail()}>
             <sl-button-group prop:label="Alignment">
               <sl-button
                 prop:variant="primary"
@@ -41,7 +37,7 @@ export const PageAccount: Component<{}> = (props) => {
                 Fortsett innlogging
               </sl-button>
               <sl-button on:click={() => account()?.logout()}>
-                Log inn med en annen e-post
+                Avbryt / Log inn med en annen e-post
               </sl-button>
             </sl-button-group>
           </Show>
@@ -51,6 +47,7 @@ export const PageAccount: Component<{}> = (props) => {
       <Show when={isLoggedIn()}>
         <sl-button on:click={() => account()?.logout()}>Logout</sl-button>
         <pre>{JSON.stringify(account()?.resources.userData())}</pre>
+        <pre>{JSON.stringify(account()?.resources.listings())}</pre>
       </Show>
     </section>
   );

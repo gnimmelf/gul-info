@@ -1,7 +1,9 @@
 import { z } from 'zod';
+import { _State } from '~/shared/lib/_State';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const ListingSchema = z.object({
+  id: z.string(),
   title: z.string(),
   description: z.string(),
   address: z.string(),
@@ -18,12 +20,10 @@ export const ListingSchema = z.object({
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;
 
-@ExposeDataAsSchemaProps(ListingSchema)
-export class Listing {
-  private data;
+export class Listing extends _State<ListingSchemaType> {
 
   constructor(data: ListingSchemaType) {
-    this.data = data;
+    super(data);
   }
 
   static from(data: unknown): Listing {

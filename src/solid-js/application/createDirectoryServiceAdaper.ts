@@ -15,14 +15,12 @@ export const createDirectoryServiceAdapter = async (db: IDatabase) => {
 
   const instance = new DirectoryService(db);
 
-  const [doInitialize, setDoInitialize] = createSignal(false);
-
   const [tags] = createResource(() => instance.loadTags());
 
   const [indexLetters] = createResource(() => instance.loadIndexLetters());
 
   const [listings] = createResource(
-    () => doInitialize() || filters.state() ? filters.state() : false,
+    () => filters.state() ? filters.state() : false,
     (filterState) => instance.loadListings(filterState),
   );
 
@@ -32,7 +30,6 @@ export const createDirectoryServiceAdapter = async (db: IDatabase) => {
       indexLetters,
       listings,
     },
-    initialize: () => setDoInitialize(true),
     filters: () => filters,
   });
 
