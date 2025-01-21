@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { _State } from '~/shared/lib/_State';
 
 export const ListingSchema = z.object({
-  id: z.string(),
-  owner: z.string(),
+  id: z.any(),
+  owner: z.any(),
   title: z.string(),
   description: z.string(),
   address: z.string(),
@@ -15,13 +15,13 @@ export const ListingSchema = z.object({
     z.object({
       href: z.string(),
     }),
-  )
+  ),
 });
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;
+export interface Listing extends ListingSchemaType {}
 
 export class Listing extends _State<ListingSchemaType> {
-
   constructor(data: ListingSchemaType) {
     super(data);
   }
@@ -30,7 +30,4 @@ export class Listing extends _State<ListingSchemaType> {
     const parsedData = ListingSchema.parse(data);
     return new Listing(parsedData);
   }
-
 }
-
-export interface Listing extends ListingSchemaType {}

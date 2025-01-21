@@ -1,19 +1,18 @@
 import { Component, createEffect, JSXElement } from 'solid-js';
 
-import { styler } from '~/shared/lib/styler';
-
 import { BadgeButton } from './BadgeButton';
 import { TagsMatchType } from '~/domains/ui/directory/Filters';
 import { useService } from '../providers/ServiceProvider';
+import { addCss, Theme } from '~/solid-js/theme';
 
-const css = styler.css({
-  section: ({ theme }) => ({
+const css = addCss({
+  section: (theme: Theme) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     marginBottom: theme.spaceY,
   }),
-  filter: ({ theme }) => ({
+  filter: (theme: Theme) => ({
     display: 'flex',
     overflowY: 'hidden',
     overflowX: 'scroll',

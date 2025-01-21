@@ -7,6 +7,11 @@ interface Context {
   theme: Record<string, any>;
 }
 
+type _StyleDec = Record<string, string>;
+type StyleDecs = _StyleDec | Record<string, _StyleDec>;
+
+type Resolver<Theme> = (theme: Theme) => StyleDecs;
+
 /**
  * Joins classname strings into a space separated string
  * @returns Passed classnames as a single string
@@ -19,63 +24,47 @@ export const join = (...classnames: string[]) => {
  * A css styling singleton for modularized style-classes.
  * Uses postcss to render css from css-in-js object literals.
  */
-class StyleReg {
-  private globalStyles: Map<string, object | Function>;
-  private moduleStyles: Map<string, object | Function>;
+export class StyleReg<Theme> {
+  private globalStyles: Map<string, object>;
+  private moduleStyles: Map<string, object>;
   private styleCounter: number = 0;
-  private context: Context;
+  private prefix: string;
+  private theme: Theme;
 
-  constructor(initialContext: Partial<Context> = {}) {
+  constructor(theme: Theme, prefix = 'styler') {
     this.moduleStyles = new Map();
     this.globalStyles = new Map();
-    this.context = {
-      prefix: 'css',
-      theme: {},
-      ...initialContext,
-    };
+    this.prefix = prefix;
+    this.theme = Object.freeze(theme);
   }
 
   // Generate a class name using the counter
   private generateClassName(key: string): string {
-    return `${this.context.prefix}-${key}-${this.styleCounter++}`;
+    return `${this.prefix}-${key}-${this.styleCounter++}`;
   }
 
   /**
-   * Set the global context, including the theme
-   * @param newContext - The new context to set
+   * Wrapper to run a callback with `theme`
+   * @param producer callback function to curry with theme
+   * @returns result of callback
    */
-  public setContext(newContext: Partial<Context>) {
-    this.context = {
-      ...this.context,
-      ...newContext,
-    };
-    return this;
-  }
-
-  /**
-   * Return a function that, when called inside a component, will run with an initialized context
-   * @param producer callback function to curry with context
-   * @returns a function curried with context
-   */
-  public withContext(producer: (ctx: Context) => any) {
-    return () => producer(this.context)
+  public withTheme(callback: Resolver<Theme>) {
+    return () => callback(this.theme);
   }
 
   /**
    * Add global styling.
-   * @param styles - Object with keys as css-selectors and values as styles or function returning styles
+   * @param getter
    */
-  public globals<T extends Context>(
-    styles: Record<string, object | ((context: T) => object)>,
-  ) {
+  public setGlobals(resolver: Resolver<Theme>): void {
     if (this.globalStyles.size) {
       throw new Error('gobalStyles can only be set once');
     }
-    for (const [selector, styleDec] of Object.entries(styles)) {
+
+    for (const [selector, styleDec] of Object.entries(resolver(this.theme))) {
       // Add the generated CSS to the global store
       this.globalStyles.set(selector, styleDec);
     }
-    return this;
   }
 
   /**
@@ -83,8 +72,8 @@ class StyleReg {
    * @param styles Object with values as styles or function returning styles
    * @returns Object with modularized classnames as values
    */
-  public css<T extends Context>(
-    styles: Record<string, object | ((context: T) => object)>,
+  public css(
+    styles: Record<string, object | Resolver<Theme>>,
   ): Record<string, string> {
     const classNames: Record<string, string> = {};
 
@@ -102,28 +91,20 @@ class StyleReg {
 
   /**
    * Mimics Stitches' `globalStyles` function
-   * @returns All generated CSS as a single string
+   * @returns All css as a single string
    */
   public resolveGlobals(): string {
-    const styles: string[] = [];
+    const declarations: Record<string, any> = {};
     this.globalStyles.forEach((declaration, selector) => {
-      // Resolve styles if a function is provided
-      const resolvedDeclaration =
-        typeof declaration === 'function'
-          ? declaration(this.context)
-          : declaration;
-
-      const wrappedStyles = { [selector]: resolvedDeclaration };
-
-      // Process styles with postcss-js
-      const result = postcss([postcssNested]).process(wrappedStyles, {
-        //@ts-expect-error
-        parser: postcssJs,
-      });
-      styles.push(result.css);
+      declarations[selector] = declaration;
     });
 
-    return styles.join('\n');
+    const parsed = postcss([postcssNested]).process(declarations, {
+      //@ts-expect-error
+      parser: postcssJs,
+    });
+
+    return parsed.css;
   }
 
   /**
@@ -136,7 +117,7 @@ class StyleReg {
       // Resolve styles if a function is provided
       const resolvedDeclaration =
         typeof declaration === 'function'
-          ? declaration(this.context)
+          ? declaration(this.theme)
           : declaration;
 
       const wrappedStyles = { [`.${className}`]: resolvedDeclaration };
@@ -152,9 +133,6 @@ class StyleReg {
     return styles.join('\n');
   }
 }
-
-// Instantiate an instance and export it
-export const styler = new StyleReg();
 
 export const loadFontFace = (
   name: string,

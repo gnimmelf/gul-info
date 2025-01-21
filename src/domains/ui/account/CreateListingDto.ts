@@ -14,17 +14,18 @@ export const CreateListingDtoSchema = z.object({
     z.object({
       href: z.string(),
     }),
-  )
+  ),
 });
 
 export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;
+export interface Listing extends CreateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(CreateListingDtoSchema)
 export class Listing {
   private data: CreateListingDtoSchemaType;
 
   constructor(data: CreateListingDtoSchemaType) {
-    this.data = data
+    this.data = data;
   }
 
   static from(data: unknown): Listing {
@@ -32,5 +33,3 @@ export class Listing {
     return new Listing(parsedData);
   }
 }
-
-export interface Listing extends CreateListingDtoSchemaType {}

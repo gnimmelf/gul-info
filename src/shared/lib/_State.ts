@@ -1,9 +1,11 @@
 export type StateGetter<TState> = () => TState;
-export type StateSetter<TState> = (value: Partial<TState> | ((prev: TState) => TState)) => void;
+export type StateSetter<TState> = (
+  value: Partial<TState> | ((prev: TState) => TState),
+) => void;
 
 interface IState<TState> {
-  state: StateGetter<TState>
-  setState: StateSetter<TState>
+  state: StateGetter<TState>;
+  setState: StateSetter<TState>;
 }
 
 export abstract class _State<TState> implements IState<TState> {

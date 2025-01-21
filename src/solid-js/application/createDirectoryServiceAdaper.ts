@@ -20,7 +20,7 @@ export const createDirectoryServiceAdapter = async (db: IDatabase) => {
   const [indexLetters] = createResource(() => instance.loadIndexLetters());
 
   const [listings] = createResource(
-    () => filters.state() ? filters.state() : false,
+    () => (filters.state() ? filters.state() : false),
     (filterState) => instance.loadListings(filterState),
   );
 

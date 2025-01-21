@@ -7,6 +7,7 @@ export const IndexLetterViewSchema = z.object({
 });
 
 export type IndexLetterViewSchemaType = z.infer<typeof IndexLetterViewSchema>;
+export interface IndexLetterViewModel extends IndexLetterViewSchemaType {}
 
 @ExposeDataAsSchemaProps(IndexLetterViewSchema)
 export class IndexLetterViewModel {
@@ -21,5 +22,3 @@ export class IndexLetterViewModel {
     return new IndexLetterViewModel(parsedData);
   }
 }
-
-export interface IndexLetterViewModel extends IndexLetterViewSchemaType {}

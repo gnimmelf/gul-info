@@ -8,6 +8,7 @@ export const TagViewSchema = z.object({
 });
 
 export type TagViewSchemaType = z.infer<typeof TagViewSchema>;
+export interface TagViewModel extends TagViewSchemaType {}
 
 @ExposeDataAsSchemaProps(TagViewSchema)
 export class TagViewModel {
@@ -22,5 +23,3 @@ export class TagViewModel {
     return new TagViewModel(parsedData);
   }
 }
-
-export interface TagViewModel extends TagViewSchemaType {}

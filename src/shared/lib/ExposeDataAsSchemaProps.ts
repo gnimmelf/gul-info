@@ -18,7 +18,7 @@ export function ExposeDataAsSchemaProps<S extends z.ZodObject<any>>(schema: S) {
           Object.defineProperty(this, key, {
             get() {
               return this.data[key];
-            }
+            },
           });
         });
       }

@@ -14,17 +14,18 @@ export const UpdateListingDtoSchema = z.object({
     z.object({
       href: z.string(),
     }),
-  )
+  ),
 });
 
 export type UpdateListingDtoSchemaType = z.infer<typeof UpdateListingDtoSchema>;
+export interface Listing extends UpdateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(UpdateListingDtoSchema)
 export class Listing {
   private data: UpdateListingDtoSchemaType;
 
   constructor(data: UpdateListingDtoSchemaType) {
-    this.data = data
+    this.data = data;
   }
 
   static from(data: unknown): Listing {
@@ -32,5 +33,3 @@ export class Listing {
     return new Listing(parsedData);
   }
 }
-
-export interface Listing extends UpdateListingDtoSchemaType {}

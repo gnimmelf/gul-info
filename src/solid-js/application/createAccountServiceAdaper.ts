@@ -1,11 +1,14 @@
-import { createEffect, createMemo, createResource, createSignal } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+} from 'solid-js';
 
 import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
-import { IAuthData } from '~/domains/infrastructure/authentication/infrastructure/Auth0Adapter';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
-import { timeout } from '~/shared/lib/utils';
 
 export const createAccountServiceAdaper = (
   db: IDatabase,
@@ -13,11 +16,11 @@ export const createAccountServiceAdaper = (
 ) => {
   const account = new AccountService(db);
 
-  const [initializing, setInitializing] = createSignal(false);
+  const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);
 
   const [isAuthenticated] = createResource(
-    () => initializing(),
-    () => auth.isAuthenticated()
+    () => shouldAuthenticate(),
+    () => auth.isAuthenticated(),
   );
 
   const [authData] = createResource(
@@ -28,29 +31,30 @@ export const createAccountServiceAdaper = (
     },
   );
 
-  const mustVerifyEmail = createMemo(() => authData()?.email_verified ? false : authData()?.email)
-  const ensureIsLoggedIn = createMemo(() => {
-    if (authData() && !mustVerifyEmail()) {
-      return true
-    }
-    setInitializing(true)
-  })
-
-  const [user] = createResource(
-    () => ensureIsLoggedIn(),
-    async () => {
-      const token = await auth.getAccessToken()
-      const data = await account.getUserData(token);
-      return data;
-    }
+  const mustVerifyEmail = createMemo(() =>
+    authData()?.email_verified ? false : authData()?.email,
   );
 
-  createEffect(() => console.log(user()))
+  const [user] = createResource(
+    () => {
+      if (authData() && !mustVerifyEmail()) {
+        return true;
+      }
+      setShouldAuthenticate(true);
+    },
+    async () => {
+      const token = await auth.getAccessToken();
+      const user = await account.getUser(token);
+      return user;
+    },
+  );
+
+  createEffect(() => console.log(user()));
 
   const [listings] = createResource(
     () => user(),
-    (user) => account.loadListingsByEmail(user.email)
-  )
+    ({ email }) => account.loadListingsByEmail(email),
+  );
 
   const adapter = checkAdapterReturnType({
     resources: {

@@ -19,6 +19,7 @@ export const ListingViewSchema = z.object({
 });
 
 export type ListingViewSchemaType = z.infer<typeof ListingViewSchema>;
+export interface ListingViewModel extends ListingViewSchemaType {}
 
 @ExposeDataAsSchemaProps(ListingViewSchema)
 export class ListingViewModel {
@@ -33,5 +34,3 @@ export class ListingViewModel {
     return new ListingViewModel(parsedData);
   }
 }
-
-export interface ListingViewModel extends ListingViewSchemaType {}

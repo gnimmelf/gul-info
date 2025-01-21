@@ -1,8 +1,7 @@
 import { Component, createSignal, JSXElement } from 'solid-js';
+import { addCss } from '~/solid-js/theme';
 
-import { join, styler } from '~/shared/lib/styler';
-
-const css = styler.css({
+const css = addCss({
   wrapper: {
     display: 'flex',
   },

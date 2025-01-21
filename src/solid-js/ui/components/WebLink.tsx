@@ -1,6 +1,5 @@
-import { Component, createSignal, JSXElement } from 'solid-js';
+import { Component } from 'solid-js';
 
-import { join, styler } from '~/shared/lib/styler';
 import { IconLabel } from './IconLabel';
 
 export const WebLink: Component<{

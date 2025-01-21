@@ -1,13 +1,4 @@
-import {
-  Component,
-  createEffect,
-  createSignal,
-  For,
-  onMount,
-  Suspense,
-} from 'solid-js';
-
-import { styler } from '~/shared/lib/styler';
+import { Component, createSignal, For, Suspense } from 'solid-js';
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 
@@ -17,8 +8,9 @@ import { Address } from '../components/Address';
 import { IconLabel } from '../components/IconLabel';
 import { Loading } from '../components/Loading';
 import { ListingsFilters } from '../components/ListingsFilters';
+import { addCss } from '~/solid-js/theme';
 
-const css = styler.css({
+const css = addCss({
   card: {
     '--border-radius': '15px',
     width: '100%',
@@ -59,6 +51,9 @@ const css = styler.css({
   },
 });
 
+/**
+ * Component
+ */
 export const PageListings: Component = () => {
   const { directory } = useService();
 

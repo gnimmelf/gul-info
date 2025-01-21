@@ -1,6 +1,6 @@
 import { Component, createMemo, JSXElement } from 'solid-js';
 
-import { join, styler } from '~/shared/lib/styler';
+import { join, addCss, withTheme, Theme } from '~/solid-js/theme';
 
 enum SIZES {
   small = 'small',
@@ -8,13 +8,13 @@ enum SIZES {
   large = 'large',
 }
 
-const css = styler.css({
-  centered: ({ theme }) => ({
+const css = addCss({
+  centered: (theme: Theme) => ({
     textAlign: 'center',
   }),
 });
 
-const styleSizes = styler.withContext(({ theme }) => ({
+const styleSizes = withTheme((theme: Theme) => ({
   small: `font-size: ${theme.fontSizeSm}; --trackwidth: 3px;`,
   medium: `font-size: ${theme.fontSizeMd}; --trackwidth: 5px;`,
   large: `font-size: ${theme.fontSizeLg}; --trackwidth: 10px;`,

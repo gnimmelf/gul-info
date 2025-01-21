@@ -9,8 +9,6 @@ import { TagViewSchemaType } from '~/domains/ui/directory/TagViewModel';
 import { Listing } from '~/domains/ui/account/Listing';
 import { CreateListingDtoSchemaType } from '~/domains/ui/account/CreateListingDto';
 
-
-
 export interface SurrealConfig {
   namespace: string;
   database: string;
@@ -21,8 +19,6 @@ enum TABLES {
   LISTINGS = 'listings',
   USER = 'users',
 }
-
-
 
 /**
  * Class
@@ -105,7 +101,9 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getIndexLetters() {
     const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
-    const res = pop<IndexLetterViewSchemaType[]>(await this.client.query(query));
+    const res = pop<IndexLetterViewSchemaType[]>(
+      await this.client.query(query),
+    );
     return res;
   }
 
@@ -127,7 +125,7 @@ export class SurrealDbAdapter implements IDatabase {
     const query = `SELECT * FROM ${TABLES.USER};`;
     console.log({ query });
     const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
-    return res
+    return res;
   }
 
   async getListingsByEmail(email: string) {
@@ -149,12 +147,6 @@ export class SurrealDbAdapter implements IDatabase {
  * Utils
  */
 
-const stringifyId = <T>(record: T): T => ({
-  ...record,
-  //@ts-expect-error
-  id: typeof record.id === 'object' ? `${record.id.table}:${record.id.id}` : record.id
-})
-
 type NestedArray<T> = T | NestedArray<T>[];
 /**
  * Popps from a nested array `count` times.
@@ -168,10 +160,5 @@ export const pop = <T>(data: NestedArray<any>, count = 1): T => {
     res = res[0];
     count--;
   }
-  //@ts-ignore
-  return Array.isArray(res)
-    //@ts-ignore
-    ? res.map((record: T) => stringifyId<T>(record))
-    : stringifyId<T>(res)
-  ;
+  return res;
 };

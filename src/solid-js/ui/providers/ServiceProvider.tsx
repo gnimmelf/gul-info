@@ -35,16 +35,12 @@ export const ServiceProvider: Component<{
 }> = (props) => {
   const { db, configs } = useSystem();
 
-  const [directory] = createResource(
-    () => createDirectoryServiceAdapter(db),
-  );
+  const [directory] = createResource(() => createDirectoryServiceAdapter(db));
 
-  const [account] = createResource(
-    async () => {
-      const auth = await createAuthenticationAdaper(db, configs.auth0);
-      return createAccountServiceAdaper(db, auth);
-    },
-  );
+  const [account] = createResource(async () => {
+    const auth = await createAuthenticationAdaper(db, configs.auth0);
+    return createAccountServiceAdaper(db, auth);
+  });
 
   const services = {
     directory,

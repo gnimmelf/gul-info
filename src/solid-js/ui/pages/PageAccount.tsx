@@ -1,9 +1,10 @@
-import { Component, createEffect, createMemo, onMount, Show } from 'solid-js';
+import { Component, createMemo, Show } from 'solid-js';
 
-import { join, styler } from '~/shared/lib/styler';
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
+import ListingForm from '../components/ListingForm';
+import { addCss, Theme } from '~/solid-js/theme';
 
-const css = styler.css({});
+const css = addCss({});
 
 export const PageAccount: Component<{}> = (props) => {
   const { account } = useService();
@@ -45,11 +46,12 @@ export const PageAccount: Component<{}> = (props) => {
       </Show>
 
       <Show when={isLoggedIn()}>
-        <sl-input prop:label="Title"></sl-input>
-        <sl-input prop:label="Description"></sl-input>
-        <br />
-        <sl-switch>Aktiv (vises)</sl-switch>
-
+        <ListingForm
+          model={account()?.resources.user()}
+          mode="create"
+          onSubmit={(data) => console.log(data)}
+          onCancel={() => console.log('Cancel')}
+        />
       </Show>
     </section>
   );

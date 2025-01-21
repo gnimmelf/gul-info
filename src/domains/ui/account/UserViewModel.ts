@@ -2,12 +2,13 @@ import { z } from 'zod';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const UserViewSchema = z.object({
-  id: z.string(),
+  id: z.any(),
   name: z.string(),
   email: z.string().email(),
 });
 
 export type UserViewSchemaType = z.infer<typeof UserViewSchema>;
+export interface UserViewModel extends UserViewSchemaType {}
 
 @ExposeDataAsSchemaProps(UserViewSchema)
 export class UserViewModel {
@@ -22,5 +23,3 @@ export class UserViewModel {
     return new UserViewModel(parsedData);
   }
 }
-
-export interface UserViewModel extends UserViewSchemaType {}

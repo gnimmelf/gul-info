@@ -29,7 +29,6 @@ const SystemContext = createContext<TSystemContext>();
 export const CoreProvider: Component<{
   children: JSXElement;
 }> = (props) => {
-
   const initialize = async () => {
     const configs = await createConfigsServiceAdaper(
       'https://intergate.io/configs/gul-info-hurdal',

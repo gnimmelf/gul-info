@@ -1,6 +1,4 @@
-import { Component, createSignal } from 'solid-js';
-
-import { join, styler } from '~/shared/lib/styler';
+import { Component } from 'solid-js';
 
 export const Address: Component<{
   address: string;

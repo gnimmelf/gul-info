@@ -16,7 +16,6 @@ export const FilterStateSchema = z.object({
 export type TFilterState = z.infer<typeof FilterStateSchema>;
 
 export class Filters extends _State<TFilterState> {
-
   constructor(data: TFilterState) {
     super(data);
   }

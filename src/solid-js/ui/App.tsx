@@ -2,7 +2,7 @@ import { Component, createSignal, Match, Suspense, Switch } from 'solid-js';
 
 import { PAGES } from '../lib/enums';
 
-import { styler } from '~/shared/lib/styler';
+import { resolveStylesToString } from '~/solid-js/theme';
 
 import { ServiceProvider } from '~/solid-js/ui/providers/ServiceProvider';
 import { CoreProvider } from '~/solid-js/ui/providers/SystemProvider';
@@ -20,12 +20,14 @@ const App: Component<{
 }> = (props) => {
   const PAGE_KEY = 'pageKey';
   const pageKey = window.localStorage.getItem(PAGE_KEY) || PAGES.LISTINGS;
-  const [selectedPage, _setSelectedPage] = createSignal<PAGES>(pageKey as PAGES);
+  const [selectedPage, _setSelectedPage] = createSignal<PAGES>(
+    pageKey as PAGES,
+  );
 
   const setSelectedPage = (pageKey: PAGES) => {
     window.localStorage.setItem(PAGE_KEY, pageKey);
     _setSelectedPage(pageKey);
-  }
+  };
 
   return (
     <>
@@ -33,10 +35,7 @@ const App: Component<{
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css"
       />
-      <style id="styler">
-        {styler.resolveGlobals()}
-        {styler.resolveStyles()}
-      </style>
+      <style id="styler">{resolveStylesToString()}</style>
 
       {/**
        * TODO! Add Solid (Memory?) Router
