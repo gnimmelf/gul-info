@@ -2,7 +2,7 @@ import { Component, createSignal, Match, Suspense, Switch } from 'solid-js';
 
 import { PAGES } from '../lib/enums';
 
-import { resolveStylesToString } from '~/solid-js/theme';
+import { resolveStylesToString } from '~/solid-js/ui/theme';
 
 import { ServiceProvider } from '~/solid-js/ui/providers/ServiceProvider';
 import { CoreProvider } from '~/solid-js/ui/providers/SystemProvider';

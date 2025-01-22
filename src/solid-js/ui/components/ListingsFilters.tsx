@@ -3,7 +3,7 @@ import { Component, createEffect, JSXElement } from 'solid-js';
 import { BadgeButton } from './BadgeButton';
 import { TagsMatchType } from '~/domains/ui/directory/Filters';
 import { useService } from '../providers/ServiceProvider';
-import { addCss, Theme } from '~/solid-js/theme';
+import { addCss, Theme } from '~/solid-js/ui/theme';
 
 const css = addCss({
   section: (theme: Theme) => ({

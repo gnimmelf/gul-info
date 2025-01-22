@@ -2,7 +2,7 @@ import { serialize } from '@shoelace-style/shoelace';
 import { Component, createSignal, For } from 'solid-js';
 import type { JSX } from 'solid-js';
 
-import { addCss, Theme } from '~/solid-js/theme';
+import { addCss, Theme } from '~/solid-js/ui/theme';
 
 interface Link {
   href: string;

@@ -21,8 +21,6 @@ const theme = {
   spaceY: 'var(--sl-spacing-medium)',
 };
 
-export type Theme = typeof theme;
-
 const styler = new StyleReg<Theme>(theme);
 
 styler.setGlobals((theme: Theme) => ({
@@ -61,4 +59,5 @@ const withTheme = styler.withTheme.bind(styler);
 const resolveStylesToString = () =>
   [styler.resolveGlobals(), styler.resolveStyles()].join('\n');
 
-export { join, addCss, withTheme, resolveStylesToString };
+type Theme = typeof theme;
+export { join, addCss, withTheme, Theme, resolveStylesToString };

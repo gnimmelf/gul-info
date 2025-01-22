@@ -2,7 +2,7 @@ import { Component, createMemo, Show } from 'solid-js';
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 import ListingForm from '../components/ListingForm';
-import { addCss, Theme } from '~/solid-js/theme';
+import { addCss, Theme } from '~/solid-js/ui/theme';
 
 const css = addCss({});
 
