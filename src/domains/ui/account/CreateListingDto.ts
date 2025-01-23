@@ -1,35 +1,36 @@
 import { z } from 'zod';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
+import { LinkShema } from './Listing';
+
 export const CreateListingDtoSchema = z.object({
   owner: z.string(),
-  title: z.string(),
-  description: z.string(),
-  address: z.string(),
-  zip: z.string().regex(/^\d{4}$/),
-  muncipiality: z.string(),
-  phone: z.string(),
-  email: z.string().email(),
-  links: z.array(
-    z.object({
-      href: z.string(),
-    }),
-  ),
+  title: z.string().default(''),
+  description: z.string().default(''),
+  address: z.string().default(''),
+  zip: z.string().default(''),
+  muncipiality: z.string().default(''),
+  phone: z.string().default(''),
+  email: z.string().default(''),
+  tags: z.array(z.any()).default([]),
+  // Subschemas
+  links: z.array(LinkShema).default([]),
 });
 
 export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;
-export interface Listing extends CreateListingDtoSchemaType {}
+// Add Schema props type definitions
+export interface CreateListingDto extends CreateListingDtoSchemaType { }
 
 @ExposeDataAsSchemaProps(CreateListingDtoSchema)
-export class Listing {
-  private data: CreateListingDtoSchemaType;
+export class CreateListingDto {
+  public data: CreateListingDtoSchemaType;
 
   constructor(data: CreateListingDtoSchemaType) {
     this.data = data;
   }
 
-  static from(data: unknown): Listing {
+  static from(data: unknown): CreateListingDto {
     const parsedData = CreateListingDtoSchema.parse(data);
-    return new Listing(parsedData);
+    return new CreateListingDto(parsedData);
   }
 }

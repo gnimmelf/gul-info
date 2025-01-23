@@ -6,7 +6,7 @@ import { UserViewSchemaType } from '~/domains/ui/account/UserViewModel';
 import { IndexLetterViewSchemaType } from '~/domains/ui/directory/IndexLetterViewModel';
 import { ListingViewSchemaType } from '~/domains/ui/directory/ListingViewModel';
 import { TagViewSchemaType } from '~/domains/ui/directory/TagViewModel';
-import { Listing } from '~/domains/ui/account/Listing';
+import { ListingSchemaType } from '~/domains/ui/account/Listing';
 import { CreateListingDtoSchemaType } from '~/domains/ui/account/CreateListingDto';
 
 export interface SurrealConfig {
@@ -131,14 +131,14 @@ export class SurrealDbAdapter implements IDatabase {
   async getListingsByEmail(email: string) {
     const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
     console.log({ query });
-    const res = pop<Listing[]>(await this.client.query(query), 2);
+    const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);
     return res;
   }
 
   async createListing(data: CreateListingDtoSchemaType) {
     const query = `;`;
     console.log({ query });
-    const res = pop<Listing[]>(await this.client.query(query), 2);
+    const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);
     return res;
   }
 }

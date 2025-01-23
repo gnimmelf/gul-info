@@ -1,6 +1,10 @@
 import { z } from 'zod';
 import { _State } from '~/shared/lib/_State';
 
+export const LinkShema = z.object({
+  href: z.string(),
+});
+
 export const ListingSchema = z.object({
   id: z.any(),
   owner: z.any(),
@@ -11,15 +15,12 @@ export const ListingSchema = z.object({
   muncipiality: z.string(),
   phone: z.string(),
   email: z.string().email(),
-  links: z.array(
-    z.object({
-      href: z.string(),
-    }),
-  ),
+  tags: z.array(z.any()),
+  // SubSchemas
+  links: z.array(LinkShema),
 });
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;
-export interface Listing extends ListingSchemaType {}
 
 export class Listing extends _State<ListingSchemaType> {
   constructor(data: ListingSchemaType) {
@@ -29,5 +30,9 @@ export class Listing extends _State<ListingSchemaType> {
   static from(data: unknown): Listing {
     const parsedData = ListingSchema.parse(data);
     return new Listing(parsedData);
+  }
+
+  validate(key: string, value: any) {
+    return ListingSchema.shape.zip.safeParse(value)
   }
 }

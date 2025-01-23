@@ -1,154 +1,200 @@
 import { serialize } from '@shoelace-style/shoelace';
-import { Component, createSignal, For } from 'solid-js';
-import type { JSX } from 'solid-js';
 
-import { addCss, Theme } from '~/solid-js/ui/theme';
+import type { JSX } from 'solid-js';
+import { Component, createEffect, createMemo, createSignal, For } from 'solid-js';
+import { createStore } from 'solid-js/store'
+import { Listing } from '~/domains/ui/account/Listing';
+
+import { join, addCss, Theme } from '~/solid-js/ui/theme';
 
 interface Link {
   href: string;
 }
 
-interface FormData {
-  title: string;
-  description: string;
-  address: string;
-  zip: string;
-  municipality: string;
-  phone: string;
-  email: string;
-  links: Link[];
-}
-
-interface ListingFormProps<T> {
-  model: T;
-  mode: 'create' | 'read' | 'update';
-  onSubmit: (data: Partial<T>) => void;
-  onCancel?: () => void;
-}
-
 const css = addCss({
   form: (theme: Theme) => ({
     display: 'flex',
-    flexGap: theme.spaceY,
+    gap: theme.gapMd,
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    '> *': {
+      minWidth: '225px',
+      flex: '1 1 33.333%',
+    },
+    '> .break-flow': {
+      flexBasis: '100%',
+    },
+  }),
+  itemRow: (theme: Theme) => ({
+    display: 'flex',
+    alignItems: 'end',
+    marginBottom: theme.gapMd,
+    '>:first-child': {
+      flex: '1',
+    },
+    '>:last-child': {
+      flexShrink: '0',
+    },
+  }),
+  controls: (theme: Theme) => ({
+    display: 'flex',
+    justifyContent: 'center',
   }),
 });
 
 /**
  * Component
  */
-export const ListingForm: Component<ListingFormProps<any>> = (props) => {
-  const [links, setLinks] = createSignal<Link[]>([{ href: '' }]);
+export const ListingForm: Component<{
+  model: Listing;
+  mode: 'create' | 'update';
+  onSubmit: (data: Listing) => void;
+  onCancel: () => void;
+}> = (props) => {
+  const state = createMemo(() => props.model.state())
+
+  const [links, setLinks] = createStore<Link[]>([]);
+
+  createEffect(() => setLinks(state().links))
+
+  const updateLink = (idx: number, value: string) => {
+    setLinks(idx, "href", value); // Update only the specific property
+  };
 
   const addLink = () => {
-    setLinks((prev) => [...prev, { href: '' }]);
+    setLinks([...links, { href: '' }]); // Add a new link with an empty href
   };
 
   const removeLink = (idx: number) => {
-    setLinks((prev) => prev.filter((_, i) => i !== idx));
+    setLinks(links.filter((_, i) => i !== idx)); // Remove the link at the specified index
   };
 
-  const updateLink = (idx: number, value: string) => {
-    setLinks((prev) =>
-      prev.map((link, i) => (i === idx ? { href: value } : link)),
-    );
-  };
+  const defaultSElementSize = 'small';
 
   const handleSubmit: JSX.EventHandlerUnion<HTMLFormElement, SubmitEvent> = (
     event,
   ) => {
     event.preventDefault();
     const data = serialize(event.currentTarget);
-    data.links = links();
+    data.links = links.filter(({ href }) => href.trim().length > 0);
+    //@ts-expect-error
     props.onSubmit(data);
   };
 
   return (
-    <form class={css.form} onSubmit={handleSubmit}>
-      <sl-input
-        prop:label="Foretakets navn"
-        prop:name="title"
-        prop:required={true}
-      />
+    <>
+    <sl-card>
+      <form class={css.form} onSubmit={handleSubmit}>
+        <sl-input
+          prop:size={defaultSElementSize}
+          prop:label="Virksomhetens navn"
+          prop:name="title"
+          prop:required={true}
+          prop:value={state().title}
+        />
 
-      <sl-input
-        prop:label="Beskrivelse av tjeneste eller produkt"
-        prop:name="description"
-        prop:required={true}
-      />
+        <sl-input
+          class="break-flow"
+          prop:size={defaultSElementSize}
+          prop:label="Beskrivelse av tjeneste eller produkt"
+          prop:name="description"
+          prop:required={true}
+          prop:value={state().description}
+        />
 
-      <sl-input
-        prop:label="Gateadresse"
-        prop:name="address"
-        prop:required={true}
-      />
+        <sl-input
+          prop:size={defaultSElementSize}
+          prop:label="Gateadresse"
+          prop:name="address"
+          prop:required={true}
+          prop:value={state().address}
+        />
 
-      <sl-input
-        prop:label="Postnummer"
-        prop:name="zip"
-        prop:pattern="^\d{4}$"
-        prop:required={true}
-      />
+        <sl-input
+          prop:size={defaultSElementSize}
+          prop:label="Postnummer"
+          prop:name="zip"
+          prop:required={true}
+          prop:value={state().zip}
+          on:blur={() => {}}
+        />
 
-      <sl-input
-        prop:label="Telefonnummer"
-        prop:name="phone"
-        prop:type="tel"
-        prop:required={true}
-      />
+        <sl-input
+          prop:size={defaultSElementSize}
+          prop:label="Telefonnummer"
+          prop:name="phone"
+          prop:type="tel"
+          prop:required={true}
+          prop:value={state().phone}
+        />
 
-      <sl-input
-        prop:label="Epostadresse"
-        prop:name="email"
-        prop:type="email"
-        prop:required={true}
-      />
+        <sl-input
+          prop:size={defaultSElementSize}
+          prop:label="Epostadresse"
+          prop:name="email"
+          prop:type="email"
+          prop:required={true}
+          prop:value={state().email}
+        />
 
-      <fieldset>
-        <legend>Lenker</legend>
-        <For each={links()}>
-          {(link, idx) => (
-            <div>
-              <sl-input
-                prop:label={`Lenke ${idx() + 1}`}
-                prop:name={`links[${idx()}].href`}
-                prop:type="url"
-                prop:required={true}
-                prop:value={link.href}
-                on:input={(e) =>
-                  updateLink(idx(), (e.target as HTMLInputElement).value)
-                }
-              />
-              <sl-button
-                prop:type="button"
-                prop:variant="danger"
-                on:click={() => removeLink(idx())}
-              >
-                Fjern
-              </sl-button>
-            </div>
-          )}
-        </For>
-        <sl-button prop:type="button" prop:variant="primary" on:click={addLink}>
-          Legg til ny
-        </sl-button>
-      </fieldset>
+        <fieldset>
+          <legend>Knagger</legend>
+        </fieldset>
 
-      <div>
-        <sl-button prop:size="medium" prop:type="submit" prop:variant="primary">
-          Lagre
-        </sl-button>
-        {props.onCancel && (
+        <fieldset>
+          <legend>Lenker</legend>
+          <For each={links}>
+            {(link, idx) => (
+              <div class={css.itemRow}>
+                <sl-input
+                  prop:size={defaultSElementSize}
+                  prop:label={`Lenke ${idx() + 1}`}
+                  prop:name={`links[${idx()}].href`}
+                  prop:type="url"
+                  prop:required={true}
+                  prop:value={link.href}
+                  on:input={(e) => updateLink(idx(), (e.target as HTMLInputElement).value)}
+                />
+                <sl-icon-button
+                  color="red"
+                  prop:name="trash"
+                  on:click={() => removeLink(idx())}
+                />
+              </div>
+            )}
+          </For>
           <sl-button
-            prop:size="medium"
+            prop:size={defaultSElementSize}
             prop:type="button"
-            prop:variant="neutral"
-            on:click={props.onCancel}
+            prop:variant="primary"
+            on:click={addLink}
           >
-            Avbryt
+            Legg til ny
           </sl-button>
-        )}
-      </div>
-    </form>
+        </fieldset>
+
+        <div class={join(css.controls, 'break-flow')}>
+          <sl-button-group>
+            <sl-button
+              prop:size="medium"
+              prop:type="submit"
+              prop:variant="primary"
+            >
+              Lagre
+            </sl-button>
+            <sl-button
+              prop:size="medium"
+              prop:type="button"
+              prop:variant="neutral"
+              on:click={props.onCancel}
+            >
+              Avbryt
+            </sl-button>
+          </sl-button-group>
+        </div>
+      </form>
+    </sl-card>
+    </>
   );
 };
 

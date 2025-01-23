@@ -10,6 +10,13 @@ loadFontFace(
   },
 );
 
+/**
+ * Is there really a usecase for having theme constants as Js
+ * in addition to custom props? The narrow usage is doing Js computations,
+ * but this can also be extracted back from the browser.
+ *
+ * Maybe the only real usecase is a DX lookup list of design-token definitions?
+ */
 const theme = {
   colorPrimary: 'var(--gifo-color-primary)',
   colorOnPrimary: 'var(--gifo-color-on-primary)',
@@ -18,10 +25,12 @@ const theme = {
   fontSizeMd: '1.2rem',
   fontSizeSm: '1.0rem',
   breakPointSm: '600px',
-  spaceY: 'var(--sl-spacing-medium)',
-};
+  gapMd: 'var(--sl-spacing-medium)',
+} as const;
 
-const styler = new StyleReg<Theme>(theme);
+export type Theme = typeof theme;
+
+const styler = new StyleReg<Theme>(theme, 'gifo');
 
 styler.setGlobals((theme: Theme) => ({
   ':root': {
@@ -52,12 +61,26 @@ styler.setGlobals((theme: Theme) => ({
     textDecoration: 'none',
     color: theme.colorOnPrimary,
   },
+  'fieldset': {
+    border: '2px solid',
+    borderColor: 'var(--gifo-color-primary)',
+    borderRadius: '5px',
+  }
 }));
 
+/**
+ * Exports
+ */
 const addCss = styler.css.bind(styler);
+
 const withTheme = styler.withTheme.bind(styler);
+
 const resolveStylesToString = () =>
   [styler.resolveGlobals(), styler.resolveStyles()].join('\n');
 
-type Theme = typeof theme;
-export { join, addCss, withTheme, Theme, resolveStylesToString };
+export {
+  join,
+  addCss,
+  withTheme,
+  resolveStylesToString
+};

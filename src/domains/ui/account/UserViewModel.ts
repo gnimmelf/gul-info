@@ -8,6 +8,7 @@ export const UserViewSchema = z.object({
 });
 
 export type UserViewSchemaType = z.infer<typeof UserViewSchema>;
+// Add Schema props type definitions
 export interface UserViewModel extends UserViewSchemaType {}
 
 @ExposeDataAsSchemaProps(UserViewSchema)

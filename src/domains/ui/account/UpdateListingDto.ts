@@ -18,6 +18,7 @@ export const UpdateListingDtoSchema = z.object({
 });
 
 export type UpdateListingDtoSchemaType = z.infer<typeof UpdateListingDtoSchema>;
+// Add Schema props type definitions
 export interface Listing extends UpdateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(UpdateListingDtoSchema)

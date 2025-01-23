@@ -19,6 +19,7 @@ export const ListingViewSchema = z.object({
 });
 
 export type ListingViewSchemaType = z.infer<typeof ListingViewSchema>;
+// Add Schema props type definitions
 export interface ListingViewModel extends ListingViewSchemaType {}
 
 @ExposeDataAsSchemaProps(ListingViewSchema)

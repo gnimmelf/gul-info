@@ -8,10 +8,9 @@ import { lookup as mimeLookup } from 'mime-types';
 
 import { isPortFree } from './is-port-free.mjs'
 
+const PRODUCTION = false
 
 const DIST_DIR = 'dist'
-
-const USE_METAFILE = true
 const METAFILE = `${DIST_DIR}/metafile.json`
 
 const ASSET_PATHS = {
@@ -30,7 +29,7 @@ const logPlugin = () => ({
     setup(build) {
         build.onEnd(async (result) => {
             console.log(`build ended with ${result.errors.length} errors`)
-            if (USE_METAFILE) {
+            if (PRODUCTION) {
                 fs.writeFileSync(METAFILE, JSON.stringify(result.metafile))
             }
         })
@@ -57,7 +56,7 @@ const startEsbuild = async () => {
         entryPoints: ['src/solid-js/index.ts'],
         bundle: true,
         sourcemap: true,
-        metafile: USE_METAFILE,
+        metafile: PRODUCTION,
         minify: true,
         outfile: `${DIST_DIR}/app.js`,
         // minify: true,
@@ -146,7 +145,7 @@ const main = async () => {
     server.listen(port, () => {
         console.log(`Dev server running at ${useTls ? 'https' : 'http'}://localhost:${port}`);
         console.log(`(Esbuild serve running at ${useTls ? 'https' : 'http'}://localhost:${esServerProps.port})`);
-        if (USE_METAFILE) {
+        if (PRODUCTION) {
             console.log(`Metafile: ${METAFILE} => https://esbuild.github.io/analyze/`)
         }
     })
