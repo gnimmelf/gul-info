@@ -13,13 +13,13 @@ export const CreateListingDtoSchema = z.object({
   phone: z.string().default(''),
   email: z.string().default(''),
   tags: z.array(z.any()).default([]),
-  // Subschemas
+  // Sub-schemas
   links: z.array(LinkShema).default([]),
 });
 
 export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;
 // Add Schema props type definitions
-export interface CreateListingDto extends CreateListingDtoSchemaType { }
+export interface CreateListingDto extends CreateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(CreateListingDtoSchema)
 export class CreateListingDto {

@@ -16,7 +16,6 @@ export abstract class _State<TState> implements IState<TState> {
   }
 
   public state: StateGetter<TState> = () => {
-    console.log('state()', this._state);
     return { ...this._state };
   };
 

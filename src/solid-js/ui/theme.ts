@@ -61,11 +61,11 @@ styler.setGlobals((theme: Theme) => ({
     textDecoration: 'none',
     color: theme.colorOnPrimary,
   },
-  'fieldset': {
+  fieldset: {
     border: '2px solid',
     borderColor: 'var(--gifo-color-primary)',
     borderRadius: '5px',
-  }
+  },
 }));
 
 /**
@@ -78,9 +78,4 @@ const withTheme = styler.withTheme.bind(styler);
 const resolveStylesToString = () =>
   [styler.resolveGlobals(), styler.resolveStyles()].join('\n');
 
-export {
-  join,
-  addCss,
-  withTheme,
-  resolveStylesToString
-};
+export { join, addCss, withTheme, resolveStylesToString };

@@ -31,8 +31,4 @@ export class Listing extends _State<ListingSchemaType> {
     const parsedData = ListingSchema.parse(data);
     return new Listing(parsedData);
   }
-
-  validate(key: string, value: any) {
-    return ListingSchema.shape.zip.safeParse(value)
-  }
 }

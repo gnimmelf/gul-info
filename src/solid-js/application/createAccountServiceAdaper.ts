@@ -1,8 +1,4 @@
-import {
-  createMemo,
-  createResource,
-  createSignal,
-} from 'solid-js';
+import { createMemo, createResource, createSignal } from 'solid-js';
 
 import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
@@ -46,6 +42,7 @@ export const createAccountServiceAdaper = (
     async () => {
       const token = await auth.getAccessToken();
       const user = await account.getUser(token);
+      console.log({ user });
       return user;
     },
   );
@@ -53,9 +50,9 @@ export const createAccountServiceAdaper = (
   const [listings] = createResource(
     () => user(),
     async ({ email }) => {
-      const listings = await account.loadListingsByEmail(email)
-      return listings.map((listing: Listing) => withReactiveState(listing))
-    }
+      const listings = await account.loadListingsByEmail(email);
+      return listings.map((listing: Listing) => withReactiveState(listing));
+    },
   );
 
   const adapter = checkAdapterReturnType({

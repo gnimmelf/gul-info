@@ -8,7 +8,10 @@ import { lookup as mimeLookup } from 'mime-types';
 
 import { isPortFree } from './is-port-free.mjs'
 
-const PRODUCTION = false
+// Bundle to production (minified + analyzis metafile)
+const PRODUCTION = process.argv.includes('--production')
+
+const USE_TLS = process.argv.includes('--useTls');
 
 const DIST_DIR = 'dist'
 const METAFILE = `${DIST_DIR}/metafile.json`
@@ -28,7 +31,7 @@ const logPlugin = () => ({
     name: 'logPlugin',
     setup(build) {
         build.onEnd(async (result) => {
-            console.log(`build ended with ${result.errors.length} errors`)
+            console.log(`${PRODUCTION ? 'Prod' : 'Dev'} build ended with ${result.errors.length} errors`)
             if (PRODUCTION) {
                 fs.writeFileSync(METAFILE, JSON.stringify(result.metafile))
             }
@@ -63,6 +66,7 @@ const startEsbuild = async () => {
         plugins: [solidPlugin(), logPlugin()],
     })
     await ctx.watch()
+
     // Start esbuild serve for `cwd` on a random local port
     const esServerProps = await ctx.serve({
         servedir: '.'
@@ -117,9 +121,8 @@ const createRequestHandler = ({ host, port }) => (req, res) => {
 
 
 const main = async () => {
-    const useTls = process.argv.includes('--useTls');
 
-    const assetPaths = useTls
+    const assetPaths = USE_TLS
         ? { ...ASSET_PATHS, ...TLS_ASSET_PATHS }
         : { ...ASSET_PATHS }
 
@@ -135,7 +138,7 @@ const main = async () => {
     const esServerProps = await startEsbuild()
 
     const requestHandler = createRequestHandler(esServerProps)
-    const server = useTls
+    const server = USE_TLS
         ? https.createServer({
             key: fs.readFileSync(assetPaths.pemKey),
             cert: fs.readFileSync(assetPaths.pemCert),
@@ -143,12 +146,12 @@ const main = async () => {
         : http.createServer(requestHandler)
 
     server.listen(port, () => {
-        console.log(`Dev server running at ${useTls ? 'https' : 'http'}://localhost:${port}`);
-        console.log(`(Esbuild serve running at ${useTls ? 'https' : 'http'}://localhost:${esServerProps.port})`);
+        console.log(`Dev server running at ${USE_TLS ? 'https' : 'http'}://localhost:${port}`);
+        console.log(`(Esbuild serve running at ${USE_TLS ? 'https' : 'http'}://localhost:${esServerProps.port})`);
         if (PRODUCTION) {
             console.log(`Metafile: ${METAFILE} => https://esbuild.github.io/analyze/`)
         }
     })
 }
 
-main({ useTls: false })
+main()

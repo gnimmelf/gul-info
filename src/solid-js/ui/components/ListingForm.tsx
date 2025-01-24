@@ -1,15 +1,12 @@
 import { serialize } from '@shoelace-style/shoelace';
 
-import type { JSX } from 'solid-js';
-import { Component, createEffect, createMemo, createSignal, For } from 'solid-js';
-import { createStore } from 'solid-js/store'
-import { Listing } from '~/domains/ui/account/Listing';
+import type { JSX, Setter } from 'solid-js';
+import { batch, Component, createEffect, createSignal, For } from 'solid-js';
+import { createStore, reconcile } from 'solid-js/store';
+import { Listing, ListingSchemaType } from '~/domains/ui/account/Listing';
+import { stableStringify } from '~/shared/lib/utils';
 
 import { join, addCss, Theme } from '~/solid-js/ui/theme';
-
-interface Link {
-  href: string;
-}
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -47,26 +44,38 @@ const css = addCss({
  */
 export const ListingForm: Component<{
   model: Listing;
-  mode: 'create' | 'update';
+  setIsDirty: Setter<boolean>;
   onSubmit: (data: Listing) => void;
   onCancel: () => void;
 }> = (props) => {
-  const state = createMemo(() => props.model.state())
+  const [initialStateStr, setInitialStateStr] = createSignal<string>('');
+  //@ts-expect-error - setting initial value to `props.model.state()` messes with reactivity
+  const [store, setStore] = createStore<ListingSchemaType>({});
 
-  const [links, setLinks] = createStore<Link[]>([]);
+  // Update locals on new model
+  createEffect(() => {
+      const values = props.model.state();
+      setInitialStateStr(stableStringify(values));
+      setStore(reconcile(values));
+  });
 
-  createEffect(() => setLinks(state().links))
+  // isDirty check
+  createEffect(() => {
+      const origStateStr = initialStateStr();
+      const curStateStr = stableStringify(store);
+      props.setIsDirty(curStateStr !== origStateStr);
+  });
 
-  const updateLink = (idx: number, value: string) => {
-    setLinks(idx, "href", value); // Update only the specific property
+  const updateLink = (linkIdx: number, value: string) => {
+    setStore('links', linkIdx, 'href', value); // Update the specific link's href
   };
 
   const addLink = () => {
-    setLinks([...links, { href: '' }]); // Add a new link with an empty href
+    setStore('links', store.links.length, { href: '' }); // Add a new link
   };
 
-  const removeLink = (idx: number) => {
-    setLinks(links.filter((_, i) => i !== idx)); // Remove the link at the specified index
+  const removeLink = (linkIdx: number) => {
+    setStore('links', (links) => links.filter((_, i) => i !== linkIdx)); // Remove the specified link
   };
 
   const defaultSElementSize = 'small';
@@ -76,124 +85,143 @@ export const ListingForm: Component<{
   ) => {
     event.preventDefault();
     const data = serialize(event.currentTarget);
-    data.links = links.filter(({ href }) => href.trim().length > 0);
+    data.links = store.links.filter(({ href }) => href.trim().length > 0);
     //@ts-expect-error
     props.onSubmit(data);
   };
 
   return (
     <>
-    <sl-card>
-      <form class={css.form} onSubmit={handleSubmit}>
-        <sl-input
-          prop:size={defaultSElementSize}
-          prop:label="Virksomhetens navn"
-          prop:name="title"
-          prop:required={true}
-          prop:value={state().title}
-        />
-
-        <sl-input
-          class="break-flow"
-          prop:size={defaultSElementSize}
-          prop:label="Beskrivelse av tjeneste eller produkt"
-          prop:name="description"
-          prop:required={true}
-          prop:value={state().description}
-        />
-
-        <sl-input
-          prop:size={defaultSElementSize}
-          prop:label="Gateadresse"
-          prop:name="address"
-          prop:required={true}
-          prop:value={state().address}
-        />
-
-        <sl-input
-          prop:size={defaultSElementSize}
-          prop:label="Postnummer"
-          prop:name="zip"
-          prop:required={true}
-          prop:value={state().zip}
-          on:blur={() => {}}
-        />
-
-        <sl-input
-          prop:size={defaultSElementSize}
-          prop:label="Telefonnummer"
-          prop:name="phone"
-          prop:type="tel"
-          prop:required={true}
-          prop:value={state().phone}
-        />
-
-        <sl-input
-          prop:size={defaultSElementSize}
-          prop:label="Epostadresse"
-          prop:name="email"
-          prop:type="email"
-          prop:required={true}
-          prop:value={state().email}
-        />
-
-        <fieldset>
-          <legend>Knagger</legend>
-        </fieldset>
-
-        <fieldset>
-          <legend>Lenker</legend>
-          <For each={links}>
-            {(link, idx) => (
-              <div class={css.itemRow}>
-                <sl-input
-                  prop:size={defaultSElementSize}
-                  prop:label={`Lenke ${idx() + 1}`}
-                  prop:name={`links[${idx()}].href`}
-                  prop:type="url"
-                  prop:required={true}
-                  prop:value={link.href}
-                  on:input={(e) => updateLink(idx(), (e.target as HTMLInputElement).value)}
-                />
-                <sl-icon-button
-                  color="red"
-                  prop:name="trash"
-                  on:click={() => removeLink(idx())}
-                />
-              </div>
-            )}
-          </For>
-          <sl-button
+      <sl-card>
+        <form class={css.form} onSubmit={handleSubmit}>
+          <sl-input
             prop:size={defaultSElementSize}
-            prop:type="button"
-            prop:variant="primary"
-            on:click={addLink}
-          >
-            Legg til ny
-          </sl-button>
-        </fieldset>
+            prop:label="Virksomhetens navn"
+            prop:name="title"
+            prop:required={true}
+            prop:value={store.title}
+            on:input={({ target }) =>
+              setStore('title', (target as HTMLInputElement).value)
+            }
+          />
 
-        <div class={join(css.controls, 'break-flow')}>
-          <sl-button-group>
+          <sl-input
+            class="break-flow"
+            prop:size={defaultSElementSize}
+            prop:label="Beskrivelse av tjeneste eller produkt"
+            prop:name="description"
+            prop:required={true}
+            prop:value={store.description}
+            on:input={({ target }) =>
+              setStore('description', (target as HTMLInputElement).value)
+            }
+          />
+
+          <sl-input
+            prop:size={defaultSElementSize}
+            prop:label="Gateadresse"
+            prop:name="address"
+            prop:required={true}
+            prop:value={store.address}
+            on:input={({ target }) =>
+              setStore('address', (target as HTMLInputElement).value)
+            }
+          />
+
+          <sl-input
+            prop:size={defaultSElementSize}
+            prop:label="Postnummer"
+            prop:name="zip"
+            prop:required={true}
+            prop:value={store.zip}
+            on:input={({ target }) =>
+              setStore('zip', (target as HTMLInputElement).value)
+            }
+          />
+
+          <sl-input
+            prop:size={defaultSElementSize}
+            prop:label="Telefonnummer"
+            prop:name="phone"
+            prop:type="tel"
+            prop:required={true}
+            prop:value={store.phone}
+            on:input={({ target }) =>
+              setStore('phone', (target as HTMLInputElement).value)
+            }
+          />
+
+          <sl-input
+            prop:size={defaultSElementSize}
+            prop:label="Epostadresse"
+            prop:name="email"
+            prop:type="email"
+            prop:required={true}
+            prop:value={store.email}
+            on:input={({ target }) =>
+              setStore('email', (target as HTMLInputElement).value)
+            }
+          />
+
+          <fieldset>
+            <legend>Knagger</legend>
+          </fieldset>
+
+          <fieldset>
+            <legend>Lenker</legend>
+            <For each={store.links}>
+              {(link, idx) => (
+                <div class={css.itemRow}>
+                  <sl-input
+                    prop:size={defaultSElementSize}
+                    prop:label={`Lenke ${idx() + 1}`}
+                    prop:name={`links[${idx()}].href`}
+                    prop:type="url"
+                    prop:required={true}
+                    prop:value={link.href}
+                    on:input={(e) =>
+                      updateLink(idx(), (e.target as HTMLInputElement).value)
+                    }
+                  />
+                  <sl-icon-button
+                    color="red"
+                    prop:name="trash"
+                    on:click={() => removeLink(idx())}
+                  />
+                </div>
+              )}
+            </For>
             <sl-button
-              prop:size="medium"
-              prop:type="submit"
-              prop:variant="primary"
-            >
-              Lagre
-            </sl-button>
-            <sl-button
-              prop:size="medium"
+              prop:size={defaultSElementSize}
               prop:type="button"
-              prop:variant="neutral"
-              on:click={props.onCancel}
+              prop:variant="primary"
+              on:click={addLink}
             >
-              Avbryt
+              Legg til ny
             </sl-button>
-          </sl-button-group>
-        </div>
-      </form>
-    </sl-card>
+          </fieldset>
+
+          <div class={join(css.controls, 'break-flow')}>
+            <sl-button-group>
+              <sl-button
+                prop:size="medium"
+                prop:type="submit"
+                prop:variant="primary"
+              >
+                Lagre
+              </sl-button>
+              <sl-button
+                prop:size="medium"
+                prop:type="button"
+                prop:variant="neutral"
+                on:click={props.onCancel}
+              >
+                Avbryt
+              </sl-button>
+            </sl-button-group>
+          </div>
+        </form>
+      </sl-card>
     </>
   );
 };

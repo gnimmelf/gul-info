@@ -10,7 +10,7 @@ const css = addCss({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    marginBottom: theme.spaceY,
+    marginBottom: theme.gapMd,
   }),
   filter: (theme: Theme) => ({
     display: 'flex',

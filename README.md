@@ -21,14 +21,13 @@ Trying out SurrealDb v2 as a Backend-as-a-Service.
 
 - https://surrealdb.com/docs/tutorials/integrate-auth0-as-authentication-provider
 
-
-Create an Auth0 **Application** "gul-info-hurdal"
+Create an Auth0 **Application**
 
 Must match this `ConfigService::auth0`:
 
 ```js
 {
-    "domain": 'intergate.eu.auth0.com',
+    "domain": '<YOUR_DOMAIN>.eu.auth0.com',
     "clientId": '<GENERATED>',
     "authorizationParams": {
         audience: 'https://surrealdb.com/',
@@ -37,7 +36,7 @@ Must match this `ConfigService::auth0`:
 }
 ```
 
-Create an Auth0 **Api** "surrealdb-intergate"
+Create an Auth0 **Api** "surrealdb-<YOUR_DOMAIN>"
 
 - Api Identifier *is* `audience`: `https://surrealdb.com/`
 
@@ -45,13 +44,15 @@ Create an Auth0 **Api** "surrealdb-intergate"
 
 - JWT Algorith: `RS256`
 
-Create an Auth0 **Action** "SurrealDbPostLogin"
+Create an Auth0 **Action** "SurrealDbPostLogin".
 
-NOTE!! For som reason the example doesn't work. The action will not trigger on guard:
+NOTE!! For som reason the **Action** example doesn't work. The action will not trigger with this guard:
 
 ```js
 if (event.authorization) { /*...*/ }
 ```
+
+For now delete the above mentioned guard. -Will propbably cause problems later...
 
 ---
 
@@ -74,7 +75,7 @@ Options:
 
 1. Open SurrealdD `https://127.0.0.1:7999/version` in a browser tab (in same browser as you use for the app), and proceed through the warning to load the page content.
 
-2. Set chrome://flags/ for allowing `https://127.0.0.1` prots 7999 (SurrealDb), 8000 (dev server) and (maybe) 8001 (live-realod).
+2. Set chrome://flags/ for allowing insecure `https://127.0.0.1` ports 7999 (SurrealDb), 8000 (dev server) and (maybe) 8001 (live-realod).
 
 3. Add the certificate to the system's trusted root certificate store. Check online for how-to.
 
@@ -100,9 +101,11 @@ Built using custom `esbuild` script `.build`. Outputs to `dist` folder.
 
 - Always watch mode!
 
+- Build to prod using flag `--prod`.
+
 **SurrealDB** - Start local dev-server using TLS files:
 
-`package.json`:`scripts`:`start-db`
+`package.json`:`scripts`:`start-db-tls`
 
 OR
 
@@ -110,7 +113,7 @@ OR
 
 **Web-server** - Start local dev-server using TLS files:
 
-`package.json`:`scripts`:`dev`
+`package.json`:`scripts`:`dev-tls`
 
 OR
 
@@ -121,16 +124,16 @@ OR
 
 ## Build
 
-- [ ] Production build script
+- [x] Production build script
 
     - [ ] Minify Css
 
         - Why? - Since this is an extra runtime-step performed at the client
 
-    - [ ] Minify Js - Buildtime, so OK
+    - [x] Minify Js - Buildtime, so OK
 
 ## App
 
-- [ ] Admin backend w/ login
+- [x] Admin backend w/ login
 
-- [ ] SMS / Payment option to verify clients
+- [ ] SMS / Payment option to verify clients?
