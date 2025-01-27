@@ -4,6 +4,7 @@ import {
   createStore,
   reconcile,
   SetStoreFunction,
+  Store,
   unwrap,
 } from 'solid-js/store';
 import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
@@ -50,7 +51,7 @@ const css = addCss({
 class FormState<T extends object> {
   private initialShape!: Object;
 
-  public store: T;
+  public _store: T;
   private _setStore: SetStoreFunction<T>;
 
   public errors: Accessor<ValidateErrors>;
@@ -64,7 +65,7 @@ class FormState<T extends object> {
 
   constructor() {
     //@ts-expect-error - setting initial value to `props.model.state()` messes with reactivity
-    [this.store, this._setStore] = createStore<ListingSchemaType>({});
+    [this._store, this._setStore] = createStore<T>({});
     [this.errors, this.setErrors] = createSignal<ValidateErrors>(null);
     [this.isDirty, this.setIsDirty] = createSignal<boolean>(false);
   }
@@ -85,19 +86,23 @@ class FormState<T extends object> {
     }
   }
 
-  setStore(
-    ...args: [key: keyof T | any[], valueOrUpdater: any]
-  ): void {
-    const prevState = { ...this.store };
-    this._setStore(...args);
+  getStore() {
+    return [
+      this._store,
+      (...args: any[]) => {
+        const prevState = { ...this._store };
+        //@ts-expect-error
+        this._setStore(...args);
 
-    // Compare new state with old state
-    for (const key in this.store) {
-      if (this.store[key] !== prevState[key]) {
-        this.toggleIsTouched(key, this.store[key]);
+        // Compare new state with old state
+        for (const key in this._store) {
+          if (this._store[key] !== prevState[key]) {
+            this.toggleIsTouched(key, this._store[key]);
+          }
+        }
+        this.setIsDirty(this.touchedFields.size > 0);
       }
-    }
-    this.setIsDirty(this.touchedFields.size > 0);
+    ] as [T, SetStoreFunction<T>];
   }
 
   validate() {}
@@ -116,6 +121,8 @@ export const ListingForm: Component<{
   const defaultFormElementSize = 'small';
 
   const formState = new FormState<ListingSchemaType>();
+  // Get the store, only way to keep type definitions
+  const [store, setStore] = formState.getStore();
 
   createEffect(() => {
     // (Re)Initialize formState when model changes
@@ -125,25 +132,25 @@ export const ListingForm: Component<{
 
   createEffect(() => {
     // Propagate isDirty
-    props.setIsDirty(formState.isDirty())
-  })
+    props.setIsDirty(formState.isDirty());
+  });
 
   const updateLink = (linkIdx: number, value: string) => {
-    formState.setStore('links', linkIdx, 'href', value);
+    setStore('links', linkIdx, 'href', value);
   };
 
   const addLink = () => {
-    formState.setStore('links', formState.store.links.length, { href: '' });
+    setStore('links', store.links.length, { href: '' });
   };
 
   const removeLink = (linkIdx: number) => {
-    formState.setStore('links', (links) =>
+    setStore('links', (links) =>
       links.filter((_, i) => i !== linkIdx),
     );
   };
 
   const validate = () => {
-    const data = unwrap(formState.store);
+    const data = unwrap(store);
     console.log({ data });
     if (props.mode === CRUD_MODES.CREATE) {
       validateSchema(CreateListingDtoSchema, data, formState.setErrors);
@@ -155,7 +162,7 @@ export const ListingForm: Component<{
   const handleSubmit = () => {
     validate();
     if (!formState.errors()) {
-      const data = deepCopy(formState.store);
+      const data = deepCopy(store);
       props.onSubmit(data);
     }
   };
@@ -170,9 +177,9 @@ export const ListingForm: Component<{
             prop:label="Virksomhetens navn"
             prop:name="title"
             prop:required={true}
-            prop:value={formState.store.title}
+            prop:value={store.title}
             on:input={({ target }) =>
-              formState.setStore('title', (target as HTMLInputElement).value)
+              setStore('title', (target as HTMLInputElement).value)
             }
           />
           <Show when={formState.touchedFields.has('title')}>Error</Show>
@@ -183,9 +190,9 @@ export const ListingForm: Component<{
             prop:label="Beskrivelse av tjeneste eller produkt"
             prop:name="description"
             prop:required={true}
-            prop:value={formState.store.description}
+            prop:value={store.description}
             on:input={({ target }) =>
-              formState.setStore(
+              setStore(
                 'description',
                 (target as HTMLInputElement).value,
               )
@@ -197,9 +204,9 @@ export const ListingForm: Component<{
             prop:label="Gateadresse"
             prop:name="address"
             prop:required={true}
-            prop:value={formState.store.address}
+            prop:value={store.address}
             on:input={({ target }) =>
-              formState.setStore('address', (target as HTMLInputElement).value)
+              setStore('address', (target as HTMLInputElement).value)
             }
           />
 
@@ -208,9 +215,9 @@ export const ListingForm: Component<{
             prop:label="Postnummer"
             prop:name="zip"
             prop:required={true}
-            prop:value={formState.store.zip}
+            prop:value={store.zip}
             on:input={({ target }) =>
-              formState.setStore('zip', (target as HTMLInputElement).value)
+              setStore('zip', (target as HTMLInputElement).value)
             }
           />
 
@@ -220,9 +227,9 @@ export const ListingForm: Component<{
             prop:name="phone"
             prop:type="tel"
             prop:required={true}
-            prop:value={formState.store.phone}
+            prop:value={store.phone}
             on:input={({ target }) =>
-              formState.setStore('phone', (target as HTMLInputElement).value)
+              setStore('phone', (target as HTMLInputElement).value)
             }
           />
 
@@ -232,9 +239,9 @@ export const ListingForm: Component<{
             prop:name="email"
             prop:type="email"
             prop:required={true}
-            prop:value={formState.store.email}
+            prop:value={store.email}
             on:input={({ target }) =>
-              formState.setStore('email', (target as HTMLInputElement).value)
+              setStore('email', (target as HTMLInputElement).value)
             }
           />
 
@@ -244,7 +251,7 @@ export const ListingForm: Component<{
 
           <fieldset>
             <legend>Lenker</legend>
-            <For each={formState.store.links}>
+            <For each={store.links}>
               {(link, idx) => (
                 <div class={css.itemRow}>
                   <sl-input
