@@ -1,13 +1,16 @@
 import Surreal, { RecordId } from 'surrealdb';
 import { IDatabase } from '../IDatabase';
-import { TFilterState, TagsMatchType } from '~/domains/ui/directory/Filters';
+import {
+  FilterSchemaType,
+  TagsMatchType,
+} from '~/domains/ui/directory/Filters';
 
-import { UserViewSchemaType } from '~/domains/ui/account/UserViewModel';
-import { IndexLetterViewSchemaType } from '~/domains/ui/directory/IndexLetterViewModel';
-import { ListingViewSchemaType } from '~/domains/ui/directory/ListingViewModel';
-import { TagViewSchemaType } from '~/domains/ui/directory/TagViewModel';
-import { ListingSchemaType } from '~/domains/ui/account/Listing';
-import { CreateListingDtoSchemaType } from '~/domains/ui/account/CreateListingDto';
+import { UserViewSchemaType } from '~/shared/models/UserViewModel';
+import { IndexLetterViewSchemaType } from '~/shared/models/IndexLetterViewModel';
+import { ListingViewSchemaType } from '~/shared/models/listing/ListingViewModel';
+import { TagViewSchemaType } from '~/shared/models/TagViewModel';
+import { ListingSchemaType } from '~/shared/models/listing/Listing';
+import { CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
 
 export interface SurrealConfig {
   namespace: string;
@@ -68,7 +71,7 @@ export class SurrealDbAdapter implements IDatabase {
 
   // TODO! Methods below should be inside own features, getting passed the `client`
 
-  async getListings(filters?: TFilterState) {
+  async getListings(filters?: FilterSchemaType) {
     let whereClause = '';
     const conditions: string[] = [];
 
@@ -165,6 +168,6 @@ const pop = <T>(data: NestedArray<any>, count = 1): T => {
 
 const idObjToString = <T>(obj: T & { id?: any }): T => {
   return obj.id !== undefined
-    ? {...obj,id: `${obj.id.tb}:${obj.id.id}` }
-    : obj
-}
+    ? { ...obj, id: `${obj.id.tb}:${obj.id.id}` }
+    : obj;
+};

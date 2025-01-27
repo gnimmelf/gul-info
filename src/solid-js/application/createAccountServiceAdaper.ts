@@ -4,7 +4,7 @@ import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
-import { Listing } from '~/domains/ui/account/Listing';
+import { Listing } from '~/shared/models/listing/Listing';
 import { withReactiveState } from './withReactiveState';
 
 export const createAccountServiceAdaper = (

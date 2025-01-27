@@ -1,9 +1,9 @@
 import { timeout } from '~/shared/lib/utils';
 import { IDatabase } from '../../infrastructure/database/IDatabase';
-import { Listing } from './Listing';
-import { UserViewModel } from './UserViewModel';
-import { CreateListingDtoSchemaType } from './CreateListingDto';
-import { UpdateListingDtoSchemaType } from './UpdateListingDto';
+import { Listing } from '../../../shared/models/listing/Listing';
+import { UserViewModel } from '../../../shared/models/UserViewModel';
+import { CreateListingDtoSchemaType } from '../../../shared/models/listing/CreateListingDto';
+import { UpdateListingDtoSchemaType } from '../../../shared/models/listing/UpdateListingDto';
 
 /**
  * Class

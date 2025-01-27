@@ -1,12 +1,20 @@
-import { serialize } from '@shoelace-style/shoelace';
-
-import type { JSX, Setter } from 'solid-js';
-import { batch, Component, createEffect, createSignal, For } from 'solid-js';
-import { createStore, reconcile } from 'solid-js/store';
-import { Listing, ListingSchemaType } from '~/domains/ui/account/Listing';
-import { stableStringify } from '~/shared/lib/utils';
+import type { Accessor, Setter } from 'solid-js';
+import { Component, createEffect, createSignal, For, Show } from 'solid-js';
+import {
+  createStore,
+  reconcile,
+  SetStoreFunction,
+  unwrap,
+} from 'solid-js/store';
+import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
+import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
+import { stableStringify, deepCopy, deepEqual } from '~/shared/lib/utils';
+import { CRUD_MODES } from '~/solid-js/lib/enums';
 
 import { join, addCss, Theme } from '~/solid-js/ui/theme';
+import { UpdateListingDtoSchema } from '~/shared/models/listing/UpdateListingDto';
+import { validateSchema, ValidateErrors } from '~/shared/lib/schema-helpers';
+import { ZodAny } from 'zod';
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -39,127 +47,194 @@ const css = addCss({
   }),
 });
 
+class FormState<T extends object> {
+  private initialShape!: Object;
+
+  public store: T;
+  private _setStore: SetStoreFunction<T>;
+
+  public errors: Accessor<ValidateErrors>;
+  public setErrors: Setter<ValidateErrors>;
+
+  public isDirty: Accessor<boolean>;
+  public setIsDirty: Setter<boolean>;
+
+  public submitted = false;
+  public touchedFields = new Set<string>([]);
+
+  constructor() {
+    //@ts-expect-error - setting initial value to `props.model.state()` messes with reactivity
+    [this.store, this._setStore] = createStore<ListingSchemaType>({});
+    [this.errors, this.setErrors] = createSignal<ValidateErrors>(null);
+    [this.isDirty, this.setIsDirty] = createSignal<boolean>(false);
+  }
+
+  initialize(initialShape: T) {
+    this.initialShape = deepCopy(initialShape);
+    this._setStore(reconcile(deepCopy(initialShape)));
+    this.setIsDirty(false);
+  }
+
+  toggleIsTouched(key: string, value: any) {
+    //@ts-expect-error
+    const isTouched = !deepEqual(this.initialShape[key], this.store[value]);
+    if (isTouched) {
+      this.touchedFields.add(key);
+    } else {
+      this.touchedFields.delete(key);
+    }
+  }
+
+  setStore(
+    ...args: [key: keyof T | any[], valueOrUpdater: any]
+  ): void {
+    const prevState = { ...this.store };
+    this._setStore(...args);
+
+    // Compare new state with old state
+    for (const key in this.store) {
+      if (this.store[key] !== prevState[key]) {
+        this.toggleIsTouched(key, this.store[key]);
+      }
+    }
+    this.setIsDirty(this.touchedFields.size > 0);
+  }
+
+  validate() {}
+}
+
 /**
  * Component
  */
 export const ListingForm: Component<{
   model: Listing;
+  mode: CRUD_MODES;
   setIsDirty: Setter<boolean>;
-  onSubmit: (data: Listing) => void;
+  onSubmit: (data: ListingSchemaType) => void;
   onCancel: () => void;
 }> = (props) => {
-  const [initialStateStr, setInitialStateStr] = createSignal<string>('');
-  //@ts-expect-error - setting initial value to `props.model.state()` messes with reactivity
-  const [store, setStore] = createStore<ListingSchemaType>({});
+  const defaultFormElementSize = 'small';
 
-  // Update locals on new model
+  const formState = new FormState<ListingSchemaType>();
+
   createEffect(() => {
-      const values = props.model.state();
-      setInitialStateStr(stableStringify(values));
-      setStore(reconcile(values));
+    // (Re)Initialize formState when model changes
+    const values = deepCopy(props.model.state());
+    formState.initialize(values);
   });
 
-  // isDirty check
   createEffect(() => {
-      const origStateStr = initialStateStr();
-      const curStateStr = stableStringify(store);
-      props.setIsDirty(curStateStr !== origStateStr);
-  });
+    // Propagate isDirty
+    props.setIsDirty(formState.isDirty())
+  })
 
   const updateLink = (linkIdx: number, value: string) => {
-    setStore('links', linkIdx, 'href', value); // Update the specific link's href
+    formState.setStore('links', linkIdx, 'href', value);
   };
 
   const addLink = () => {
-    setStore('links', store.links.length, { href: '' }); // Add a new link
+    formState.setStore('links', formState.store.links.length, { href: '' });
   };
 
   const removeLink = (linkIdx: number) => {
-    setStore('links', (links) => links.filter((_, i) => i !== linkIdx)); // Remove the specified link
+    formState.setStore('links', (links) =>
+      links.filter((_, i) => i !== linkIdx),
+    );
   };
 
-  const defaultSElementSize = 'small';
+  const validate = () => {
+    const data = unwrap(formState.store);
+    console.log({ data });
+    if (props.mode === CRUD_MODES.CREATE) {
+      validateSchema(CreateListingDtoSchema, data, formState.setErrors);
+    } else if (props.mode === CRUD_MODES.UPDATE) {
+      validateSchema(UpdateListingDtoSchema, data, formState.setErrors);
+    }
+  };
 
-  const handleSubmit: JSX.EventHandlerUnion<HTMLFormElement, SubmitEvent> = (
-    event,
-  ) => {
-    event.preventDefault();
-    const data = serialize(event.currentTarget);
-    data.links = store.links.filter(({ href }) => href.trim().length > 0);
-    //@ts-expect-error
-    props.onSubmit(data);
+  const handleSubmit = () => {
+    validate();
+    if (!formState.errors()) {
+      const data = deepCopy(formState.store);
+      props.onSubmit(data);
+    }
   };
 
   return (
     <>
+      <pre>{JSON.stringify(formState.errors())}</pre>
       <sl-card>
-        <form class={css.form} onSubmit={handleSubmit}>
+        <form class={css.form}>
           <sl-input
-            prop:size={defaultSElementSize}
+            prop:size={defaultFormElementSize}
             prop:label="Virksomhetens navn"
             prop:name="title"
             prop:required={true}
-            prop:value={store.title}
+            prop:value={formState.store.title}
             on:input={({ target }) =>
-              setStore('title', (target as HTMLInputElement).value)
+              formState.setStore('title', (target as HTMLInputElement).value)
             }
           />
+          <Show when={formState.touchedFields.has('title')}>Error</Show>
 
           <sl-input
             class="break-flow"
-            prop:size={defaultSElementSize}
+            prop:size={defaultFormElementSize}
             prop:label="Beskrivelse av tjeneste eller produkt"
             prop:name="description"
             prop:required={true}
-            prop:value={store.description}
+            prop:value={formState.store.description}
             on:input={({ target }) =>
-              setStore('description', (target as HTMLInputElement).value)
+              formState.setStore(
+                'description',
+                (target as HTMLInputElement).value,
+              )
             }
           />
 
           <sl-input
-            prop:size={defaultSElementSize}
+            prop:size={defaultFormElementSize}
             prop:label="Gateadresse"
             prop:name="address"
             prop:required={true}
-            prop:value={store.address}
+            prop:value={formState.store.address}
             on:input={({ target }) =>
-              setStore('address', (target as HTMLInputElement).value)
+              formState.setStore('address', (target as HTMLInputElement).value)
             }
           />
 
           <sl-input
-            prop:size={defaultSElementSize}
+            prop:size={defaultFormElementSize}
             prop:label="Postnummer"
             prop:name="zip"
             prop:required={true}
-            prop:value={store.zip}
+            prop:value={formState.store.zip}
             on:input={({ target }) =>
-              setStore('zip', (target as HTMLInputElement).value)
+              formState.setStore('zip', (target as HTMLInputElement).value)
             }
           />
 
           <sl-input
-            prop:size={defaultSElementSize}
+            prop:size={defaultFormElementSize}
             prop:label="Telefonnummer"
             prop:name="phone"
             prop:type="tel"
             prop:required={true}
-            prop:value={store.phone}
+            prop:value={formState.store.phone}
             on:input={({ target }) =>
-              setStore('phone', (target as HTMLInputElement).value)
+              formState.setStore('phone', (target as HTMLInputElement).value)
             }
           />
 
           <sl-input
-            prop:size={defaultSElementSize}
+            prop:size={defaultFormElementSize}
             prop:label="Epostadresse"
             prop:name="email"
             prop:type="email"
             prop:required={true}
-            prop:value={store.email}
+            prop:value={formState.store.email}
             on:input={({ target }) =>
-              setStore('email', (target as HTMLInputElement).value)
+              formState.setStore('email', (target as HTMLInputElement).value)
             }
           />
 
@@ -169,11 +244,11 @@ export const ListingForm: Component<{
 
           <fieldset>
             <legend>Lenker</legend>
-            <For each={store.links}>
+            <For each={formState.store.links}>
               {(link, idx) => (
                 <div class={css.itemRow}>
                   <sl-input
-                    prop:size={defaultSElementSize}
+                    prop:size={defaultFormElementSize}
                     prop:label={`Lenke ${idx() + 1}`}
                     prop:name={`links[${idx()}].href`}
                     prop:type="url"
@@ -192,7 +267,7 @@ export const ListingForm: Component<{
               )}
             </For>
             <sl-button
-              prop:size={defaultSElementSize}
+              prop:size={defaultFormElementSize}
               prop:type="button"
               prop:variant="primary"
               on:click={addLink}
@@ -205,8 +280,9 @@ export const ListingForm: Component<{
             <sl-button-group>
               <sl-button
                 prop:size="medium"
-                prop:type="submit"
+                prop:type="button"
                 prop:variant="primary"
+                on:click={handleSubmit}
               >
                 Lagre
               </sl-button>

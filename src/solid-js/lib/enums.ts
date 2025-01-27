@@ -2,3 +2,10 @@ export enum PAGES {
   LISTINGS = 'PAGE_LISTINGS',
   ACCOUNT = 'PAGE_ACCOUNT',
 }
+
+export enum CRUD_MODES {
+  CREATE = 'CRUD_CREATE',
+  READ = 'CRUD_READ',
+  UPDATE = 'CRUD_UPDATE',
+  DELETE = 'CRUD_DELETE',
+}

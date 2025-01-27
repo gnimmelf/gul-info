@@ -2,11 +2,11 @@ import { _State } from '~/shared/lib/_State';
 
 import { IDatabase } from '../../infrastructure/database/IDatabase';
 
-import { TFilterState } from './Filters';
+import { FilterSchemaType } from './Filters';
 
-import { TagViewModel } from './TagViewModel';
-import { ListingViewModel } from './ListingViewModel';
-import { IndexLetterViewModel } from './IndexLetterViewModel';
+import { TagViewModel } from '../../../shared/models/TagViewModel';
+import { ListingViewModel } from '../../../shared/models/listing/ListingViewModel';
+import { IndexLetterViewModel } from '../../../shared/models/IndexLetterViewModel';
 import { timeout } from '~/shared/lib/utils';
 
 /**
@@ -36,7 +36,7 @@ export class DirectoryService {
     return res;
   }
 
-  public async loadListings(filters: TFilterState) {
+  public async loadListings(filters: FilterSchemaType) {
     await timeout();
     const data = await this.db.getListings(filters);
     const res = data

@@ -1,12 +1,12 @@
-import { ListingViewSchemaType } from '../../ui/directory/ListingViewModel';
-import { IndexLetterViewSchemaType } from '../../ui/directory/IndexLetterViewModel';
-import { TagViewSchemaType } from '../../ui/directory/TagViewModel';
-import { TFilterState } from '../../ui/directory/Filters';
-import { UserViewSchemaType } from '../../ui/account/UserViewModel';
-import { ListingSchemaType } from '~/domains/ui/account/Listing';
+import { ListingViewSchemaType } from '../../../shared/models/listing/ListingViewModel';
+import { IndexLetterViewSchemaType } from '../../../shared/models/IndexLetterViewModel';
+import { TagViewSchemaType } from '../../../shared/models/TagViewModel';
+import { FilterSchemaType } from '../../ui/directory/Filters';
+import { UserViewSchemaType } from '../../../shared/models/UserViewModel';
+import { ListingSchemaType } from '~/shared/models/listing/Listing';
 
 export interface IDatabase {
-  getListings: (filters?: TFilterState) => Promise<ListingViewSchemaType[]>;
+  getListings: (filters?: FilterSchemaType) => Promise<ListingViewSchemaType[]>;
   getIndexLetters: () => Promise<IndexLetterViewSchemaType[]>;
   getTags: () => Promise<TagViewSchemaType[]>;
   authenticate: (token: string, isVerified: boolean) => Promise<boolean>;

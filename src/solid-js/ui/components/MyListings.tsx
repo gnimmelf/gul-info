@@ -1,5 +1,4 @@
 import {
-  batch,
   Component,
   createEffect,
   createMemo,
@@ -11,9 +10,9 @@ import {
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 import { ListingForm } from '../components/ListingForm';
 import { addCss, Theme } from '~/solid-js/ui/theme';
-import { Listing } from '~/domains/ui/account/Listing';
-import { CreateListingDto } from '~/domains/ui/account/CreateListingDto';
-import { stableStringify } from '~/shared/lib/utils';
+import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
+import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
+import { CRUD_MODES } from '~/solid-js/lib/enums';
 
 const css = addCss({
   listings: (theme: Theme) => ({
@@ -28,7 +27,10 @@ export const MyListings: Component<{}> = (props) => {
   const { account } = useService();
 
   const [isDirty, setIsDirty] = createSignal(false);
-  const [activeListing, _setActiveListing] = createSignal<Listing | null>(null);
+  const [activeListing, _setActiveListing] = createSignal<{
+    mode: CRUD_MODES;
+    listing: Listing;
+  } | null>(null);
 
   const listings = createMemo(() => account()?.resources.listings());
 
@@ -40,13 +42,15 @@ export const MyListings: Component<{}> = (props) => {
     return listing;
   };
 
-  const setActiveListing = (listing: Listing | null) => {
-      _setActiveListing(listing)
-      setIsDirty(false);
-      console.log('setActiveListing', listing?.state().title, listing)
-  }
+  const setActiveListing = (listing: Listing | null, mode?: CRUD_MODES) => {
+    _setActiveListing(listing ? { listing, mode: mode! } : null);
+    setIsDirty(false);
+    console.log('setActiveListing', listing?.state().title, listing);
+  };
 
-  createEffect(() => console.log('listing', listings()))
+  const handleSubmit = (data: ListingSchemaType) => {
+    console.log(data);
+  };
 
   return (
     <section>
@@ -57,7 +61,7 @@ export const MyListings: Component<{}> = (props) => {
             <sl-button
               prop:name="pencil"
               prop:disabled={isDirty()}
-              on:click={() => setActiveListing(listing)}
+              on:click={() => setActiveListing(listing, CRUD_MODES.UPDATE)}
             >
               <sl-icon slot="prefix" prop:name="pencil"></sl-icon>
               {listing.state().title}
@@ -68,7 +72,9 @@ export const MyListings: Component<{}> = (props) => {
         <sl-button
           prop:name="pencil"
           prop:disabled={isDirty()}
-          on:click={() => setActiveListing(createNewListing())}
+          on:click={() =>
+            setActiveListing(createNewListing(), CRUD_MODES.CREATE)
+          }
         >
           <sl-icon slot="prefix" prop:name="plus-circle"></sl-icon>
           Ny
@@ -77,9 +83,10 @@ export const MyListings: Component<{}> = (props) => {
 
       <Show when={activeListing()}>
         <ListingForm
-          model={activeListing()!}
+          model={activeListing()!.listing}
+          mode={activeListing()!.mode}
           setIsDirty={setIsDirty}
-          onSubmit={(data) => console.log(data)}
+          onSubmit={handleSubmit}
           onCancel={() => setActiveListing(null)}
         />
       </Show>

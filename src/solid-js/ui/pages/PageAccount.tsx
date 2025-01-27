@@ -10,7 +10,7 @@ import {
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 import { ListingForm } from '../components/ListingForm';
 import { addCss, Theme } from '~/solid-js/ui/theme';
-import { Listing } from '~/domains/ui/account/Listing';
+import { Listing } from '~/shared/models/listing/Listing';
 import { MyListings } from '../components/MyListings';
 
 const css = addCss({});

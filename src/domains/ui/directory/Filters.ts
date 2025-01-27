@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { _State } from '~/shared/lib/_State';
+import { parseWithDefaults } from '~/shared/lib/schema-helpers';
 
 export enum TagsMatchType {
   ALL = 'ALL',
@@ -13,17 +14,16 @@ export const FilterStateSchema = z.object({
   tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL),
 });
 
-export type TFilterState = z.infer<typeof FilterStateSchema>;
+export type FilterSchemaType = z.infer<typeof FilterStateSchema>;
 
-export class Filters extends _State<TFilterState> {
-  constructor(data: TFilterState) {
+export class Filters extends _State<FilterSchemaType> {
+  constructor(data: FilterSchemaType) {
     super(data);
   }
 
-  static from(data?: unknown): Filters {
-    const parsedData = FilterStateSchema.parse(data ?? {});
-    const instance = new Filters(parsedData);
-    return instance;
+  static from(data: Partial<FilterSchemaType>): Filters {
+    const parsedData = parseWithDefaults(FilterStateSchema, data);
+    return new Filters(parsedData);
   }
 
   setText(value: string) {

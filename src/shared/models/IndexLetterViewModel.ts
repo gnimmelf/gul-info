@@ -18,7 +18,7 @@ export class IndexLetterViewModel {
     this.data = data;
   }
 
-  static from(data: unknown): IndexLetterViewModel {
+  static from(data: IndexLetterViewSchemaType): IndexLetterViewModel {
     const parsedData = IndexLetterViewSchema.parse(data);
     return new IndexLetterViewModel(parsedData);
   }

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { _State } from '~/shared/lib/_State';
+import { parseWithDefaults } from '~/shared/lib/schema-helpers';
 
 export const LinkShema = z.object({
   href: z.string(),
@@ -11,10 +12,11 @@ export const ListingSchema = z.object({
   title: z.string(),
   description: z.string(),
   address: z.string(),
-  zip: z.string().regex(/^\d{4}$/),
+  zip: z.string(),
   muncipiality: z.string(),
   phone: z.string(),
-  email: z.string().email(),
+  email: z.string(),
+  // TODO! Tags
   tags: z.array(z.any()),
   // SubSchemas
   links: z.array(LinkShema),
@@ -27,8 +29,8 @@ export class Listing extends _State<ListingSchemaType> {
     super(data);
   }
 
-  static from(data: unknown): Listing {
-    const parsedData = ListingSchema.parse(data);
+  static from(data: Partial<ListingSchemaType>): Listing {
+    const parsedData = parseWithDefaults(ListingSchema, data);
     return new Listing(parsedData);
   }
 }

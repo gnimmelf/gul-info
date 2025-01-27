@@ -19,7 +19,7 @@ export class UserViewModel {
     this.data = data;
   }
 
-  static from(data: unknown): UserViewModel {
+  static from(data: UserViewSchemaType): UserViewModel {
     const parsedData = UserViewSchema.parse(data);
     return new UserViewModel(parsedData);
   }

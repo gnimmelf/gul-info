@@ -1,12 +1,13 @@
 import { z } from 'zod';
-import { TagViewSchema } from './TagViewModel';
+import { TagViewSchema } from '../TagViewModel';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
+import { parseWithDefaults } from '~/shared/lib/schema-helpers';
 
 export const ListingViewSchema = z.object({
   title: z.string(),
   description: z.string(),
   address: z.string(),
-  zip: z.string().regex(/^\d{4}$/),
+  zip: z.string(),
   muncipiality: z.string(),
   phone: z.string(),
   email: z.string().email(),
@@ -19,6 +20,7 @@ export const ListingViewSchema = z.object({
 });
 
 export type ListingViewSchemaType = z.infer<typeof ListingViewSchema>;
+
 // Add Schema props type definitions
 export interface ListingViewModel extends ListingViewSchemaType {}
 
@@ -30,8 +32,8 @@ export class ListingViewModel {
     this.data = data;
   }
 
-  static from(data: unknown): ListingViewModel {
-    const parsedData = ListingViewSchema.parse(data);
+  static from(data: Partial<ListingViewSchemaType>): ListingViewModel {
+    const parsedData = parseWithDefaults(ListingViewSchema, data);
     return new ListingViewModel(parsedData);
   }
 }

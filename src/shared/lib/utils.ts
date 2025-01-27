@@ -1,5 +1,7 @@
 import stringifyObj from 'fast-json-stable-stringify';
 
+export { default as deepEqual } from 'fast-deep-equal/es6';
+
 export const logError = (error: Error) => {
   const str = [error.name, error.message].filter((x) => x).join('::');
   console.warn(str, error);
@@ -30,3 +32,5 @@ export const simpleHash = (str: string) => {
 export const stableStringify = (obj: Object) => {
   return stringifyObj(obj);
 };
+
+export const deepCopy = (obj: any) => JSON.parse(JSON.stringify(obj));
