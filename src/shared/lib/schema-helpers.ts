@@ -1,8 +1,5 @@
-import { Setter } from 'solid-js';
 import { z, ZodSchema } from 'zod';
-import { init, empty } from 'zod-empty';
-
-// TODO! Move parts of this to new core models
+import { init } from 'zod-empty';
 
 const reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
 const rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
@@ -37,25 +34,6 @@ export const mergeWithDefaults = (schema: ZodSchema, data: any) => {
 export const parseWithDefaults = (schema: ZodSchema, data: any) => {
   const mergedData = mergeWithDefaults(schema, data);
   return schema.parse(mergedData);
-};
-
-export type ValidateErrors = {
-  formErrors?: string[];
-  fieldErrors?: { [x: string]: string[] };
-} | null;
-export const validateSchema = (
-  Schema: ZodSchema,
-  values: z.infer<typeof Schema>,
-  setErrors: Setter<ValidateErrors>,
-) => {
-  const res = Schema.safeParse(values);
-  if (res.success) {
-    setErrors(null);
-  } else {
-    // @ts-ignore - Zod:flatten errors
-    setErrors(res.error.flatten());
-  }
-  return res.success;
 };
 
 /**

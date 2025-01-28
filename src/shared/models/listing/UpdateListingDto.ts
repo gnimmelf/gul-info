@@ -12,7 +12,7 @@ export const UpdateListingDtoSchema = ListingSchema.extend({
   phone: fields.phone,
   email: fields.email,
   // TODO! Tags
-  tags: z.array(z.any()).length(1).default([]),
+  tags: z.array(z.any()).min(1).default([]),
   // Sub-schemas
   links: z.array(LinkShema).default([]),
 });

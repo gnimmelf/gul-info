@@ -1,21 +1,17 @@
-import type { Accessor, Setter } from 'solid-js';
-import { Component, createEffect, createSignal, For, Show } from 'solid-js';
-import {
-  createStore,
-  reconcile,
-  SetStoreFunction,
-  Store,
-  unwrap,
-} from 'solid-js/store';
+import { Setter, Component, createEffect, For } from 'solid-js';
+
+import { deepCopy } from '~/shared/lib/utils';
+
+import { CRUD_MODES } from '~/solid-js/lib/enums';
+import { FormState } from '~/solid-js/lib/FormState';
+
 import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
 import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
-import { stableStringify, deepCopy, deepEqual } from '~/shared/lib/utils';
-import { CRUD_MODES } from '~/solid-js/lib/enums';
 
 import { join, addCss, Theme } from '~/solid-js/ui/theme';
 import { UpdateListingDtoSchema } from '~/shared/models/listing/UpdateListingDto';
-import { validateSchema, ValidateErrors } from '~/shared/lib/schema-helpers';
-import { ZodAny } from 'zod';
+import { FormField } from './FormField';
+import { MAX_LINKS } from '~/shared/constants';
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -48,65 +44,10 @@ const css = addCss({
   }),
 });
 
-class FormState<T extends object> {
-  private initialShape!: Object;
-
-  public _store: T;
-  private _setStore: SetStoreFunction<T>;
-
-  public errors: Accessor<ValidateErrors>;
-  public setErrors: Setter<ValidateErrors>;
-
-  public isDirty: Accessor<boolean>;
-  public setIsDirty: Setter<boolean>;
-
-  public submitted = false;
-  public touchedFields = new Set<string>([]);
-
-  constructor() {
-    //@ts-expect-error - setting initial value to `props.model.state()` messes with reactivity
-    [this._store, this._setStore] = createStore<T>({});
-    [this.errors, this.setErrors] = createSignal<ValidateErrors>(null);
-    [this.isDirty, this.setIsDirty] = createSignal<boolean>(false);
-  }
-
-  initialize(initialShape: T) {
-    this.initialShape = deepCopy(initialShape);
-    this._setStore(reconcile(deepCopy(initialShape)));
-    this.setIsDirty(false);
-  }
-
-  toggleIsTouched(key: string, value: any) {
-    //@ts-expect-error
-    const isTouched = !deepEqual(this.initialShape[key], this.store[value]);
-    if (isTouched) {
-      this.touchedFields.add(key);
-    } else {
-      this.touchedFields.delete(key);
-    }
-  }
-
-  getStore() {
-    return [
-      this._store,
-      (...args: any[]) => {
-        const prevState = { ...this._store };
-        //@ts-expect-error
-        this._setStore(...args);
-
-        // Compare new state with old state
-        for (const key in this._store) {
-          if (this._store[key] !== prevState[key]) {
-            this.toggleIsTouched(key, this._store[key]);
-          }
-        }
-        this.setIsDirty(this.touchedFields.size > 0);
-      }
-    ] as [T, SetStoreFunction<T>];
-  }
-
-  validate() {}
-}
+const SCHEMAS = {
+  [CRUD_MODES.CREATE]: CreateListingDtoSchema,
+  [CRUD_MODES.UPDATE]: UpdateListingDtoSchema,
+} as const;
 
 /**
  * Component
@@ -121,13 +62,13 @@ export const ListingForm: Component<{
   const defaultFormElementSize = 'small';
 
   const formState = new FormState<ListingSchemaType>();
-  // Get the store, only way to keep type definitions
+  // Get the store, only known way to keep type definitions
   const [store, setStore] = formState.getStore();
 
   createEffect(() => {
     // (Re)Initialize formState when model changes
-    const values = deepCopy(props.model.state());
-    formState.initialize(values);
+    //@ts-expect-error
+    formState.initialize(props.model.state(), SCHEMAS[props.mode]);
   });
 
   createEffect(() => {
@@ -144,24 +85,12 @@ export const ListingForm: Component<{
   };
 
   const removeLink = (linkIdx: number) => {
-    setStore('links', (links) =>
-      links.filter((_, i) => i !== linkIdx),
-    );
-  };
-
-  const validate = () => {
-    const data = unwrap(store);
-    console.log({ data });
-    if (props.mode === CRUD_MODES.CREATE) {
-      validateSchema(CreateListingDtoSchema, data, formState.setErrors);
-    } else if (props.mode === CRUD_MODES.UPDATE) {
-      validateSchema(UpdateListingDtoSchema, data, formState.setErrors);
-    }
+    setStore('links', (links) => links.filter((_, i) => i !== linkIdx));
   };
 
   const handleSubmit = () => {
-    validate();
-    if (!formState.errors()) {
+    formState.validateAll();
+    if (!formState.errors) {
       const data = deepCopy(store);
       props.onSubmit(data);
     }
@@ -169,81 +98,112 @@ export const ListingForm: Component<{
 
   return (
     <>
-      <pre>{JSON.stringify(formState.errors())}</pre>
+      <pre>{JSON.stringify(formState.errors)}</pre>
+      <pre>{JSON.stringify(formState._state.touchedFields)}</pre>
       <sl-card>
         <form class={css.form}>
-          <sl-input
-            prop:size={defaultFormElementSize}
-            prop:label="Virksomhetens navn"
-            prop:name="title"
-            prop:required={true}
-            prop:value={store.title}
-            on:input={({ target }) =>
-              setStore('title', (target as HTMLInputElement).value)
-            }
-          />
-          <Show when={formState.touchedFields.has('title')}>Error</Show>
+          <FormField key="title" formState={formState}>
+            {(key) => (
+              <sl-input
+                prop:label="Virksomhetens navn"
+                /* Generic */
+                prop:size={defaultFormElementSize}
+                prop:name={key}
+                prop:required={true}
+                prop:value={store[key]}
+                on:input={({ target }) =>
+                  setStore(key, (target as HTMLInputElement).value)
+                }
+                on:blur={() => formState.validateField(key)}
+              />
+            )}
+          </FormField>
 
-          <sl-input
-            class="break-flow"
-            prop:size={defaultFormElementSize}
-            prop:label="Beskrivelse av tjeneste eller produkt"
-            prop:name="description"
-            prop:required={true}
-            prop:value={store.description}
-            on:input={({ target }) =>
-              setStore(
-                'description',
-                (target as HTMLInputElement).value,
-              )
-            }
-          />
+          <FormField key="description" formState={formState}>
+            {(key) => (
+              <sl-input
+                class="break-flow"
+                prop:label="Beskrivelse av tjeneste eller produkt"
+                /* Generic */
+                prop:size={defaultFormElementSize}
+                prop:name={key}
+                prop:required={true}
+                prop:value={store[key]}
+                on:input={({ target }) =>
+                  setStore(key, (target as HTMLInputElement).value)
+                }
+                on:blur={() => formState.validateField(key)}
+              />
+            )}
+          </FormField>
 
-          <sl-input
-            prop:size={defaultFormElementSize}
-            prop:label="Gateadresse"
-            prop:name="address"
-            prop:required={true}
-            prop:value={store.address}
-            on:input={({ target }) =>
-              setStore('address', (target as HTMLInputElement).value)
-            }
-          />
+          <FormField key="address" formState={formState}>
+            {(key) => (
+              <sl-input
+                prop:label="Gateadresse"
+                /* Generic */
+                prop:size={defaultFormElementSize}
+                prop:name={key}
+                prop:required={true}
+                prop:value={store[key]}
+                on:input={({ target }) =>
+                  setStore(key, (target as HTMLInputElement).value)
+                }
+                on:blur={() => formState.validateField(key)}
+              />
+            )}
+          </FormField>
 
-          <sl-input
-            prop:size={defaultFormElementSize}
-            prop:label="Postnummer"
-            prop:name="zip"
-            prop:required={true}
-            prop:value={store.zip}
-            on:input={({ target }) =>
-              setStore('zip', (target as HTMLInputElement).value)
-            }
-          />
+          <FormField key="zip" formState={formState}>
+            {(key) => (
+              <sl-input
+                prop:label="Postnummer"
+                /* Generic */
+                prop:size={defaultFormElementSize}
+                prop:name={key}
+                prop:required={true}
+                prop:value={store[key]}
+                on:input={({ target }) =>
+                  setStore(key, (target as HTMLInputElement).value)
+                }
+                on:blur={() => formState.validateField(key)}
+              />
+            )}
+          </FormField>
 
-          <sl-input
-            prop:size={defaultFormElementSize}
-            prop:label="Telefonnummer"
-            prop:name="phone"
-            prop:type="tel"
-            prop:required={true}
-            prop:value={store.phone}
-            on:input={({ target }) =>
-              setStore('phone', (target as HTMLInputElement).value)
-            }
-          />
+          <FormField key="phone" formState={formState}>
+            {(key) => (
+              <sl-input
+                prop:label="Telefonnummer"
+                /* Generic */
+                prop:size={defaultFormElementSize}
+                prop:name={key}
+                prop:required={true}
+                prop:value={store[key]}
+                on:input={({ target }) =>
+                  setStore(key, (target as HTMLInputElement).value)
+                }
+                on:blur={() => formState.validateField(key)}
+              />
+            )}
+          </FormField>
 
-          <sl-input
-            prop:size={defaultFormElementSize}
-            prop:label="Epostadresse"
-            prop:name="email"
-            prop:type="email"
-            prop:required={true}
-            prop:value={store.email}
-            on:input={({ target }) =>
-              setStore('email', (target as HTMLInputElement).value)
-            }
-          />
+          <FormField key="email" formState={formState}>
+            {(key) => (
+              <sl-input
+                prop:label="Epostadresse"
+                /* Generic */
+                prop:size={defaultFormElementSize}
+                prop:name={key}
+                prop:required={true}
+                prop:value={store[key]}
+                on:input={({ target }) =>
+                  setStore(key, (target as HTMLInputElement).value)
+                }
+                on:blur={() => formState.validateField(key)}
+              />
+            )}
+          </FormField>
 
           <fieldset>
             <legend>Knagger</legend>
@@ -273,8 +233,10 @@ export const ListingForm: Component<{
                 </div>
               )}
             </For>
+
             <sl-button
               prop:size={defaultFormElementSize}
+              prop:disabled={store.links?.length === MAX_LINKS}
               prop:type="button"
               prop:variant="primary"
               on:click={addLink}

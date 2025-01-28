@@ -3,7 +3,7 @@ import { _State } from '~/shared/lib/_State';
 import { parseWithDefaults } from '~/shared/lib/schema-helpers';
 
 export const LinkShema = z.object({
-  href: z.string(),
+  href: z.string().url(),
 });
 
 export const ListingSchema = z.object({
