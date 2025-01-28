@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import * as fields from '~/shared/lib/schema-helpers';
+import * as fields from '~/shared/lib/zod/schemas';
+import { parseWithDefaults } from '~/shared/lib/zod/helpers';
 import { ListingSchema, LinkShema } from './Listing';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
@@ -31,7 +32,7 @@ export class Listing {
   }
 
   static from(data: Partial<UpdateListingDtoSchemaType>): Listing {
-    const parsedData = fields.parseWithDefaults(UpdateListingDtoSchema, data);
+    const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
     return new Listing(parsedData);
   }
 }

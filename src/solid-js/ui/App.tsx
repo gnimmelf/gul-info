@@ -11,6 +11,7 @@ import { Layout } from './components/Layout';
 import { Loading } from './components/Loading';
 import { PageListings } from './pages/PageListings';
 import { PageAccount } from './pages/PageAccount';
+import { Playground } from './components/Playground';
 
 const App: Component<{
   title: string;
@@ -36,6 +37,8 @@ const App: Component<{
         href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css"
       />
       <style id="styler">{resolveStylesToString()}</style>
+
+      {/* <Playground /> */}
 
       {/**
        * TODO! Add Solid (Memory?) Router

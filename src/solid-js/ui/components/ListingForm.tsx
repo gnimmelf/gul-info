@@ -1,6 +1,6 @@
-import { Setter, Component, createEffect, For } from 'solid-js';
+import { Setter, Component, createEffect, For, Show } from 'solid-js';
 
-import { deepCopy } from '~/shared/lib/utils';
+import { deepCopy, toDotPath } from '~/shared/lib/utils';
 
 import { CRUD_MODES } from '~/solid-js/lib/enums';
 import { FormState } from '~/solid-js/lib/FormState';
@@ -77,11 +77,11 @@ export const ListingForm: Component<{
   });
 
   const updateLink = (linkIdx: number, value: string) => {
-    setStore('links', linkIdx, 'href', value);
+    setStore(toDotPath('links', linkIdx, 'href'), value);
   };
 
   const addLink = () => {
-    setStore('links', store.links.length, { href: '' });
+    setStore(toDotPath('links', store.links.length), { href: '' });
   };
 
   const removeLink = (linkIdx: number) => {
@@ -98,8 +98,9 @@ export const ListingForm: Component<{
 
   return (
     <>
-      <pre>{JSON.stringify(formState.errors)}</pre>
+      <pre>{JSON.stringify(formState.errors, null, 2)}</pre>
       <pre>{JSON.stringify(formState._state.touchedFields)}</pre>
+      <pre>{JSON.stringify(formState._state.isDirty)}</pre>
       <sl-card>
         <form class={css.form}>
           <FormField key="title" formState={formState}>
@@ -213,24 +214,35 @@ export const ListingForm: Component<{
             <legend>Lenker</legend>
             <For each={store.links}>
               {(link, idx) => (
-                <div class={css.itemRow}>
-                  <sl-input
-                    prop:size={defaultFormElementSize}
-                    prop:label={`Lenke ${idx() + 1}`}
-                    prop:name={`links[${idx()}].href`}
-                    prop:type="url"
-                    prop:required={true}
-                    prop:value={link.href}
-                    on:input={(e) =>
-                      updateLink(idx(), (e.target as HTMLInputElement).value)
-                    }
-                  />
-                  <sl-icon-button
-                    color="red"
-                    prop:name="trash"
-                    on:click={() => removeLink(idx())}
-                  />
-                </div>
+                <FormField
+                  key={toDotPath('links', idx(), 'href')}
+                  formState={formState}
+                  class={css.itemRow}
+                >
+                  {(key) => (
+                    <>
+                      <sl-input
+                        prop:size={defaultFormElementSize}
+                        prop:label={`Lenke ${idx() + 1}`}
+                        prop:name={key}
+                        prop:type="url"
+                        prop:required={true}
+                        prop:value={link.href}
+                        on:input={(e) =>
+                          updateLink(
+                            idx(),
+                            (e.target as HTMLInputElement).value,
+                          )
+                        }
+                      />
+                      <sl-icon-button
+                        color="red"
+                        prop:name="trash"
+                        on:click={() => removeLink(idx())}
+                      />
+                    </>
+                  )}
+                </FormField>
               )}
             </For>
 

@@ -3,163 +3,163 @@ import {
   produce,
   reconcile,
   SetStoreFunction,
+  Store,
   unwrap,
 } from 'solid-js/store';
-import { deepEqual } from '~/shared/lib/utils';
+import {
+  deepCopy,
+  toDotPath,
+  fromDotPath,
+  isPrimitive
+} from '~/shared/lib/utils';
+import { getProperty } from 'dot-prop';
 
-import { deepCopy } from '~/shared/lib/utils';
-import { ZodSchema } from 'zod';
-
-type ValidateErrors = {
-  formErrors?: string[];
-  fieldErrors?: {
-    [key: string]: string[];
-  };
-};
+import { IssueData, ZodSchema } from 'zod';
+import { zodDeepPick } from '~/shared/lib/zod/helpers';
 
 type InternalState = {
   isDirty: boolean;
-  isSubmitted: boolean;
-  errors: ValidateErrors;
+  didValidateAll: boolean;
+  errors: IssueData[];
   touchedFields: string[];
 };
 
-const getCleanErrorState = (): ValidateErrors => ({
-  formErrors: [],
-  fieldErrors: {},
-});
 
-export class FormState<T> {
-  private _schema!: ZodSchema;
-  private _initialShape!: Object;
+/**
+ * Dynamic form state tracker based around zod schema and solidJs store.
+ * Caveat:
+ * - Only validates on root-level of schema,
+ * - Errors on nested values will show as root prop errors
+ */
+export class FormState<SchemaType> {
+  private _schema!: ZodSchema<any>;
+  private _initialValues!: Object;
 
-  private _values: T;
-  private _setValues: SetStoreFunction<T>;
+  private _values: SchemaType;
+  private _setValues: SetStoreFunction<SchemaType>;
 
   private _state: InternalState;
   private _setState: SetStoreFunction<InternalState>;
 
   constructor() {
     //@ts-expect-error - Value will be set in `initialize`
-    [this._values, this._setValues] = createStore<T>({});
+    [this._values, this._setValues] = createStore<SchemaType>({});
     //@ts-expect-error - Value will be set in `initialize`
     [this._state, this._setState] = createStore<InternalState>({});
   }
 
-  public initialize(initialShape: T, schema: ZodSchema) {
+  public initialize(initialValues: SchemaType, schema: ZodSchema) {
     this._schema = schema;
-    this._initialShape = deepCopy(initialShape);
-    this._setValues(reconcile(deepCopy(initialShape)));
+    this._initialValues = deepCopy(initialValues);
+    this._setValues(reconcile(deepCopy(initialValues)));
     this._setState({
       isDirty: false,
-      isSubmitted: false,
-      errors: getCleanErrorState(),
+      didValidateAll: false,
+      errors: [],
       touchedFields: [],
     });
   }
 
   /**
-   * Exportable method use by `this.getStore` to overcome typedef issues
-   * with SolidJs' immensly complex store-setter defintions.
-   * @param args Same as StoreSetter<T>
-   */
-  private wrappedSetStore(...args: any[]) {
-    const prevState = { ...this._values };
-    //@ts-expect-error
-    this._setValues(...args);
-
-    /**
-     * Loop fields and compare new values with old values to find which
-     * field's change that triggered this setState
-     */
-    for (const key in this._values) {
-      const isUpdated = this._values[key] !== prevState[key]
-
-      if (isUpdated) {
-        // Field qualifies as touched if current value is different from initial value
-        const isTouched = !deepEqual(
-          //@ts-expect-error
-          this._initialShape[key],
-          this._values[key],
-        );
-
-        this._setState('touchedFields', produce((touchedFields) => {
-          if (isTouched) {
-            // Mark as touched
-            touchedFields.indexOf(key) === -1 && touchedFields.push(key);
-          } else {
-            // Mark as untouched
-            const index = touchedFields.indexOf(key);
-            if (index !== -1) {
-              touchedFields.splice(index, 1); // Remove the element directly
-            }
-          }
-        }));
-
-        if (this.showError(key)) {
-          // Remove field error if field validates
-          this.validateField(key);
-        }
-      }
-    }
-    this._state.isDirty = this._state.touchedFields.length > 0;
-  }
-
-  /**
-   * Type workaround. Exports Accessor and Setter for store.
+   * Type defintion workaround. Exports Accessor and Setter for store.
    * - Only known way to keep type definition for setter
    * @returns [store, setStore]
    */
   public getStore() {
     return [
       this._values,
-      this.wrappedSetStore.bind(this)
-    ] as [T, SetStoreFunction<T>];
+      this.setValue.bind(this)
+    ] as [Store<SchemaType>, SetStoreFunction<SchemaType & { [x: string]: any }>];
   }
 
-  public isDirty() {
-    return this._state.isDirty;
+  /**
+   * Exportable method use by `this.getStore()` to overcome typedef issues
+   * with SolidJs' immensly complex store-setter defintion.
+   * @param args Same as StoreSetter<SchemaType>
+   */
+  private setValue(dotPath: string, value: any) {
+    const path = fromDotPath(dotPath)
+    //@ts-expect-error
+    this._setValues(...path, value);
+
+    if (isPrimitive(value)) {
+      // Only tracking leaf values.
+      const initialValue: any = getProperty(this._initialValues, dotPath, '');
+      const isTouched = initialValue !== value;
+
+      this._setState('touchedFields', produce((touchedFields) => {
+        if (isTouched) {
+          // Mark as touched
+          if (touchedFields.indexOf(dotPath) === -1) {
+            touchedFields.push(dotPath); // `produce` => Add the element directly
+          }
+        } else {
+          // Mark as untouched
+          const index = touchedFields.indexOf(dotPath);
+          if (index !== -1) {
+            touchedFields.splice(index, 1); // `produce` => Remove the element directly
+          }
+        }
+      }));
+
+      // Remove field error if field validates
+      this.validateField(dotPath);
+    }
+    this._setState('isDirty', this._state.touchedFields.length > 0);
   }
 
-  public isTouched(key: string) {
+  private shouldValidateField(dotPath: string) {
     return (
-      !!(this._state.touchedFields?.indexOf(key) > -1) ||
-      this._state.isSubmitted
+      !!(this._state.touchedFields?.indexOf(dotPath) > -1) ||
+      this._state.didValidateAll
     );
   }
 
-  public validateField(key: string) {
-    console.log('validateField', key);
-    if (this.isTouched(key)) {
-      //@ts-expect-error
-      const value = this._values[key];
-      //@ts-expect-error
-      const res = this._schema.shape[key].safeParse(value);
-      if (res.success) {
-        // Remove the fieldError
-        this._setState(
-          'errors',
-          'fieldErrors',
-          produce((fieldErrors) => {
-            delete fieldErrors![key];
-          }),
-        );
-      } else {
-        const errors = res.error.flatten().formErrors;
-        this._setState('errors', 'fieldErrors', { [key]: errors });
-      }
+  public validateField(dotPath: string) {
+    if (this.shouldValidateField(dotPath)) {
+      const value = getProperty(this._values, dotPath);
+
+      console.log({ dotPath, value, schema: this._schema, values: unwrap(this._values) })
+
+      const fieldSchema = zodDeepPick(this._schema, dotPath);
+
+      const res = fieldSchema.safeParse(value)
+
+      this._setState('errors', produce((errors) => {
+
+        const errorIdx = errors.findIndex((error) => {
+          //@ts-expect-error
+          const found = toDotPath(error.path) === dotPath;
+          return found
+        });
+
+        if (res.success) {
+          if (errorIdx > -1) {
+            // `produce` => Remove the element directly
+            errors.splice(errorIdx, 1);
+          }
+        } else {
+          if (errorIdx === -1) {
+            const issue = {
+              ...res.error.issues[0],
+              path: fromDotPath(dotPath)
+            }
+            // `produce` => Add the element directly
+            errors.unshift(issue)
+          }
+        }
+      }));
     }
   }
 
   public validateAll() {
-    this._setState('isSubmitted', true);
+    this._setState('didValidateAll', true);
     console.log(this);
     const res = this._schema.safeParse(unwrap(this._values));
     if (res.success) {
-      this._setState('errors', getCleanErrorState());
+      this._setState('errors', []);
     } else {
-      //@ts-expect-error
-      this._setState('errors', res.error.flatten());
+      this._setState('errors', res.error.issues);
     }
     return res.success;
   }
@@ -168,17 +168,16 @@ export class FormState<T> {
     return this._state.errors;
   }
 
-  public showError(key: string) {
-    const hasError = this._state.errors?.fieldErrors
-      ? !!this._state.errors.fieldErrors[key]
-      : false;
-
-    return (this._state.isSubmitted || this.isTouched(key)) && hasError;
+  public isDirty() {
+    return this._state.isDirty;
   }
 
-  public getFieldError(key: string) {
-    return this._state.errors.fieldErrors
-      ? this._state.errors.fieldErrors[key].join('. ')
-      : null;
+  public showFieldError(dotPath: string) {
+    const hasError = !!this.getFieldError(dotPath)
+    return (this._state.didValidateAll || this.shouldValidateField(dotPath)) && hasError;
+  }
+
+  public getFieldError(dotPath: string) {
+    return this._state.errors?.find((error) => toDotPath(error.path) === dotPath)?.message
   }
 }

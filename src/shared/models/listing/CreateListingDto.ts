@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 import { UpdateListingDtoSchema } from './UpdateListingDto';
-import { mergeWithDefaults } from '~/shared/lib/schema-helpers';
+import { mergeWithDefaults } from '~/shared/lib/zod/helpers';
 
 export const CreateListingDtoSchema = UpdateListingDtoSchema.extend({
   title: UpdateListingDtoSchema.shape.title.default(''),
