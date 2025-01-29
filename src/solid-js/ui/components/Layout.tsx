@@ -4,7 +4,7 @@ import { PAGES } from '../../lib/enums';
 import { Loading } from './Loading';
 import { AccountHead } from './AccountHead';
 
-import { addCss, join, Theme } from '~/solid-js/ui/theme';
+import { addCss, join, Theme } from '~/shared/ui/theme';
 
 const css = addCss({
   app: (theme: Theme) => ({

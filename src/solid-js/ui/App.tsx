@@ -2,7 +2,7 @@ import { Component, createSignal, Match, Suspense, Switch } from 'solid-js';
 
 import { PAGES } from '../lib/enums';
 
-import { resolveStylesToString } from '~/solid-js/ui/theme';
+import { resolveStylesToString } from '~/shared/ui/theme';
 
 import { ServiceProvider } from '~/solid-js/ui/providers/ServiceProvider';
 import { CoreProvider } from '~/solid-js/ui/providers/SystemProvider';
@@ -11,7 +11,6 @@ import { Layout } from './components/Layout';
 import { Loading } from './components/Loading';
 import { PageListings } from './pages/PageListings';
 import { PageAccount } from './pages/PageAccount';
-import { Playground } from './components/Playground';
 
 const App: Component<{
   title: string;
@@ -38,7 +37,6 @@ const App: Component<{
       />
       <style id="styler">{resolveStylesToString()}</style>
 
-      {/* <Playground /> */}
 
       {/**
        * TODO! Add Solid (Memory?) Router

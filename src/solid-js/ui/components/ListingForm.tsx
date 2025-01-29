@@ -3,12 +3,12 @@ import { Setter, Component, createEffect, For, Show } from 'solid-js';
 import { deepCopy, toDotPath } from '~/shared/lib/utils';
 
 import { CRUD_MODES } from '~/solid-js/lib/enums';
-import { FormState } from '~/solid-js/lib/FormState';
+import { FormState } from '~/shared/ui/FormState';
 
 import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
 import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
 
-import { join, addCss, Theme } from '~/solid-js/ui/theme';
+import { join, addCss, Theme } from '~/shared/ui/theme';
 import { UpdateListingDtoSchema } from '~/shared/models/listing/UpdateListingDto';
 import { FormField } from './FormField';
 import { MAX_LINKS } from '~/shared/constants';
@@ -62,8 +62,9 @@ export const ListingForm: Component<{
   const defaultFormElementSize = 'small';
 
   const formState = new FormState<ListingSchemaType>();
-  // Get the store, only known way to keep type definitions
-  const [store, setStore] = formState.getStore();
+
+  // Get the values, only known way to keep type definitions
+  const [values, setValue] = formState.getStore();
 
   createEffect(() => {
     // (Re)Initialize formState when model changes
@@ -77,43 +78,61 @@ export const ListingForm: Component<{
   });
 
   const updateLink = (linkIdx: number, value: string) => {
-    setStore(toDotPath('links', linkIdx, 'href'), value);
+    setValue(toDotPath('links', linkIdx, 'href'), value);
   };
 
   const addLink = () => {
-    setStore(toDotPath('links', store.links.length), { href: '' });
+    setValue(toDotPath('links', values.links.length), { href: '' });
   };
 
   const removeLink = (linkIdx: number) => {
-    setStore('links', (links) => links.filter((_, i) => i !== linkIdx));
+    setValue('links', (links) => links.filter((_, i) => i !== linkIdx));
   };
 
   const handleSubmit = () => {
     formState.validateAll();
     if (!formState.errors) {
-      const data = deepCopy(store);
+      const data = deepCopy(values);
       props.onSubmit(data);
     }
   };
 
   return (
     <>
-      <pre>{JSON.stringify(formState.errors, null, 2)}</pre>
-      <pre>{JSON.stringify(formState._state.touchedFields)}</pre>
-      <pre>{JSON.stringify(formState._state.isDirty)}</pre>
+      <pre>
+        Errors:{' '}
+        {JSON.stringify(
+          formState._state.errors?.map(({ path }) => toDotPath(path)),
+          null,
+          2,
+        )}
+      </pre>
+      <pre>
+        Touched:{JSON.stringify(formState._state.touchedFields, null, 2)}
+      </pre>
+      <pre>
+        Validating:{JSON.stringify(formState._state.validatingFields, null, 2)}
+      </pre>
+      <pre>
+        Validated:{JSON.stringify(formState._state.validatedFields, null, 2)}
+      </pre>
       <sl-card>
-        <form class={css.form}>
+        <form class={join(css.form, 'validity-styles')}>
           <FormField key="title" formState={formState}>
             {(key) => (
               <sl-input
                 prop:label="Virksomhetens navn"
                 /* Generic */
+                classList={{
+                  'user-error': formState.hasErrors(key),
+                  'user-valid': formState.isValid(key),
+                }}
                 prop:size={defaultFormElementSize}
                 prop:name={key}
                 prop:required={true}
-                prop:value={store[key]}
+                prop:value={values[key]}
                 on:input={({ target }) =>
-                  setStore(key, (target as HTMLInputElement).value)
+                  setValue(key, (target as HTMLInputElement).value)
                 }
                 on:blur={() => formState.validateField(key)}
               />
@@ -126,12 +145,16 @@ export const ListingForm: Component<{
                 class="break-flow"
                 prop:label="Beskrivelse av tjeneste eller produkt"
                 /* Generic */
+                classList={{
+                  'user-error': formState.hasErrors(key),
+                  'user-valid': formState.isValid(key),
+                }}
                 prop:size={defaultFormElementSize}
                 prop:name={key}
                 prop:required={true}
-                prop:value={store[key]}
+                prop:value={values[key]}
                 on:input={({ target }) =>
-                  setStore(key, (target as HTMLInputElement).value)
+                  setValue(key, (target as HTMLInputElement).value)
                 }
                 on:blur={() => formState.validateField(key)}
               />
@@ -143,12 +166,16 @@ export const ListingForm: Component<{
               <sl-input
                 prop:label="Gateadresse"
                 /* Generic */
+                classList={{
+                  'user-error': formState.hasErrors(key),
+                  'user-valid': formState.isValid(key),
+                }}
                 prop:size={defaultFormElementSize}
                 prop:name={key}
                 prop:required={true}
-                prop:value={store[key]}
+                prop:value={values[key]}
                 on:input={({ target }) =>
-                  setStore(key, (target as HTMLInputElement).value)
+                  setValue(key, (target as HTMLInputElement).value)
                 }
                 on:blur={() => formState.validateField(key)}
               />
@@ -160,12 +187,16 @@ export const ListingForm: Component<{
               <sl-input
                 prop:label="Postnummer"
                 /* Generic */
+                classList={{
+                  'user-error': formState.hasErrors(key),
+                  'user-valid': formState.isValid(key),
+                }}
                 prop:size={defaultFormElementSize}
                 prop:name={key}
                 prop:required={true}
-                prop:value={store[key]}
+                prop:value={values[key]}
                 on:input={({ target }) =>
-                  setStore(key, (target as HTMLInputElement).value)
+                  setValue(key, (target as HTMLInputElement).value)
                 }
                 on:blur={() => formState.validateField(key)}
               />
@@ -177,12 +208,16 @@ export const ListingForm: Component<{
               <sl-input
                 prop:label="Telefonnummer"
                 /* Generic */
+                classList={{
+                  'user-error': formState.hasErrors(key),
+                  'user-valid': formState.isValid(key),
+                }}
                 prop:size={defaultFormElementSize}
                 prop:name={key}
                 prop:required={true}
-                prop:value={store[key]}
+                prop:value={values[key]}
                 on:input={({ target }) =>
-                  setStore(key, (target as HTMLInputElement).value)
+                  setValue(key, (target as HTMLInputElement).value)
                 }
                 on:blur={() => formState.validateField(key)}
               />
@@ -194,12 +229,16 @@ export const ListingForm: Component<{
               <sl-input
                 prop:label="Epostadresse"
                 /* Generic */
+                classList={{
+                  'user-error': formState.hasErrors(key),
+                  'user-valid': formState.isValid(key),
+                }}
                 prop:size={defaultFormElementSize}
                 prop:name={key}
                 prop:required={true}
-                prop:value={store[key]}
+                prop:value={values[key]}
                 on:input={({ target }) =>
-                  setStore(key, (target as HTMLInputElement).value)
+                  setValue(key, (target as HTMLInputElement).value)
                 }
                 on:blur={() => formState.validateField(key)}
               />
@@ -211,18 +250,24 @@ export const ListingForm: Component<{
           </fieldset>
 
           <fieldset>
-            <legend>Lenker</legend>
-            <For each={store.links}>
+            <legend class={formState.hasErrors('links') ? 'error' : ''}>
+              Lenker
+            </legend>
+            <For each={values.links}>
               {(link, idx) => (
                 <FormField
                   key={toDotPath('links', idx(), 'href')}
                   formState={formState}
-                  class={css.itemRow}
+                  hideError={true}
                 >
                   {(key) => (
-                    <>
+                    <div class={css.itemRow}>
                       <sl-input
                         prop:size={defaultFormElementSize}
+                        classList={{
+                          'user-error': formState.hasErrors(key),
+                          'user-valid': formState.isValid(key),
+                        }}
                         prop:label={`Lenke ${idx() + 1}`}
                         prop:name={key}
                         prop:type="url"
@@ -234,13 +279,14 @@ export const ListingForm: Component<{
                             (e.target as HTMLInputElement).value,
                           )
                         }
+                        on:blur={() => formState.validateField(key)}
                       />
                       <sl-icon-button
                         color="red"
                         prop:name="trash"
                         on:click={() => removeLink(idx())}
                       />
-                    </>
+                    </div>
                   )}
                 </FormField>
               )}
@@ -248,7 +294,7 @@ export const ListingForm: Component<{
 
             <sl-button
               prop:size={defaultFormElementSize}
-              prop:disabled={store.links?.length === MAX_LINKS}
+              prop:disabled={values.links?.length === MAX_LINKS}
               prop:type="button"
               prop:variant="primary"
               on:click={addLink}

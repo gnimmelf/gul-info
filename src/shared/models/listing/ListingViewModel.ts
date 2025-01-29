@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TagViewSchema } from '../TagViewModel';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
-import { parseWithDefaults } from '~/shared/lib/zod/helpers';
+import { parseWithDefaults } from '~/shared/zod/helpers';
 
 export const ListingViewSchema = z.object({
   title: z.string(),

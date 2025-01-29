@@ -1,6 +1,6 @@
 import { Component, createMemo, JSXElement } from 'solid-js';
 
-import { join, addCss, withTheme, Theme } from '~/solid-js/ui/theme';
+import { join, addCss, withTheme, Theme } from '~/shared/ui/theme';
 
 enum SIZES {
   small = 'small',

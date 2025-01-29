@@ -1,5 +1,5 @@
 import { Component, Match, Setter, Show, Switch } from 'solid-js';
-import { addCss } from '~/solid-js/ui/theme';
+import { addCss } from '~/shared/ui/theme';
 
 const css = addCss({
   button: {

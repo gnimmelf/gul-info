@@ -9,7 +9,7 @@ import {
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 import { ListingForm } from '../components/ListingForm';
-import { addCss, Theme } from '~/solid-js/ui/theme';
+import { addCss, Theme } from '~/shared/ui/theme';
 import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
 import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
 import { CRUD_MODES } from '~/solid-js/lib/enums';

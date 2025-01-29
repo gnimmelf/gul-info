@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { _State } from '~/shared/lib/_State';
-import { parseWithDefaults } from '~/shared/lib/zod/helpers';
+import { parseWithDefaults } from '~/shared/zod/helpers';
 
 export const LinkShema = z.object({
   href: z.string().url(),

@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import * as fields from '~/shared/lib/zod/schemas';
-import { parseWithDefaults } from '~/shared/lib/zod/helpers';
+import * as fields from '~/shared/zod/schemas';
+import { parseWithDefaults } from '~/shared/zod/helpers';
 import { ListingSchema, LinkShema } from './Listing';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 

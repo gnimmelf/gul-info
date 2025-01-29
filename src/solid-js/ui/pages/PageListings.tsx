@@ -8,7 +8,7 @@ import { Address } from '../components/Address';
 import { IconLabel } from '../components/IconLabel';
 import { Loading } from '../components/Loading';
 import { ListingsFilters } from '../components/ListingsFilters';
-import { addCss } from '~/solid-js/ui/theme';
+import { addCss } from '~/shared/ui/theme';
 
 const css = addCss({
   card: {
