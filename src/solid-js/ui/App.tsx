@@ -37,7 +37,6 @@ const App: Component<{
       />
       <style id="styler">{resolveStylesToString()}</style>
 
-
       {/**
        * TODO! Add Solid (Memory?) Router
        * - Only *if* it also works with setting tabs on accountPage

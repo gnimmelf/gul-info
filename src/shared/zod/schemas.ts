@@ -9,13 +9,13 @@ export const email = z.string().trim().email('Must be a valid email address');
 export const name = z.string().trim().regex(reName, 'Must be a valid name');
 
 export const address = z
-    .string()
-    .trim()
-    .regex(reStreet, 'Must be a valid street address');
+  .string()
+  .trim()
+  .regex(reStreet, 'Must be a valid street address');
 
 export const zip = z.string().trim().regex(reZip, 'Must be a valid zip code');
 
 export const phone = z.preprocess(
-    (val: any) => val?.split(' ').join(''),
-    z.string().trim().regex(rePhone, 'Must be a valid phone number'),
+  (val: any) => val?.split(' ').join(''),
+  z.string().trim().regex(rePhone, 'Must be a valid phone number'),
 );

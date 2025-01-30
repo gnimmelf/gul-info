@@ -99,23 +99,6 @@ export const ListingForm: Component<{
 
   return (
     <>
-      <pre>
-        Errors:{' '}
-        {JSON.stringify(
-          formState._state.errors?.map(({ path }) => toDotPath(path)),
-          null,
-          2,
-        )}
-      </pre>
-      <pre>
-        Touched:{JSON.stringify(formState._state.touchedFields, null, 2)}
-      </pre>
-      <pre>
-        Validating:{JSON.stringify(formState._state.validatingFields, null, 2)}
-      </pre>
-      <pre>
-        Validated:{JSON.stringify(formState._state.validatedFields, null, 2)}
-      </pre>
       <sl-card>
         <form class={join(css.form, 'validity-styles')}>
           <FormField key="title" formState={formState}>

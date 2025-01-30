@@ -1,7 +1,7 @@
 import { z, ZodSchema } from 'zod';
 import { init } from 'zod-empty';
 
-export { default as zodDeepPick } from './zodDeepPick'
+export { default as zodDeepPick } from './zodDeepPick';
 
 export const mergeWithDefaults = (schema: ZodSchema, data: any) => {
   const defaults = init(schema);

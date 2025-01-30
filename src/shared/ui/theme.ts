@@ -1,8 +1,6 @@
 import { join, StyleReg, loadFontFace } from '~/shared/ui/styler';
 import { getValidityStyles } from './getValidityStyles';
 
-
-
 loadFontFace(
   'Playwrite HU',
   "url(https://fonts.gstatic.com/s/playwritehu/v1/A2BIn59A0g0xA3zDhFw-0vfPWJtlaFKmrETx1PL6TOg.woff2) format('woff2')",
@@ -12,8 +10,6 @@ loadFontFace(
     'font-style': 'normal',
   },
 );
-
-
 
 /**
  * Is there really a usecase for having theme constants as Js
@@ -71,7 +67,7 @@ styler.setGlobals((theme: Theme) => ({
     borderColor: 'var(--gifo-color-primary)',
     borderRadius: '5px',
   },
-  ...getValidityStyles(theme)
+  ...getValidityStyles(theme),
 }));
 
 /**

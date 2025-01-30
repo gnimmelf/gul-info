@@ -12,17 +12,20 @@ export const deepCopy = (obj: any) => JSON.parse(JSON.stringify(obj));
 
 export const toDotPath = (...args: (string | number)[]): string => {
   return args
-    .flatMap(x => x)
-    .map((p, i) =>
-      typeof p === "number" ? `[${p}]` : i === 0 ? p : `.${p}`
-    )
-    .join("");
-}
+    .flatMap((x) => x)
+    .map((p, i) => (typeof p === 'number' ? `[${p}]` : i === 0 ? p : `.${p}`))
+    .join('');
+};
 
 export const fromDotPath = (path: string): (string | number)[] => {
-  return path.split(/\.|\[(\d+)\]/).filter(Boolean).map(p => (p.match(/^\d+$/) ? Number(p) : p));
-}
+  return path
+    .split(/\.|\[(\d+)\]/)
+    .filter(Boolean)
+    .map((p) => (p.match(/^\d+$/) ? Number(p) : p));
+};
 
 export const isPrimitive = (value: unknown): boolean => {
-  return value === null || (typeof value !== 'object' && typeof value !== 'function');
-}
+  return (
+    value === null || (typeof value !== 'object' && typeof value !== 'function')
+  );
+};

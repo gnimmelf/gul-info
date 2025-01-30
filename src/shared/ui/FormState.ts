@@ -10,7 +10,7 @@ import {
   deepCopy,
   toDotPath,
   fromDotPath,
-  isPrimitive
+  isPrimitive,
 } from '~/shared/lib/utils';
 import { getProperty } from 'dot-prop';
 
@@ -69,10 +69,14 @@ export class FormState<SchemaType> {
    * @returns [store, setStore]
    */
   public getStore() {
-    return [
-      this._values,
-      this.setValue.bind(this)
-    ] as [Store<SchemaType>, SetStoreFunction<SchemaType & { [x: string]: any }>];
+    return [this._values, this.setValue.bind(this)] as [
+      Store<SchemaType>,
+      SetStoreFunction<SchemaType & { [x: string]: any }>,
+    ];
+  }
+
+  public get errors() {
+    return unwrap(this._state.errors);
   }
 
   /**
@@ -81,22 +85,24 @@ export class FormState<SchemaType> {
    * @param isTouched
    */
   private setIsTouched(dotPath: string, isTouched: boolean) {
-    this._setState('touchedFields', produce((touchedFields) => {
-      if (isTouched) {
-        // Mark as touched
-        if (touchedFields.indexOf(dotPath) === -1) {
-          touchedFields.push(dotPath); // `produce` => Add the element directly
+    this._setState(
+      'touchedFields',
+      produce((touchedFields) => {
+        if (isTouched) {
+          // Mark as touched
+          if (touchedFields.indexOf(dotPath) === -1) {
+            touchedFields.push(dotPath); // `produce` => Add the element directly
+          }
+        } else {
+          // Mark as untouched
+          const index = touchedFields.indexOf(dotPath);
+          if (index !== -1) {
+            touchedFields.splice(index, 1); // `produce` => Remove the element directly
+          }
         }
-      } else {
-        // Mark as untouched
-        const index = touchedFields.indexOf(dotPath);
-        if (index !== -1) {
-          touchedFields.splice(index, 1); // `produce` => Remove the element directly
-        }
-      }
-    }));
+      }),
+    );
     this._setState('isDirty', this._state.touchedFields.length > 0);
-    this._s
   }
 
   /**
@@ -105,44 +111,49 @@ export class FormState<SchemaType> {
    * @param isValidating
    */
   private setIsValidating(dotPath: string, isValidating: boolean) {
-    this._setState('validatingFields', produce((validatingFields) => {
-      if (isValidating) {
-        // Mark as touched
-        if (validatingFields.indexOf(dotPath) === -1) {
-          validatingFields.push(dotPath); // `produce` => Add the element directly
+    this._setState(
+      'validatingFields',
+      produce((validatingFields) => {
+        if (isValidating) {
+          // Mark as touched
+          if (validatingFields.indexOf(dotPath) === -1) {
+            validatingFields.push(dotPath); // `produce` => Add the element directly
+          }
+        } else {
+          // Mark as untouched
+          const index = validatingFields.indexOf(dotPath);
+          if (index !== -1) {
+            validatingFields.splice(index, 1); // `produce` => Remove the element directly
+          }
         }
-      } else {
-        // Mark as untouched
-        const index = validatingFields.indexOf(dotPath);
-        if (index !== -1) {
-          validatingFields.splice(index, 1); // `produce` => Remove the element directly
-        }
-      }
-    }));
+      }),
+    );
   }
 
   /**
-  * Add or remove field from having isValidating status
-  * @param dotPath
-  * @param isValidating
-  */
+   * Add or remove field from having isValidating status
+   * @param dotPath
+   * @param isValidating
+   */
   private setIsValidated(dotPath: string, isValidated: boolean) {
-    this._setState('validatedFields', produce((validatedFields) => {
-      if (isValidated) {
-        // Add to validated
-        if (validatedFields.indexOf(dotPath) === -1) {
-          validatedFields.push(dotPath); // `produce` => Add the element directly
+    this._setState(
+      'validatedFields',
+      produce((validatedFields) => {
+        if (isValidated) {
+          // Add to validated
+          if (validatedFields.indexOf(dotPath) === -1) {
+            validatedFields.push(dotPath); // `produce` => Add the element directly
+          }
+        } else {
+          // Remove from validated
+          const index = validatedFields.indexOf(dotPath);
+          if (index !== -1) {
+            validatedFields.splice(index, 1); // `produce` => Remove the element directly
+          }
         }
-      } else {
-        // Remove from validated
-        const index = validatedFields.indexOf(dotPath);
-        if (index !== -1) {
-          validatedFields.splice(index, 1); // `produce` => Remove the element directly
-        }
-      }
-    }));
+      }),
+    );
   }
-
 
   /**
    * Exportable method use by `this.getStore()` to overcome typedef issues
@@ -150,7 +161,7 @@ export class FormState<SchemaType> {
    * @param args Same as StoreSetter<SchemaType>
    */
   private setValue(dotPath: string, value: any) {
-    const path = fromDotPath(dotPath)
+    const path = fromDotPath(dotPath);
     //@ts-expect-error
     this._setValues(...path, value);
 
@@ -161,9 +172,9 @@ export class FormState<SchemaType> {
 
       this.setIsTouched(dotPath, isTouched);
 
+      // Revalidate to remove error while typing
       if (this.hasErrors(dotPath)) {
-        // Revalidate to remove error while typing
-        this.validateField(dotPath)
+        this.validateField(dotPath);
       }
     }
   }
@@ -172,44 +183,49 @@ export class FormState<SchemaType> {
     const isTouched = this.isTouched(dotPath);
 
     if (!isTouched) {
-      this.setIsValidating(dotPath, false)
-      this.setIsValidated(dotPath, false)
-      this._setState('errors', (errors) => errors.filter(({ path }) => toDotPath(...path!) !== dotPath));
+      this.setIsValidating(dotPath, false);
+      this.setIsValidated(dotPath, false);
+      this._setState('errors', (errors) =>
+        errors.filter(({ path }) => toDotPath(...path!) !== dotPath),
+      );
     } else {
       const value = getProperty(this._values, dotPath);
 
       const fieldSchema = zodDeepPick(this._schema, dotPath);
-      const res = fieldSchema.safeParse(value)
+      const res = fieldSchema.safeParse(value);
 
       // Update errors
-      this._setState('errors', produce((errors) => {
-        const errorIdx = errors.findIndex((error) => {
-          //@ts-expect-error
-          const found = toDotPath(error.path) === dotPath;
-          return found
-        });
+      this._setState(
+        'errors',
+        produce((errors) => {
+          const errorIdx = errors.findIndex((error) => {
+            //@ts-expect-error
+            const found = toDotPath(error.path) === dotPath;
+            return found;
+          });
 
-        if (res.success) {
-          if (errorIdx > -1) {
-            // `produce` => Remove the element directly
-            errors.splice(errorIdx, 1);
-          }
-        } else {
-          if (errorIdx === -1) {
-            const issue = {
-              ...res.error.issues[0],
-              path: fromDotPath(dotPath)
+          if (res.success) {
+            if (errorIdx > -1) {
+              // `produce` => Remove the element directly
+              errors.splice(errorIdx, 1);
             }
-            // `produce` => Add the element directly
-            errors.unshift(issue)
+          } else {
+            if (errorIdx === -1) {
+              const issue = {
+                ...res.error.issues[0],
+                path: fromDotPath(dotPath),
+              };
+              // `produce` => Add the element directly
+              errors.unshift(issue);
+            }
           }
-        }
-      }));
+        }),
+      );
 
       // After validation, recheck errors
-      const hasErrors = this.hasErrors(dotPath)
-      this.setIsValidating(dotPath, isTouched && hasErrors)
-      this.setIsValidated(dotPath, !hasErrors)
+      const hasErrors = this.hasErrors(dotPath);
+      this.setIsValidating(dotPath, isTouched && hasErrors);
+      this.setIsValidated(dotPath, !hasErrors);
     }
   }
 
@@ -236,9 +252,7 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public isTouched(dotPath: string) {
-    return (
-      !!(this._state.touchedFields?.indexOf(dotPath) > -1)
-    );
+    return !!(this._state.touchedFields?.indexOf(dotPath) > -1);
   }
 
   /**
@@ -247,9 +261,7 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public isValidated(dotPath: string) {
-    return (
-      !!(this._state.validatedFields?.indexOf(dotPath) > -1)
-    );
+    return !!(this._state.validatedFields?.indexOf(dotPath) > -1);
   }
 
   /**
@@ -258,9 +270,7 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public isValidating(dotPath: string) {
-    return (
-      !!(this._state.validatingFields?.indexOf(dotPath) > -1)
-    );
+    return !!(this._state.validatingFields?.indexOf(dotPath) > -1);
   }
 
   /**
@@ -270,7 +280,9 @@ export class FormState<SchemaType> {
    */
   public isValid(dotPath: string) {
     return (
-      this.isTouched(dotPath) && this.isValidated(dotPath) && !this.isValidating(dotPath)
+      this.isTouched(dotPath) &&
+      this.isValidated(dotPath) &&
+      !this.isValidating(dotPath)
     );
   }
 
@@ -280,7 +292,10 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public showFieldError(dotPath: string) {
-    return this.isValidating(dotPath) || (this._state.didValidateAll && this.hasErrors(dotPath));
+    return (
+      this.isValidating(dotPath) ||
+      (this._state.didValidateAll && this.hasErrors(dotPath))
+    );
   }
 
   /**
@@ -305,7 +320,8 @@ export class FormState<SchemaType> {
    */
   public getFieldError(dotPath: string) {
     //@ts-expect-error
-    return this._state.errors?.find(({ path }) => toDotPath(path) === dotPath)?.message
+    return this._state.errors?.find(({ path }) => toDotPath(path) === dotPath)
+      ?.message;
   }
 
   /**
@@ -323,7 +339,7 @@ export class FormState<SchemaType> {
             if (path!.length < parts.length) return false; // Ensure path is at least as deep as dotPath
             return parts.every((part, index) => path![index] === part);
           })
-          .map(({ message }) => message) || []
+          .map(({ message }) => message) || [],
       ),
     ] as string[];
   }
