@@ -1,7 +1,9 @@
 import {
   Component,
   createContext,
+  createEffect,
   createResource,
+  createSignal,
   JSXElement,
   Resource,
   useContext,
@@ -13,16 +15,19 @@ import { createAuthenticationAdaper } from '~/domains/infrastructure/authenticat
 
 import { createDirectoryServiceAdapter } from '~/solid-js/application/createDirectoryServiceAdaper';
 import { createAccountServiceAdaper } from '~/solid-js/application/createAccountServiceAdaper';
+import { createListingsServiceAdaper } from '~/solid-js/application/createListingsServiceAdaper';
+import { UserViewModel } from '~/shared/models/UserViewModel';
 
 type TDirectoryAdapter = Awaited<
   ReturnType<typeof createDirectoryServiceAdapter>
 >;
-
 type TAccountAdapter = Awaited<ReturnType<typeof createAccountServiceAdaper>>;
+type TListingsAdapter = Awaited<ReturnType<typeof createListingsServiceAdaper>>;
 
 type IServiceContext = {
   directory: Resource<TDirectoryAdapter>;
   account: Resource<TAccountAdapter>;
+  listings: Resource<TListingsAdapter>;
 };
 
 const ServiceContext = createContext<IServiceContext>();
@@ -35,16 +40,25 @@ export const ServiceProvider: Component<{
 }> = (props) => {
   const { db, configs } = useSystem();
 
-  const [directory] = createResource(() => createDirectoryServiceAdapter(db));
+  const [user, setUser] = createSignal<UserViewModel | undefined>(undefined);
 
   const [account] = createResource(async () => {
     const auth = await createAuthenticationAdaper(db, configs.auth0);
     return createAccountServiceAdaper(db, auth);
   });
 
+  createEffect(() => setUser(account()?.resources.user()));
+
+  const [listings] = createResource(() =>
+    createListingsServiceAdaper(db, user),
+  );
+
+  const [directory] = createResource(() => createDirectoryServiceAdapter(db));
+
   const services = {
-    directory,
     account,
+    listings,
+    directory,
   };
 
   return (

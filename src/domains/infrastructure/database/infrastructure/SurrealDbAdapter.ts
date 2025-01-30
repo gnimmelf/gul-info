@@ -3,7 +3,7 @@ import { IDatabase } from '../IDatabase';
 import {
   FilterSchemaType,
   TagsMatchType,
-} from '~/domains/ui/directory/Filters';
+} from '~/shared/models/Filters';
 
 import { UserViewSchemaType } from '~/shared/models/UserViewModel';
 import { IndexLetterViewSchemaType } from '~/shared/models/IndexLetterViewModel';
@@ -11,6 +11,7 @@ import { ListingViewSchemaType } from '~/shared/models/listing/ListingViewModel'
 import { TagViewSchemaType } from '~/shared/models/TagViewModel';
 import { ListingSchemaType } from '~/shared/models/listing/Listing';
 import { CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
+import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
 
 export interface SurrealConfig {
   namespace: string;
@@ -69,9 +70,36 @@ export class SurrealDbAdapter implements IDatabase {
     return res;
   }
 
-  // TODO! Methods below should be inside own features, getting passed the `client`
+  async getIndexLetters() {
+    const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
+    const res = pop<IndexLetterViewSchemaType[]>(
+      await this.client.query(query),
+    );
+    return res;
+  }
 
-  async getListings(filters?: FilterSchemaType) {
+  async getTags() {
+    const query = `
+      SELECT *, count(
+        SELECT id
+        FROM listings
+        WHERE $parent.id INSIDE tags
+      ) as usageCount
+      FROM tags;
+    `;
+    console.log({ query });
+    const res = pop<TagViewSchemaType[]>(await this.client.query(query));
+    return res.map(idObjToString);
+  }
+
+  async getUserData() {
+    const query = `SELECT * FROM ${TABLES.USER};`;
+    console.log({ query });
+    const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
+    return idObjToString(res);
+  }
+
+  async getListingsByFilters(filters?: FilterSchemaType) {
     let whereClause = '';
     const conditions: string[] = [];
 
@@ -102,35 +130,6 @@ export class SurrealDbAdapter implements IDatabase {
     return res.map(idObjToString);
   }
 
-  async getIndexLetters() {
-    const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
-    const res = pop<IndexLetterViewSchemaType[]>(
-      await this.client.query(query),
-    );
-    return res;
-  }
-
-  async getTags() {
-    const query = `
-      SELECT *, count(
-        SELECT id
-        FROM listings
-        WHERE $parent.id INSIDE tags
-      ) as usageCount
-      FROM tags;
-    `;
-    console.log({ query });
-    const res = pop<TagViewSchemaType[]>(await this.client.query(query));
-    return res.map(idObjToString);
-  }
-
-  async getUserData() {
-    const query = `SELECT * FROM ${TABLES.USER};`;
-    console.log({ query });
-    const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
-    return idObjToString(res);
-  }
-
   async getListingsByEmail(email: string) {
     const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
     console.log({ query });
@@ -139,6 +138,13 @@ export class SurrealDbAdapter implements IDatabase {
   }
 
   async createListing(data: CreateListingDtoSchemaType) {
+    const query = `;`;
+    console.log({ query });
+    const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);
+    return res.map(idObjToString);
+  }
+
+  async updateListing(data: UpdateListingDtoSchemaType) {
     const query = `;`;
     console.log({ query });
     const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);

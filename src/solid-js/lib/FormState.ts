@@ -1,3 +1,4 @@
+import { IssueData, ZodSchema } from 'zod';
 import {
   createStore,
   produce,
@@ -6,15 +7,15 @@ import {
   Store,
   unwrap,
 } from 'solid-js/store';
+import { getProperty } from 'dot-prop';
+
 import {
   deepCopy,
   toDotPath,
   fromDotPath,
   isPrimitive,
 } from '~/shared/lib/utils';
-import { getProperty } from 'dot-prop';
 
-import { IssueData, ZodSchema } from 'zod';
 import { zodDeepPick } from '~/shared/zod/helpers';
 
 type InternalState = {
@@ -49,7 +50,7 @@ export class FormState<SchemaType> {
     [this._state, this._setState] = createStore<InternalState>({});
   }
 
-  public initialize(initialValues: SchemaType, schema: ZodSchema) {
+  public initialize({ initialValues, schema }: { initialValues: SchemaType, schema: ZodSchema }) {
     this._schema = schema;
     this._initialValues = deepCopy(initialValues);
     this._setValues(reconcile(deepCopy(initialValues)));
@@ -76,7 +77,9 @@ export class FormState<SchemaType> {
   }
 
   public get errors() {
-    return unwrap(this._state.errors);
+    return this._state.errors.length
+      ? unwrap(this._state.errors)
+      : null;
   }
 
   /**
@@ -252,7 +255,7 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public isTouched(dotPath: string) {
-    return !!(this._state.touchedFields?.indexOf(dotPath) > -1);
+    return Boolean(this._state.touchedFields?.indexOf(dotPath) > -1);
   }
 
   /**
@@ -261,7 +264,7 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public isValidated(dotPath: string) {
-    return !!(this._state.validatedFields?.indexOf(dotPath) > -1);
+    return Boolean(this._state.validatedFields?.indexOf(dotPath) > -1);
   }
 
   /**
@@ -270,7 +273,7 @@ export class FormState<SchemaType> {
    * @returns boolean
    */
   public isValidating(dotPath: string) {
-    return !!(this._state.validatingFields?.indexOf(dotPath) > -1);
+    return Boolean(this._state.validatingFields?.indexOf(dotPath) > -1);
   }
 
   /**
@@ -299,18 +302,23 @@ export class FormState<SchemaType> {
   }
 
   /**
-   * Checks if there are errors on or below a given (partial) dotpath
+   * Checks if there are any errors.
+   * - With dotpath: on or below the given dotpath
    * @param dotPath string
    * @returns boolean
    */
-  public hasErrors(dotPath: string) {
-    const parts = fromDotPath(dotPath);
+  public hasErrors(dotPath?: string) {
+    if (dotPath) {
+      const parts = fromDotPath(dotPath);
 
-    return this._state.errors?.some(({ path }) => {
-      if (path!.length < parts.length) return false; // Ensure path is at least as deep as dotPath
+      return this._state.errors?.some(({ path }) => {
+        if (path!.length < parts.length) return false; // Ensure path is at least as deep as dotPath
 
-      return parts.every((part, index) => path![index] === part);
-    });
+        return parts.every((part, index) => path![index] === part);
+      });
+    }
+    // No dotPath passed
+    return Boolean(this._state.errors.length);
   }
 
   /**
@@ -318,7 +326,7 @@ export class FormState<SchemaType> {
    * @param dotPath string dotPath to error.message
    * @returns undefined | string
    */
-  public getFieldError(dotPath: string) {
+  public getErrorMessage(dotPath: string) {
     //@ts-expect-error
     return this._state.errors?.find(({ path }) => toDotPath(path) === dotPath)
       ?.message;

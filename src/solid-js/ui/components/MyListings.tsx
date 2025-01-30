@@ -1,18 +1,17 @@
-import {
-  Component,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Show,
-} from 'solid-js';
+import { Component, createSignal, For, Show, Suspense } from 'solid-js';
 
-import { useService } from '~/solid-js/ui/providers/ServiceProvider';
-import { ListingForm } from '../components/ListingForm';
 import { addCss, Theme } from '~/shared/ui/theme';
-import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
-import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
+import { MAX_LISTINGS } from '~/shared/constants';
+
 import { CRUD_MODES } from '~/solid-js/lib/enums';
+import { useService } from '~/solid-js/ui/providers/ServiceProvider';
+
+import { Loading } from './Loading';
+import { ListingForm } from '../components/ListingForm';
+import { ListingPayload } from '~/solid-js/application/ListingPayload';
+import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
+import { Listing } from '~/shared/models/listing/Listing';
+import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
 
 const css = addCss({
   listings: (theme: Theme) => ({
@@ -24,44 +23,52 @@ const css = addCss({
 });
 
 export const MyListings: Component<{}> = (props) => {
-  const { account } = useService();
+  const { listings } = useService();
 
   const [isDirty, setIsDirty] = createSignal(false);
-  const [activeListing, _setActiveListing] = createSignal<{
-    mode: CRUD_MODES;
-    listing: Listing;
-  } | null>(null);
+  const [activeListing, _setActiveListing] =
+    createSignal<ListingPayload | null>(null);
 
-  const listings = createMemo(() => account()?.resources.listings());
+  const myListings = () => listings()?.resources.myListings();
+  const saving = () => listings()?.resources.saveListing();
 
-  const createNewListing = () => {
-    const dto = CreateListingDto.from({
-      owner: account()?.resources.user()!.id,
-    });
-    const listing = new Listing(dto.data);
-    return listing;
-  };
-
-  const setActiveListing = (listing: Listing | null, mode?: CRUD_MODES) => {
-    _setActiveListing(listing ? { listing, mode: mode! } : null);
+  function clearActiveListing() {
+    _setActiveListing(null);
     setIsDirty(false);
-    console.log('setActiveListing', listing?.state().title, listing);
-  };
+  }
 
-  const handleSubmit = (data: ListingSchemaType) => {
-    console.log(data);
-  };
+  function setActiveListing(mode: CRUD_MODES, listing?: Listing) {
+    const payload = { mode } as Partial<ListingPayload>;
+    if (CRUD_MODES.CREATE === mode) {
+      payload.data = CreateListingDto.from({}).data;
+    } else if (CRUD_MODES.UPDATE === mode) {
+      const data = listing!.state();
+      payload.data = UpdateListingDto.from(data).data;
+    }
+    console.log({ payload });
+    _setActiveListing(payload as ListingPayload);
+    setIsDirty(false);
+  }
+
+  function handleSubmit(listingPayload: ListingPayload) {
+    const mode = activeListing()!.mode;
+    listings()!.saveListing(listingPayload);
+    setIsDirty(false);
+  }
 
   return (
     <section>
-      <h2>Mine oppføringer</h2>
+      <h2>
+        Mine oppføringer ({myListings()?.length || 0} / {MAX_LISTINGS})
+      </h2>
+
       <div class={css.listings}>
-        <For each={listings()}>
+        <For each={myListings()}>
           {(listing, idx) => (
             <sl-button
               prop:name="pencil"
               prop:disabled={isDirty()}
-              on:click={() => setActiveListing(listing, CRUD_MODES.UPDATE)}
+              on:click={() => setActiveListing(CRUD_MODES.UPDATE, listing)}
             >
               <sl-icon slot="prefix" prop:name="pencil"></sl-icon>
               {listing.state().title}
@@ -72,9 +79,7 @@ export const MyListings: Component<{}> = (props) => {
         <sl-button
           prop:name="pencil"
           prop:disabled={isDirty()}
-          on:click={() =>
-            setActiveListing(createNewListing(), CRUD_MODES.CREATE)
-          }
+          on:click={() => setActiveListing(CRUD_MODES.CREATE)}
         >
           <sl-icon slot="prefix" prop:name="plus-circle"></sl-icon>
           Ny
@@ -82,13 +87,19 @@ export const MyListings: Component<{}> = (props) => {
       </div>
 
       <Show when={activeListing()}>
-        <ListingForm
-          model={activeListing()!.listing}
-          mode={activeListing()!.mode}
-          setIsDirty={setIsDirty}
-          onSubmit={handleSubmit}
-          onCancel={() => setActiveListing(null)}
-        />
+        <Suspense fallback={<Loading>Form</Loading>}>
+          <ListingForm
+            listingPayload={activeListing()!}
+            setIsDirty={setIsDirty}
+            onSubmit={handleSubmit}
+            onCancel={() => clearActiveListing()}
+          />
+
+          <sl-alert prop:variant="success" prop:open={Boolean(saving())}>
+            <sl-icon slot="icon" prop:name="check2-circle"></sl-icon>
+            <strong>Your changes have been saved</strong>
+          </sl-alert>
+        </Suspense>
       </Show>
     </section>
   );

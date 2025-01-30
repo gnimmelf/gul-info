@@ -9,7 +9,6 @@ export const mergeWithDefaults = (schema: ZodSchema, data: any) => {
     ...defaults,
     ...data,
   };
-  console.log(mergedData);
   return mergedData;
 };
 

@@ -16,8 +16,10 @@ export const CreateListingDtoSchema = UpdateListingDtoSchema.extend({
   // Sub-schemas
   links: UpdateListingDtoSchema.shape.links,
 })
-  .omit({ id: true })
-  .partial();
+  .omit({
+    id: true,
+    owner: true
+  })
 
 export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;
 
@@ -30,6 +32,7 @@ export class CreateListingDto {
 
   constructor(data: CreateListingDtoSchemaType) {
     this.data = data;
+    Object.freeze(this.data)
   }
 
   static from(data: Partial<CreateListingDtoSchemaType>): CreateListingDto {

@@ -1,17 +1,19 @@
-import { Setter, Component, createEffect, For, Show } from 'solid-js';
+import { Setter, Component, createEffect, For } from 'solid-js';
+import { unwrap } from 'solid-js/store';
 
 import { deepCopy, toDotPath } from '~/shared/lib/utils';
+import { MAX_LINKS } from '~/shared/constants';
+
+import { ListingSchemaType } from '~/shared/models/listing/Listing';
+import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
+import { UpdateListingDtoSchema } from '~/shared/models/listing/UpdateListingDto';
 
 import { CRUD_MODES } from '~/solid-js/lib/enums';
-import { FormState } from '~/shared/ui/FormState';
-
-import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
-import { Listing, ListingSchemaType } from '~/shared/models/listing/Listing';
+import { FormState } from '~/solid-js/lib/FormState';
 
 import { join, addCss, Theme } from '~/shared/ui/theme';
-import { UpdateListingDtoSchema } from '~/shared/models/listing/UpdateListingDto';
 import { FormField } from './FormField';
-import { MAX_LINKS } from '~/shared/constants';
+import { ListingPayload } from '~/solid-js/application/ListingPayload';
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -53,10 +55,9 @@ const SCHEMAS = {
  * Component
  */
 export const ListingForm: Component<{
-  model: Listing;
-  mode: CRUD_MODES;
+  listingPayload: ListingPayload;
   setIsDirty: Setter<boolean>;
-  onSubmit: (data: ListingSchemaType) => void;
+  onSubmit: (listingPayload: ListingPayload) => void;
   onCancel: () => void;
 }> = (props) => {
   const defaultFormElementSize = 'small';
@@ -68,8 +69,10 @@ export const ListingForm: Component<{
 
   createEffect(() => {
     // (Re)Initialize formState when model changes
-    //@ts-expect-error
-    formState.initialize(props.model.state(), SCHEMAS[props.mode]);
+    formState.initialize({
+      initialValues: props.listingPayload.data,
+      schema: SCHEMAS[props.listingPayload.mode as CRUD_MODES.CREATE | CRUD_MODES.UPDATE],
+    });
   });
 
   createEffect(() => {
@@ -77,25 +80,29 @@ export const ListingForm: Component<{
     props.setIsDirty(formState.isDirty());
   });
 
-  const updateLink = (linkIdx: number, value: string) => {
+  function updateLink(linkIdx: number, value: string) {
     setValue(toDotPath('links', linkIdx, 'href'), value);
-  };
+  }
 
-  const addLink = () => {
+  function addLink() {
     setValue(toDotPath('links', values.links.length), { href: '' });
-  };
+  }
 
-  const removeLink = (linkIdx: number) => {
+  function removeLink(linkIdx: number) {
     setValue('links', (links) => links.filter((_, i) => i !== linkIdx));
-  };
+  }
 
-  const handleSubmit = () => {
+  function handleSubmit() {
     formState.validateAll();
-    if (!formState.errors) {
-      const data = deepCopy(values);
-      props.onSubmit(data);
+    if (formState.hasErrors()) {
+      console.log('errors', unwrap(formState.errors));
+      return;
     }
-  };
+    props.onSubmit({
+      ...props.listingPayload,
+      data: deepCopy(values),
+    });
+  }
 
   return (
     <>
@@ -233,8 +240,8 @@ export const ListingForm: Component<{
           </fieldset>
 
           <fieldset>
-            <legend class={formState.hasErrors('links') ? 'error' : ''}>
-              Lenker
+            <legend>
+              Lenker ({values.links?.length} av {MAX_LINKS})
             </legend>
             <For each={values.links}>
               {(link, idx) => (

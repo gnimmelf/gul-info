@@ -24,15 +24,16 @@ export type UpdateListingDtoSchemaType = z.infer<typeof UpdateListingDtoSchema>;
 export interface Listing extends UpdateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(UpdateListingDtoSchema)
-export class Listing {
-  private data: UpdateListingDtoSchemaType;
+export class UpdateListingDto {
+  public data: UpdateListingDtoSchemaType;
 
   constructor(data: UpdateListingDtoSchemaType) {
     this.data = data;
+    Object.freeze(this.data)
   }
 
-  static from(data: Partial<UpdateListingDtoSchemaType>): Listing {
+  static from(data: Partial<UpdateListingDtoSchemaType>): UpdateListingDto {
     const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
-    return new Listing(parsedData);
+    return new UpdateListingDto(parsedData);
   }
 }

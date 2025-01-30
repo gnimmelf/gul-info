@@ -24,7 +24,7 @@ export const PageAccount: Component<{}> = (props) => {
   return (
     <section>
       <Show when={!isLoggedIn()}>
-        <sl-alert prop:variant="warning" prop:open={!!mustVerifyEmail()}>
+        <sl-alert prop:variant="warning" prop:open={Boolean(mustVerifyEmail())}>
           <sl-icon slot="icon" prop:name="exclamation-triangle"></sl-icon>
           <strong>
             Vi har sendt en verifiserings-e-post til {mustVerifyEmail()}.

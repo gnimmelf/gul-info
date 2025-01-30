@@ -1,4 +1,11 @@
-import { Component, createSignal, For, Suspense } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Suspense,
+} from 'solid-js';
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 
@@ -55,16 +62,22 @@ const css = addCss({
  * Component
  */
 export const PageListings: Component = () => {
-  const { directory } = useService();
+  const { directory, listings } = useService();
 
   const [hitCount, setHitCount] = createSignal(0);
 
-  const filters = () => directory()?.filters();
-  const listings = () => {
-    const res = directory()?.resources.listings();
-    setHitCount(res?.length || 0);
-    return res;
-  };
+  const filters = createMemo(() => directory()?.filters());
+  const filteredListings = createMemo(() => listings()?.resources.filteredListings());
+
+  createEffect(() => setHitCount(filteredListings()?.length || 0));
+
+  createEffect(() => {
+    const filterState = filters()?.state()
+    if (filterState) {
+      console.log({filterState}, listings())
+      listings()?.filterListings(filterState)
+    }
+})
 
   return (
     <section>
@@ -73,7 +86,7 @@ export const PageListings: Component = () => {
       </ListingsFilters>
 
       <Suspense fallback={<Loading>Listings</Loading>}>
-        <For each={listings()}>
+        <For each={filteredListings()}>
           {(listing) => (
             <sl-card class={css.card}>
               <div slot="header" class={css.cardHeader}>

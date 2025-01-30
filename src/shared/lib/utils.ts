@@ -1,8 +1,6 @@
-import stringifyObj from 'fast-json-stable-stringify';
-
 export { default as deepEqual } from 'fast-deep-equal/es6';
 
-export const timeout = async (ms = 0, fn?: () => void) => {
+export const timeout = async (ms = 200, fn?: () => void) => {
   return new Promise((resolve) =>
     setTimeout(() => resolve(fn ? fn() : undefined), ms),
   );

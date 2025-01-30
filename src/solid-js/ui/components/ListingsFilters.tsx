@@ -1,7 +1,7 @@
 import { Component, createEffect, JSXElement } from 'solid-js';
 
 import { BadgeButton } from './BadgeButton';
-import { TagsMatchType } from '~/domains/ui/directory/Filters';
+import { TagsMatchType } from '~/shared/models/Filters';
 import { useService } from '../providers/ServiceProvider';
 import { addCss, Theme } from '~/shared/ui/theme';
 
@@ -22,12 +22,12 @@ const css = addCss({
 export const ListingsFilters: Component<{
   children?: JSXElement;
 }> = (props) => {
-  const { directory } = useService();
+  const { directory, listings } = useService();
 
   const filters = () => directory()?.filters();
   const tags = () => directory()?.resources.tags();
   const indexLetters = () => directory()?.resources.indexLetters();
-  const isLoading = () => directory()?.resources.listings.loading;
+  const isLoading = () => listings()?.resources.filteredListings.loading;
 
   const isTagMatchTypeAll = () =>
     filters()?.state().tagsMatchType === TagsMatchType.ALL;
@@ -37,8 +37,6 @@ export const ListingsFilters: Component<{
     filters()?.setTagsMatchType(next);
   };
 
-  createEffect(() => console.log(filters()));
-
   return (
     <section class={css.section}>
       <div class={css.filter}>
@@ -46,7 +44,7 @@ export const ListingsFilters: Component<{
           <BadgeButton
             buttonLabel={letter}
             badgeLabel={count}
-            isActive={!!filters()?.isActiveIndexLetter(letter)}
+            isActive={Boolean(filters()?.isActiveIndexLetter(letter))}
             disabled={isLoading()}
             onClick={() => filters()?.setIndexLetter(letter)}
           />
@@ -70,7 +68,7 @@ export const ListingsFilters: Component<{
         {tags()?.map((tag) => (
           <BadgeButton
             size="small"
-            isActive={!!filters()?.hasTag(tag.key)}
+            isActive={Boolean(filters()?.hasTag(tag.key))}
             buttonLabel={tag.name}
             badgeLabel={tag.usageCount}
             disabled={isLoading()}

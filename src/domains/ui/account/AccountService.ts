@@ -1,9 +1,6 @@
 import { timeout } from '~/shared/lib/utils';
-import { IDatabase } from '../../infrastructure/database/IDatabase';
-import { Listing } from '../../../shared/models/listing/Listing';
-import { UserViewModel } from '../../../shared/models/UserViewModel';
-import { CreateListingDtoSchemaType } from '../../../shared/models/listing/CreateListingDto';
-import { UpdateListingDtoSchemaType } from '../../../shared/models/listing/UpdateListingDto';
+import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
+import { UserViewModel } from '~/shared/models/UserViewModel';
 
 /**
  * Class
@@ -22,17 +19,4 @@ export class AccountService {
     const model = UserViewModel.from(data);
     return model;
   }
-
-  public async loadListingsByEmail(email: string) {
-    await timeout();
-    const data = await this.db.getListingsByEmail(email);
-    const res = data
-      .sort((a, b) => (a.title < b.title ? -1 : 1))
-      .map((data) => Listing.from(data));
-    return res;
-  }
-
-  public async createListing(listing: CreateListingDtoSchemaType) {}
-
-  public async updateListing(listing: UpdateListingDtoSchemaType) {}
 }

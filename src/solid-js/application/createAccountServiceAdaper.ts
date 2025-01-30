@@ -4,8 +4,6 @@ import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
-import { Listing } from '~/shared/models/listing/Listing';
-import { withReactiveState } from './withReactiveState';
 
 export const createAccountServiceAdaper = (
   db: IDatabase,
@@ -47,22 +45,13 @@ export const createAccountServiceAdaper = (
     },
   );
 
-  const [listings] = createResource(
-    () => user(),
-    async ({ email }) => {
-      const listings = await account.loadListingsByEmail(email);
-      return listings.map((listing: Listing) => withReactiveState(listing));
-    },
-  );
-
   const adapter = checkAdapterReturnType({
     resources: {
       user,
-      listings,
     },
     mustVerifyEmail,
     login: auth.login.bind(auth),
-    logout: auth.logout.bind(auth),
+    logout: auth.logout.bind(auth)
   });
 
   return adapter;

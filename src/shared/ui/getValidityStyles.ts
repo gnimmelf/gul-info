@@ -1,11 +1,11 @@
 import { Theme } from './theme';
 
 export const getValidityStyles = (theme: Theme) => ({
-  'sl-input, sl-select, sl-checkbox': {
-    display: 'block',
-    marginBottom: 'var(--sl-spacing-medium)',
+  // form fieldset
+  'form > fieldset.form-fieldset': {
+    border: 'none',
+    width: '100%'
   },
-
   // User invalid styles
   'sl-input.user-error::part(base), sl-select.user-error::part(combobox), sl-checkbox.user-error::part(control)':
     {

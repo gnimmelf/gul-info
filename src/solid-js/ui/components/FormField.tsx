@@ -1,5 +1,5 @@
 import { JSX, Show } from 'solid-js';
-import { FormState } from '~/shared/ui/FormState';
+import { FormState } from '~/solid-js/lib/FormState';
 
 export type FormFieldProps<T> = {
   key: keyof T | string;
@@ -19,7 +19,7 @@ export const FormField = <T,>(props: FormFieldProps<T>) => {
           props.formState.showFieldError(props.key as string)
         }
       >
-        <div>{props.formState.getFieldError(props.key as string)}</div>
+        <div>{props.formState.getErrorMessage(props.key as string)}</div>
       </Show>
     </div>
   );

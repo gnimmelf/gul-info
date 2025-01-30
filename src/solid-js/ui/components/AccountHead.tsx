@@ -8,7 +8,7 @@ export const AccountHead: Component<{
 }> = (props) => {
   const { account } = useService();
 
-  const user = createMemo(() => account()?.resources.user());
+  const user = () => account()?.resources.user();
 
   return (
     <Suspense fallback={<Loading size="large"></Loading>}>
