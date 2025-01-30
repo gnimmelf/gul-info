@@ -60,7 +60,7 @@ const startEsbuild = async () => {
         bundle: true,
         sourcemap: true,
         metafile: PRODUCTION,
-        minify: true,
+        minify: PRODUCTION,
         outfile: `${DIST_DIR}/app.js`,
         // minify: true,
         plugins: [solidPlugin(), logPlugin()],
