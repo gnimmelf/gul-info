@@ -40,7 +40,6 @@ export const createAccountServiceAdaper = (
     async () => {
       const token = await auth.getAccessToken();
       const user = await account.getUser(token);
-      console.log({ user });
       return user;
     },
   );
@@ -51,7 +50,7 @@ export const createAccountServiceAdaper = (
     },
     mustVerifyEmail,
     login: auth.login.bind(auth),
-    logout: auth.logout.bind(auth)
+    logout: auth.logout.bind(auth),
   });
 
   return adapter;

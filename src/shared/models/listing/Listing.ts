@@ -9,6 +9,7 @@ export const LinkShema = z.object({
 export const ListingSchema = z.object({
   id: z.any(),
   owner: z.any(),
+  isActive: z.boolean(),
   title: z.string(),
   description: z.string(),
   address: z.string(),

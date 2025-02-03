@@ -5,6 +5,7 @@ import { ListingSchema, LinkShema } from './Listing';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const UpdateListingDtoSchema = ListingSchema.extend({
+  isActive: ListingSchema.shape.isActive,
   title: ListingSchema.shape.title.min(3).max(70),
   description: ListingSchema.shape.description.min(15).max(150),
   address: fields.address,
@@ -29,7 +30,7 @@ export class UpdateListingDto {
 
   constructor(data: UpdateListingDtoSchemaType) {
     this.data = data;
-    Object.freeze(this.data)
+    Object.freeze(this.data);
   }
 
   static from(data: Partial<UpdateListingDtoSchemaType>): UpdateListingDto {

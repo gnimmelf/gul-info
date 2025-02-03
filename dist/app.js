@@ -16304,10 +16304,19 @@
       }
       return res;
     }
+    async getUserData() {
+      const query = `SELECT * FROM ${"users" /* USER */};`;
+      const res = pop(await this.client.query(query), {
+        popCount: 2,
+        ensureArray: false
+      });
+      return idObjToString(res);
+    }
     async getIndexLetters() {
       const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
       const res = pop(
-        await this.client.query(query)
+        await this.client.query(query),
+        { popCount: 1 }
       );
       return res;
     }
@@ -16321,14 +16330,10 @@
       FROM tags;
     `;
       console.log({ query });
-      const res = pop(await this.client.query(query));
+      const res = pop(await this.client.query(query), {
+        popCount: 1
+      });
       return res.map(idObjToString);
-    }
-    async getUserData() {
-      const query = `SELECT * FROM ${"users" /* USER */};`;
-      console.log({ query });
-      const res = pop(await this.client.query(query), 2);
-      return idObjToString(res);
     }
     async getListingsByFilters(filters) {
       let whereClause = "";
@@ -16359,29 +16364,38 @@
     async getListingsByEmail(email2) {
       const query = `SELECT * FROM ${"listings" /* LISTINGS */} WHERE owner.email = '${email2}';`;
       console.log({ query });
-      const res = pop(await this.client.query(query), 2);
+      const res = pop(await this.client.query(query));
+      console.log({ res });
       return res.map(idObjToString);
     }
     async createListing(data) {
       const query = `;`;
       console.log({ query });
-      const res = pop(await this.client.query(query), 2);
+      const res = pop(await this.client.query(query));
       return res.map(idObjToString);
     }
     async updateListing(data) {
       const query = `;`;
       console.log({ query });
-      const res = pop(await this.client.query(query), 2);
+      const res = pop(await this.client.query(query));
       return res.map(idObjToString);
     }
   };
-  var pop = (data, count = 1) => {
+  var pop = (data, options) => {
+    let popCount = options?.popCount || 2;
+    const ensureArray = options?.ensureArray === void 0 ? true : options?.ensureArray;
     let res = data;
-    while (count > 0 && Array.isArray(res) && res.length === 1) {
+    while (popCount > 0 && Array.isArray(res) && res.length === 1) {
       res = res[0];
-      count--;
+      popCount--;
     }
-    return res;
+    console.log(
+      res,
+      ensureArray,
+      !Array.isArray(res),
+      ensureArray && !Array.isArray(res)
+    );
+    return ensureArray && !Array.isArray(res) ? [res] : res;
   };
   var idObjToString = (obj) => {
     return obj.id !== void 0 ? { ...obj, id: `${obj.id.tb}:${obj.id.id}` } : obj;
@@ -17701,7 +17715,6 @@
       async () => {
         const token = await auth.getAccessToken();
         const user2 = await account.getUser(token);
-        console.log({ user: user2 });
         return user2;
       }
     );
@@ -17723,6 +17736,7 @@
   var ListingSchema = z.object({
     id: z.any(),
     owner: z.any(),
+    isActive: z.boolean(),
     title: z.string(),
     description: z.string(),
     address: z.string(),
@@ -17806,7 +17820,9 @@
   // src/solid-js/application/createListingsServiceAdaper.ts
   var createListingsServiceAdaper = (db, user) => {
     const service = new ListingsService(db);
-    const [onSaveListing, setSaveListing] = createSignal(null);
+    const [onSaveListing, setSaveListing] = createSignal(
+      null
+    );
     const [onFilterListings, setFilterListings] = createSignal(null);
     const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
       onFilterListings,
@@ -18777,6 +18793,7 @@
 
   // src/shared/models/listing/UpdateListingDto.ts
   var UpdateListingDtoSchema = ListingSchema.extend({
+    isActive: ListingSchema.shape.isActive,
     title: ListingSchema.shape.title.min(3).max(70),
     description: ListingSchema.shape.description.min(15).max(150),
     address,
@@ -18806,6 +18823,7 @@
 
   // src/shared/models/listing/CreateListingDto.ts
   var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
+    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
     title: UpdateListingDtoSchema.shape.title.default(""),
     description: UpdateListingDtoSchema.shape.description.default(""),
     address: UpdateListingDtoSchema.shape.address.default(""),
@@ -19006,7 +19024,10 @@
       [this._values, this._setValues] = createStore({});
       [this._state, this._setState] = createStore({});
     }
-    initialize({ initialValues, schema }) {
+    initialize({
+      initialValues,
+      schema
+    }) {
       this._schema = schema;
       this._initialValues = deepCopy(initialValues);
       this._setValues(reconcile(deepCopy(initialValues)));
@@ -19274,8 +19295,8 @@
 
   // src/solid-js/ui/components/ListingForm.tsx
   var _tmpl$12 = /* @__PURE__ */ template(`<sl-card><form><fieldset><legend>Knagger</legend></fieldset><fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny</sl-button></fieldset><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
-  var _tmpl$25 = /* @__PURE__ */ template(`<sl-input>`, true, false);
-  var _tmpl$34 = /* @__PURE__ */ template(`<sl-input class=break-flow>`, true, false);
+  var _tmpl$25 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
+  var _tmpl$34 = /* @__PURE__ */ template(`<sl-input>`, true, false);
   var _tmpl$43 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
   var css7 = addCss({
     form: (theme2) => ({
@@ -19350,35 +19371,20 @@
       var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$7.nextSibling, _el$8 = _el$10.nextSibling, _el$11 = _el$5.nextSibling, _el$12 = _el$4.nextSibling, _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild, _el$15 = _el$14.nextSibling;
       _el$._$owner = getOwner();
       insert(_el$2, createComponent(FormField, {
-        key: "title",
+        key: "isActive",
         formState,
+        "class": "break-flow",
         children: (key) => (() => {
           var _el$16 = _tmpl$25();
-          addEventListener(_el$16, "blur", () => formState.validateField(key));
-          addEventListener(_el$16, "input", ({
-            target
-          }) => setValue(key, target.value));
-          _el$16.label = "Virksomhetens navn";
+          addEventListener(_el$16, "input", () => setValue(key, !values[key]));
           _el$16.size = "small";
-          _el$16.name = key;
-          _el$16.required = true;
           _el$16._$owner = getOwner();
-          createRenderEffect((_p$) => {
-            var _v$4 = !!formState.hasErrors(key), _v$5 = !!formState.isValid(key), _v$6 = values[key];
-            _v$4 !== _p$.e && _el$16.classList.toggle("user-error", _p$.e = _v$4);
-            _v$5 !== _p$.t && _el$16.classList.toggle("user-valid", _p$.t = _v$5);
-            _v$6 !== _p$.a && (_el$16.value = _p$.a = _v$6);
-            return _p$;
-          }, {
-            e: void 0,
-            t: void 0,
-            a: void 0
-          });
+          createRenderEffect(() => _el$16.checked = values[key]);
           return _el$16;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "description",
+        key: "title",
         formState,
         children: (key) => (() => {
           var _el$17 = _tmpl$34();
@@ -19386,16 +19392,16 @@
           addEventListener(_el$17, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$17.label = "Beskrivelse av tjeneste eller produkt";
+          _el$17.label = "Virksomhetens navn";
           _el$17.size = "small";
           _el$17.name = key;
           _el$17.required = true;
           _el$17._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$7 = !!formState.hasErrors(key), _v$8 = !!formState.isValid(key), _v$9 = values[key];
-            _v$7 !== _p$.e && _el$17.classList.toggle("user-error", _p$.e = _v$7);
-            _v$8 !== _p$.t && _el$17.classList.toggle("user-valid", _p$.t = _v$8);
-            _v$9 !== _p$.a && (_el$17.value = _p$.a = _v$9);
+            var _v$4 = !!formState.hasErrors(key), _v$5 = !!formState.isValid(key), _v$6 = values[key];
+            _v$4 !== _p$.e && _el$17.classList.toggle("user-error", _p$.e = _v$4);
+            _v$5 !== _p$.t && _el$17.classList.toggle("user-valid", _p$.t = _v$5);
+            _v$6 !== _p$.a && (_el$17.value = _p$.a = _v$6);
             return _p$;
           }, {
             e: void 0,
@@ -19406,24 +19412,25 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "address",
+        key: "description",
         formState,
+        "class": "break-flow",
         children: (key) => (() => {
-          var _el$18 = _tmpl$25();
+          var _el$18 = _tmpl$34();
           addEventListener(_el$18, "blur", () => formState.validateField(key));
           addEventListener(_el$18, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$18.label = "Gateadresse";
+          _el$18.label = "Beskrivelse av tjeneste eller produkt";
           _el$18.size = "small";
           _el$18.name = key;
           _el$18.required = true;
           _el$18._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$10 = !!formState.hasErrors(key), _v$11 = !!formState.isValid(key), _v$12 = values[key];
-            _v$10 !== _p$.e && _el$18.classList.toggle("user-error", _p$.e = _v$10);
-            _v$11 !== _p$.t && _el$18.classList.toggle("user-valid", _p$.t = _v$11);
-            _v$12 !== _p$.a && (_el$18.value = _p$.a = _v$12);
+            var _v$7 = !!formState.hasErrors(key), _v$8 = !!formState.isValid(key), _v$9 = values[key];
+            _v$7 !== _p$.e && _el$18.classList.toggle("user-error", _p$.e = _v$7);
+            _v$8 !== _p$.t && _el$18.classList.toggle("user-valid", _p$.t = _v$8);
+            _v$9 !== _p$.a && (_el$18.value = _p$.a = _v$9);
             return _p$;
           }, {
             e: void 0,
@@ -19434,24 +19441,24 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "zip",
+        key: "address",
         formState,
         children: (key) => (() => {
-          var _el$19 = _tmpl$25();
+          var _el$19 = _tmpl$34();
           addEventListener(_el$19, "blur", () => formState.validateField(key));
           addEventListener(_el$19, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$19.label = "Postnummer";
+          _el$19.label = "Gateadresse";
           _el$19.size = "small";
           _el$19.name = key;
           _el$19.required = true;
           _el$19._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$13 = !!formState.hasErrors(key), _v$14 = !!formState.isValid(key), _v$15 = values[key];
-            _v$13 !== _p$.e && _el$19.classList.toggle("user-error", _p$.e = _v$13);
-            _v$14 !== _p$.t && _el$19.classList.toggle("user-valid", _p$.t = _v$14);
-            _v$15 !== _p$.a && (_el$19.value = _p$.a = _v$15);
+            var _v$10 = !!formState.hasErrors(key), _v$11 = !!formState.isValid(key), _v$12 = values[key];
+            _v$10 !== _p$.e && _el$19.classList.toggle("user-error", _p$.e = _v$10);
+            _v$11 !== _p$.t && _el$19.classList.toggle("user-valid", _p$.t = _v$11);
+            _v$12 !== _p$.a && (_el$19.value = _p$.a = _v$12);
             return _p$;
           }, {
             e: void 0,
@@ -19462,24 +19469,24 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "phone",
+        key: "zip",
         formState,
         children: (key) => (() => {
-          var _el$20 = _tmpl$25();
+          var _el$20 = _tmpl$34();
           addEventListener(_el$20, "blur", () => formState.validateField(key));
           addEventListener(_el$20, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$20.label = "Telefonnummer";
+          _el$20.label = "Postnummer";
           _el$20.size = "small";
           _el$20.name = key;
           _el$20.required = true;
           _el$20._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$16 = !!formState.hasErrors(key), _v$17 = !!formState.isValid(key), _v$18 = values[key];
-            _v$16 !== _p$.e && _el$20.classList.toggle("user-error", _p$.e = _v$16);
-            _v$17 !== _p$.t && _el$20.classList.toggle("user-valid", _p$.t = _v$17);
-            _v$18 !== _p$.a && (_el$20.value = _p$.a = _v$18);
+            var _v$13 = !!formState.hasErrors(key), _v$14 = !!formState.isValid(key), _v$15 = values[key];
+            _v$13 !== _p$.e && _el$20.classList.toggle("user-error", _p$.e = _v$13);
+            _v$14 !== _p$.t && _el$20.classList.toggle("user-valid", _p$.t = _v$14);
+            _v$15 !== _p$.a && (_el$20.value = _p$.a = _v$15);
             return _p$;
           }, {
             e: void 0,
@@ -19490,24 +19497,24 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "email",
+        key: "phone",
         formState,
         children: (key) => (() => {
-          var _el$21 = _tmpl$25();
+          var _el$21 = _tmpl$34();
           addEventListener(_el$21, "blur", () => formState.validateField(key));
           addEventListener(_el$21, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$21.label = "Epostadresse";
+          _el$21.label = "Telefonnummer";
           _el$21.size = "small";
           _el$21.name = key;
           _el$21.required = true;
           _el$21._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$19 = !!formState.hasErrors(key), _v$20 = !!formState.isValid(key), _v$21 = values[key];
-            _v$19 !== _p$.e && _el$21.classList.toggle("user-error", _p$.e = _v$19);
-            _v$20 !== _p$.t && _el$21.classList.toggle("user-valid", _p$.t = _v$20);
-            _v$21 !== _p$.a && (_el$21.value = _p$.a = _v$21);
+            var _v$16 = !!formState.hasErrors(key), _v$17 = !!formState.isValid(key), _v$18 = values[key];
+            _v$16 !== _p$.e && _el$21.classList.toggle("user-error", _p$.e = _v$16);
+            _v$17 !== _p$.t && _el$21.classList.toggle("user-valid", _p$.t = _v$17);
+            _v$18 !== _p$.a && (_el$21.value = _p$.a = _v$18);
             return _p$;
           }, {
             e: void 0,
@@ -19515,6 +19522,34 @@
             a: void 0
           });
           return _el$21;
+        })()
+      }), _el$3);
+      insert(_el$2, createComponent(FormField, {
+        key: "email",
+        formState,
+        children: (key) => (() => {
+          var _el$22 = _tmpl$34();
+          addEventListener(_el$22, "blur", () => formState.validateField(key));
+          addEventListener(_el$22, "input", ({
+            target
+          }) => setValue(key, target.value));
+          _el$22.label = "Epostadresse";
+          _el$22.size = "small";
+          _el$22.name = key;
+          _el$22.required = true;
+          _el$22._$owner = getOwner();
+          createRenderEffect((_p$) => {
+            var _v$19 = !!formState.hasErrors(key), _v$20 = !!formState.isValid(key), _v$21 = values[key];
+            _v$19 !== _p$.e && _el$22.classList.toggle("user-error", _p$.e = _v$19);
+            _v$20 !== _p$.t && _el$22.classList.toggle("user-valid", _p$.t = _v$20);
+            _v$21 !== _p$.a && (_el$22.value = _p$.a = _v$21);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0,
+            a: void 0
+          });
+          return _el$22;
         })()
       }), _el$3);
       insert(_el$5, () => values.links?.length, _el$9);
@@ -19530,24 +19565,24 @@
           formState,
           hideError: true,
           children: (key) => (() => {
-            var _el$22 = _tmpl$43(), _el$23 = _el$22.firstChild, _el$24 = _el$23.nextSibling;
-            addEventListener(_el$23, "blur", () => formState.validateField(key));
-            addEventListener(_el$23, "input", (e13) => updateLink(idx(), e13.target.value));
-            _el$23.size = "small";
-            _el$23.name = key;
-            _el$23.type = "url";
-            _el$23.required = true;
-            _el$23._$owner = getOwner();
-            addEventListener(_el$24, "click", () => removeLink(idx()));
-            _el$24.name = "trash";
+            var _el$23 = _tmpl$43(), _el$24 = _el$23.firstChild, _el$25 = _el$24.nextSibling;
+            addEventListener(_el$24, "blur", () => formState.validateField(key));
+            addEventListener(_el$24, "input", (e13) => updateLink(idx(), e13.target.value));
+            _el$24.size = "small";
+            _el$24.name = key;
+            _el$24.type = "url";
+            _el$24.required = true;
             _el$24._$owner = getOwner();
+            addEventListener(_el$25, "click", () => removeLink(idx()));
+            _el$25.name = "trash";
+            _el$25._$owner = getOwner();
             createRenderEffect((_p$) => {
               var _v$22 = css7.itemRow, _v$23 = !!formState.hasErrors(key), _v$24 = !!formState.isValid(key), _v$25 = `Lenke ${idx() + 1}`, _v$26 = link.href;
-              _v$22 !== _p$.e && className(_el$22, _p$.e = _v$22);
-              _v$23 !== _p$.t && _el$23.classList.toggle("user-error", _p$.t = _v$23);
-              _v$24 !== _p$.a && _el$23.classList.toggle("user-valid", _p$.a = _v$24);
-              _v$25 !== _p$.o && (_el$23.label = _p$.o = _v$25);
-              _v$26 !== _p$.i && (_el$23.value = _p$.i = _v$26);
+              _v$22 !== _p$.e && className(_el$23, _p$.e = _v$22);
+              _v$23 !== _p$.t && _el$24.classList.toggle("user-error", _p$.t = _v$23);
+              _v$24 !== _p$.a && _el$24.classList.toggle("user-valid", _p$.a = _v$24);
+              _v$25 !== _p$.o && (_el$24.label = _p$.o = _v$25);
+              _v$26 !== _p$.i && (_el$24.value = _p$.i = _v$26);
               return _p$;
             }, {
               e: void 0,
@@ -19556,7 +19591,7 @@
               o: void 0,
               i: void 0
             });
-            return _el$22;
+            return _el$23;
           })()
         })
       }), _el$11);
@@ -19625,9 +19660,6 @@
         const data = listing.state();
         payload.data = UpdateListingDto.from(data).data;
       }
-      console.log({
-        payload
-      });
       _setActiveListing(payload);
       setIsDirty(false);
     }
@@ -27628,6 +27660,350 @@
 
   // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.S2DUEYZU.js
   SlSwitch.define("sl-switch");
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.R3NF57O3.js
+  var checkbox_styles_default = i2`
+  :host {
+    display: inline-block;
+  }
+
+  .checkbox {
+    position: relative;
+    display: inline-flex;
+    align-items: flex-start;
+    font-family: var(--sl-input-font-family);
+    font-weight: var(--sl-input-font-weight);
+    color: var(--sl-input-label-color);
+    vertical-align: middle;
+    cursor: pointer;
+  }
+
+  .checkbox--small {
+    --toggle-size: var(--sl-toggle-size-small);
+    font-size: var(--sl-input-font-size-small);
+  }
+
+  .checkbox--medium {
+    --toggle-size: var(--sl-toggle-size-medium);
+    font-size: var(--sl-input-font-size-medium);
+  }
+
+  .checkbox--large {
+    --toggle-size: var(--sl-toggle-size-large);
+    font-size: var(--sl-input-font-size-large);
+  }
+
+  .checkbox__control {
+    flex: 0 0 auto;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--toggle-size);
+    height: var(--toggle-size);
+    border: solid var(--sl-input-border-width) var(--sl-input-border-color);
+    border-radius: 2px;
+    background-color: var(--sl-input-background-color);
+    color: var(--sl-color-neutral-0);
+    transition:
+      var(--sl-transition-fast) border-color,
+      var(--sl-transition-fast) background-color,
+      var(--sl-transition-fast) color,
+      var(--sl-transition-fast) box-shadow;
+  }
+
+  .checkbox__input {
+    position: absolute;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+    pointer-events: none;
+  }
+
+  .checkbox__checked-icon,
+  .checkbox__indeterminate-icon {
+    display: inline-flex;
+    width: var(--toggle-size);
+    height: var(--toggle-size);
+  }
+
+  /* Hover */
+  .checkbox:not(.checkbox--checked):not(.checkbox--disabled) .checkbox__control:hover {
+    border-color: var(--sl-input-border-color-hover);
+    background-color: var(--sl-input-background-color-hover);
+  }
+
+  /* Focus */
+  .checkbox:not(.checkbox--checked):not(.checkbox--disabled) .checkbox__input:focus-visible ~ .checkbox__control {
+    outline: var(--sl-focus-ring);
+    outline-offset: var(--sl-focus-ring-offset);
+  }
+
+  /* Checked/indeterminate */
+  .checkbox--checked .checkbox__control,
+  .checkbox--indeterminate .checkbox__control {
+    border-color: var(--sl-color-primary-600);
+    background-color: var(--sl-color-primary-600);
+  }
+
+  /* Checked/indeterminate + hover */
+  .checkbox.checkbox--checked:not(.checkbox--disabled) .checkbox__control:hover,
+  .checkbox.checkbox--indeterminate:not(.checkbox--disabled) .checkbox__control:hover {
+    border-color: var(--sl-color-primary-500);
+    background-color: var(--sl-color-primary-500);
+  }
+
+  /* Checked/indeterminate + focus */
+  .checkbox.checkbox--checked:not(.checkbox--disabled) .checkbox__input:focus-visible ~ .checkbox__control,
+  .checkbox.checkbox--indeterminate:not(.checkbox--disabled) .checkbox__input:focus-visible ~ .checkbox__control {
+    outline: var(--sl-focus-ring);
+    outline-offset: var(--sl-focus-ring-offset);
+  }
+
+  /* Disabled */
+  .checkbox--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .checkbox__label {
+    display: inline-block;
+    color: var(--sl-input-label-color);
+    line-height: var(--toggle-size);
+    margin-inline-start: 0.5em;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  :host([required]) .checkbox__label::after {
+    content: var(--sl-input-required-content);
+    color: var(--sl-input-required-content-color);
+    margin-inline-start: var(--sl-input-required-content-offset);
+  }
+`;
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.YZSPQB4P.js
+  var SlCheckbox = class extends ShoelaceElement {
+    constructor() {
+      super(...arguments);
+      this.formControlController = new FormControlController(this, {
+        value: (control) => control.checked ? control.value || "on" : void 0,
+        defaultValue: (control) => control.defaultChecked,
+        setValue: (control, checked) => control.checked = checked
+      });
+      this.hasSlotController = new HasSlotController(this, "help-text");
+      this.hasFocus = false;
+      this.title = "";
+      this.name = "";
+      this.size = "medium";
+      this.disabled = false;
+      this.checked = false;
+      this.indeterminate = false;
+      this.defaultChecked = false;
+      this.form = "";
+      this.required = false;
+      this.helpText = "";
+    }
+    /** Gets the validity state object */
+    get validity() {
+      return this.input.validity;
+    }
+    /** Gets the validation message */
+    get validationMessage() {
+      return this.input.validationMessage;
+    }
+    firstUpdated() {
+      this.formControlController.updateValidity();
+    }
+    handleClick() {
+      this.checked = !this.checked;
+      this.indeterminate = false;
+      this.emit("sl-change");
+    }
+    handleBlur() {
+      this.hasFocus = false;
+      this.emit("sl-blur");
+    }
+    handleInput() {
+      this.emit("sl-input");
+    }
+    handleInvalid(event) {
+      this.formControlController.setValidity(false);
+      this.formControlController.emitInvalidEvent(event);
+    }
+    handleFocus() {
+      this.hasFocus = true;
+      this.emit("sl-focus");
+    }
+    handleDisabledChange() {
+      this.formControlController.setValidity(this.disabled);
+    }
+    handleStateChange() {
+      this.input.checked = this.checked;
+      this.input.indeterminate = this.indeterminate;
+      this.formControlController.updateValidity();
+    }
+    /** Simulates a click on the checkbox. */
+    click() {
+      this.input.click();
+    }
+    /** Sets focus on the checkbox. */
+    focus(options) {
+      this.input.focus(options);
+    }
+    /** Removes focus from the checkbox. */
+    blur() {
+      this.input.blur();
+    }
+    /** Checks for validity but does not show a validation message. Returns `true` when valid and `false` when invalid. */
+    checkValidity() {
+      return this.input.checkValidity();
+    }
+    /** Gets the associated form, if one exists. */
+    getForm() {
+      return this.formControlController.getForm();
+    }
+    /** Checks for validity and shows the browser's validation message if the control is invalid. */
+    reportValidity() {
+      return this.input.reportValidity();
+    }
+    /**
+     * Sets a custom validation message. The value provided will be shown to the user when the form is submitted. To clear
+     * the custom validation message, call this method with an empty string.
+     */
+    setCustomValidity(message) {
+      this.input.setCustomValidity(message);
+      this.formControlController.updateValidity();
+    }
+    render() {
+      const hasHelpTextSlot = this.hasSlotController.test("help-text");
+      const hasHelpText = this.helpText ? true : !!hasHelpTextSlot;
+      return x2`
+      <div
+        class=${e9({
+        "form-control": true,
+        "form-control--small": this.size === "small",
+        "form-control--medium": this.size === "medium",
+        "form-control--large": this.size === "large",
+        "form-control--has-help-text": hasHelpText
+      })}
+      >
+        <label
+          part="base"
+          class=${e9({
+        checkbox: true,
+        "checkbox--checked": this.checked,
+        "checkbox--disabled": this.disabled,
+        "checkbox--focused": this.hasFocus,
+        "checkbox--indeterminate": this.indeterminate,
+        "checkbox--small": this.size === "small",
+        "checkbox--medium": this.size === "medium",
+        "checkbox--large": this.size === "large"
+      })}
+        >
+          <input
+            class="checkbox__input"
+            type="checkbox"
+            title=${this.title}
+            name=${this.name}
+            value=${o7(this.value)}
+            .indeterminate=${l5(this.indeterminate)}
+            .checked=${l5(this.checked)}
+            .disabled=${this.disabled}
+            .required=${this.required}
+            aria-checked=${this.checked ? "true" : "false"}
+            aria-describedby="help-text"
+            @click=${this.handleClick}
+            @input=${this.handleInput}
+            @invalid=${this.handleInvalid}
+            @blur=${this.handleBlur}
+            @focus=${this.handleFocus}
+          />
+
+          <span
+            part="control${this.checked ? " control--checked" : ""}${this.indeterminate ? " control--indeterminate" : ""}"
+            class="checkbox__control"
+          >
+            ${this.checked ? x2`
+                  <sl-icon part="checked-icon" class="checkbox__checked-icon" library="system" name="check"></sl-icon>
+                ` : ""}
+            ${!this.checked && this.indeterminate ? x2`
+                  <sl-icon
+                    part="indeterminate-icon"
+                    class="checkbox__indeterminate-icon"
+                    library="system"
+                    name="indeterminate"
+                  ></sl-icon>
+                ` : ""}
+          </span>
+
+          <div part="label" class="checkbox__label">
+            <slot></slot>
+          </div>
+        </label>
+
+        <div
+          aria-hidden=${hasHelpText ? "false" : "true"}
+          class="form-control__help-text"
+          id="help-text"
+          part="form-control-help-text"
+        >
+          <slot name="help-text">${this.helpText}</slot>
+        </div>
+      </div>
+    `;
+    }
+  };
+  SlCheckbox.styles = [component_styles_default, form_control_styles_default, checkbox_styles_default];
+  SlCheckbox.dependencies = { "sl-icon": SlIcon };
+  __decorateClass2([
+    e6('input[type="checkbox"]')
+  ], SlCheckbox.prototype, "input", 2);
+  __decorateClass2([
+    r7()
+  ], SlCheckbox.prototype, "hasFocus", 2);
+  __decorateClass2([
+    n5()
+  ], SlCheckbox.prototype, "title", 2);
+  __decorateClass2([
+    n5()
+  ], SlCheckbox.prototype, "name", 2);
+  __decorateClass2([
+    n5()
+  ], SlCheckbox.prototype, "value", 2);
+  __decorateClass2([
+    n5({ reflect: true })
+  ], SlCheckbox.prototype, "size", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlCheckbox.prototype, "disabled", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlCheckbox.prototype, "checked", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlCheckbox.prototype, "indeterminate", 2);
+  __decorateClass2([
+    defaultValue("checked")
+  ], SlCheckbox.prototype, "defaultChecked", 2);
+  __decorateClass2([
+    n5({ reflect: true })
+  ], SlCheckbox.prototype, "form", 2);
+  __decorateClass2([
+    n5({ type: Boolean, reflect: true })
+  ], SlCheckbox.prototype, "required", 2);
+  __decorateClass2([
+    n5({ attribute: "help-text" })
+  ], SlCheckbox.prototype, "helpText", 2);
+  __decorateClass2([
+    watch("disabled", { waitUntilFirstUpdate: true })
+  ], SlCheckbox.prototype, "handleDisabledChange", 1);
+  __decorateClass2([
+    watch(["checked", "indeterminate"], { waitUntilFirstUpdate: true })
+  ], SlCheckbox.prototype, "handleStateChange", 1);
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QCWFNQJD.js
+  SlCheckbox.define("sl-checkbox");
 
   // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KZJNDGFO.js
   var menu_item_styles_default = i2`

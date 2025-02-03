@@ -71,7 +71,10 @@ export const ListingForm: Component<{
     // (Re)Initialize formState when model changes
     formState.initialize({
       initialValues: props.listingPayload.data,
-      schema: SCHEMAS[props.listingPayload.mode as CRUD_MODES.CREATE | CRUD_MODES.UPDATE],
+      schema:
+        SCHEMAS[
+          props.listingPayload.mode as CRUD_MODES.CREATE | CRUD_MODES.UPDATE
+        ],
     });
   });
 
@@ -108,6 +111,18 @@ export const ListingForm: Component<{
     <>
       <sl-card>
         <form class={join(css.form, 'validity-styles')}>
+          <FormField key="isActive" formState={formState} class="break-flow">
+            {(key) => (
+              <sl-checkbox
+                prop:size="small"
+                prop:checked={values[key]}
+                on:input={() => setValue(key, !values[key])}
+              >
+                Aktiv
+              </sl-checkbox>
+            )}
+          </FormField>
+
           <FormField key="title" formState={formState}>
             {(key) => (
               <sl-input
@@ -129,10 +144,9 @@ export const ListingForm: Component<{
             )}
           </FormField>
 
-          <FormField key="description" formState={formState}>
+          <FormField key="description" formState={formState} class="break-flow">
             {(key) => (
               <sl-input
-                class="break-flow"
                 prop:label="Beskrivelse av tjeneste eller produkt"
                 /* Generic */
                 classList={{

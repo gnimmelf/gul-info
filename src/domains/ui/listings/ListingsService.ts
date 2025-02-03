@@ -1,4 +1,3 @@
-
 import { timeout } from '~/shared/lib/utils';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 
@@ -12,41 +11,39 @@ import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListin
  * Class
  */
 export class ListingsService {
-    private db: IDatabase;
+  private db: IDatabase;
 
-    constructor(db: IDatabase) {
-        this.db = db;
-    }
+  constructor(db: IDatabase) {
+    this.db = db;
+  }
 
-    public async loadListingsByFilters(filters: FilterSchemaType) {
-        await timeout();
-        const data = await this.db.getListingsByFilters(filters);
-        const res = data
-          .sort((a, b) => (a.title < b.title ? -1 : 1))
-          .map((data) => ListingViewModel.from(data));
-        return res;
-      }
+  public async loadListingsByFilters(filters: FilterSchemaType) {
+    await timeout();
+    const data = await this.db.getListingsByFilters(filters);
+    const res = data
+      .sort((a, b) => (a.title < b.title ? -1 : 1))
+      .map((data) => ListingViewModel.from(data));
+    return res;
+  }
 
+  public async loadListingsByEmail(email: string) {
+    await timeout();
+    const data = await this.db.getListingsByEmail(email);
+    const res = data
+      .sort((a, b) => (a.title < b.title ? -1 : 1))
+      .map((data) => Listing.from(data));
+    return res;
+  }
 
-    public async loadListingsByEmail(email: string) {
-        await timeout();
-        const data = await this.db.getListingsByEmail(email);
-        const res = data
-            .sort((a, b) => (a.title < b.title ? -1 : 1))
-            .map((data) => Listing.from(data));
-        return res;
-    }
+  public async createListing(listing: CreateListingDtoSchemaType) {
+    await timeout(500);
+    // const data = await this.db.createListing(listing);
+    return { created: true };
+  }
 
-    public async createListing(listing: CreateListingDtoSchemaType) {
-        await timeout(500);
-        // const data = await this.db.createListing(listing);
-        return { created: true }
-    }
-
-    public async updateListing(listing: UpdateListingDtoSchemaType) {
-        await timeout(500);
-        // const data = await this.db.updateListing(listing);
-        return { updated: true }
-    }
-
+  public async updateListing(listing: UpdateListingDtoSchemaType) {
+    await timeout(500);
+    // const data = await this.db.updateListing(listing);
+    return { updated: true };
+  }
 }

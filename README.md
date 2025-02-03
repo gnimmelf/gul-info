@@ -124,7 +124,16 @@ OR
 
 ## Build
 
-- [x] Production build script
+- Styling
+
+    - Applying style is philosophically tricky. Css-in-js can be runtime or buildtime, and the
+      cut-off for runtime is really a benchmark.
+
+    - [ ] Allow for importing plain CSS? Needs a plugin in esbuild.
+
+        - If plain css demands are miniscule, just
+
+- Production build script
 
     - [ ] Minify Css
 

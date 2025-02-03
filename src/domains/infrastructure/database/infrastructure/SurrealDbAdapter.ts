@@ -1,9 +1,6 @@
 import Surreal, { RecordId } from 'surrealdb';
 import { IDatabase } from '../IDatabase';
-import {
-  FilterSchemaType,
-  TagsMatchType,
-} from '~/shared/models/Filters';
+import { FilterSchemaType, TagsMatchType } from '~/shared/models/Filters';
 
 import { UserViewSchemaType } from '~/shared/models/UserViewModel';
 import { IndexLetterViewSchemaType } from '~/shared/models/IndexLetterViewModel';
@@ -70,10 +67,20 @@ export class SurrealDbAdapter implements IDatabase {
     return res;
   }
 
+  async getUserData() {
+    const query = `SELECT * FROM ${TABLES.USER};`;
+    const res = pop<UserViewSchemaType>(await this.client.query(query), {
+      popCount: 2,
+      ensureArray: false,
+    });
+    return idObjToString(res);
+  }
+
   async getIndexLetters() {
     const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
     const res = pop<IndexLetterViewSchemaType[]>(
       await this.client.query(query),
+      { popCount: 1 },
     );
     return res;
   }
@@ -88,15 +95,10 @@ export class SurrealDbAdapter implements IDatabase {
       FROM tags;
     `;
     console.log({ query });
-    const res = pop<TagViewSchemaType[]>(await this.client.query(query));
+    const res = pop<TagViewSchemaType[]>(await this.client.query(query), {
+      popCount: 1,
+    });
     return res.map(idObjToString);
-  }
-
-  async getUserData() {
-    const query = `SELECT * FROM ${TABLES.USER};`;
-    console.log({ query });
-    const res = pop<UserViewSchemaType>(await this.client.query(query), 2);
-    return idObjToString(res);
   }
 
   async getListingsByFilters(filters?: FilterSchemaType) {
@@ -133,21 +135,24 @@ export class SurrealDbAdapter implements IDatabase {
   async getListingsByEmail(email: string) {
     const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
     console.log({ query });
-    const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);
+    const res = pop<ListingSchemaType[]>(await this.client.query(query));
+    console.log({ res });
     return res.map(idObjToString);
   }
 
   async createListing(data: CreateListingDtoSchemaType) {
+    // TODO! Implement query and access
     const query = `;`;
     console.log({ query });
-    const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);
+    const res = pop<ListingSchemaType[]>(await this.client.query(query));
     return res.map(idObjToString);
   }
 
   async updateListing(data: UpdateListingDtoSchemaType) {
+    // TODO! Implement query and access
     const query = `;`;
     console.log({ query });
-    const res = pop<ListingSchemaType[]>(await this.client.query(query), 2);
+    const res = pop<ListingSchemaType[]>(await this.client.query(query));
     return res.map(idObjToString);
   }
 }
@@ -157,19 +162,33 @@ export class SurrealDbAdapter implements IDatabase {
  */
 
 type NestedArray<T> = T | NestedArray<T>[];
+type PopOptions = {
+  ensureArray?: boolean;
+  popCount?: number;
+};
 /**
  * Popps from a nested array `count` times.
  * @param data flattenable array of n depth
  * @param count the number of times to pop
  * @returns last popped element of type <T>
  */
-const pop = <T>(data: NestedArray<any>, count = 1): T => {
+const pop = <T>(data: NestedArray<any>, options?: PopOptions): T => {
+  let popCount = options?.popCount || 2;
+  const ensureArray =
+    options?.ensureArray === undefined ? true : options?.ensureArray;
+
   let res = data;
-  while (count > 0 && Array.isArray(res) && res.length === 1) {
+  while (popCount > 0 && Array.isArray(res) && res.length === 1) {
     res = res[0];
-    count--;
+    popCount--;
   }
-  return res;
+  console.log(
+    res,
+    ensureArray,
+    !Array.isArray(res),
+    ensureArray && !Array.isArray(res),
+  );
+  return ensureArray && !Array.isArray(res) ? ([res] as T) : res;
 };
 
 const idObjToString = <T>(obj: T & { id?: any }): T => {

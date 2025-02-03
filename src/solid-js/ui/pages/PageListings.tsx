@@ -67,17 +67,19 @@ export const PageListings: Component = () => {
   const [hitCount, setHitCount] = createSignal(0);
 
   const filters = createMemo(() => directory()?.filters());
-  const filteredListings = createMemo(() => listings()?.resources.filteredListings());
+  const filteredListings = createMemo(() =>
+    listings()?.resources.filteredListings(),
+  );
 
   createEffect(() => setHitCount(filteredListings()?.length || 0));
 
   createEffect(() => {
-    const filterState = filters()?.state()
+    const filterState = filters()?.state();
     if (filterState) {
-      console.log({filterState}, listings())
-      listings()?.filterListings(filterState)
+      console.log({ filterState }, listings());
+      listings()?.filterListings(filterState);
     }
-})
+  });
 
   return (
     <section>

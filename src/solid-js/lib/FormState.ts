@@ -50,7 +50,13 @@ export class FormState<SchemaType> {
     [this._state, this._setState] = createStore<InternalState>({});
   }
 
-  public initialize({ initialValues, schema }: { initialValues: SchemaType, schema: ZodSchema }) {
+  public initialize({
+    initialValues,
+    schema,
+  }: {
+    initialValues: SchemaType;
+    schema: ZodSchema;
+  }) {
     this._schema = schema;
     this._initialValues = deepCopy(initialValues);
     this._setValues(reconcile(deepCopy(initialValues)));
@@ -77,9 +83,7 @@ export class FormState<SchemaType> {
   }
 
   public get errors() {
-    return this._state.errors.length
-      ? unwrap(this._state.errors)
-      : null;
+    return this._state.errors.length ? unwrap(this._state.errors) : null;
   }
 
   /**

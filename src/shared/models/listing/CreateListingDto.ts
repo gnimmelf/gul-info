@@ -4,6 +4,7 @@ import { UpdateListingDtoSchema } from './UpdateListingDto';
 import { mergeWithDefaults } from '~/shared/zod/helpers';
 
 export const CreateListingDtoSchema = UpdateListingDtoSchema.extend({
+  isActive: UpdateListingDtoSchema.shape.isActive.default(true),
   title: UpdateListingDtoSchema.shape.title.default(''),
   description: UpdateListingDtoSchema.shape.description.default(''),
   address: UpdateListingDtoSchema.shape.address.default(''),
@@ -15,11 +16,10 @@ export const CreateListingDtoSchema = UpdateListingDtoSchema.extend({
   tags: UpdateListingDtoSchema.shape.tags,
   // Sub-schemas
   links: UpdateListingDtoSchema.shape.links,
-})
-  .omit({
-    id: true,
-    owner: true
-  })
+}).omit({
+  id: true,
+  owner: true,
+});
 
 export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;
 
@@ -32,7 +32,7 @@ export class CreateListingDto {
 
   constructor(data: CreateListingDtoSchemaType) {
     this.data = data;
-    Object.freeze(this.data)
+    Object.freeze(this.data);
   }
 
   static from(data: Partial<CreateListingDtoSchemaType>): CreateListingDto {

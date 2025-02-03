@@ -4,7 +4,7 @@ export const getValidityStyles = (theme: Theme) => ({
   // form fieldset
   'form > fieldset.form-fieldset': {
     border: 'none',
-    width: '100%'
+    width: '100%',
   },
   // User invalid styles
   'sl-input.user-error::part(base), sl-select.user-error::part(combobox), sl-checkbox.user-error::part(control)':

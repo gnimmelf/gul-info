@@ -45,7 +45,6 @@ export const MyListings: Component<{}> = (props) => {
       const data = listing!.state();
       payload.data = UpdateListingDto.from(data).data;
     }
-    console.log({ payload });
     _setActiveListing(payload as ListingPayload);
     setIsDirty(false);
   }
