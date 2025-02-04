@@ -18,8 +18,8 @@ export interface IDatabase {
   getListingsByEmail: (email: string) => Promise<ListingSchemaType[]>;
   createListing: (
     data: CreateListingDtoSchemaType,
-  ) => Promise<ListingSchemaType[]>;
+  ) => Promise<ListingSchemaType>;
   updateListing: (
     data: UpdateListingDtoSchemaType,
-  ) => Promise<ListingSchemaType[]>;
+  ) => Promise<ListingSchemaType>;
 }

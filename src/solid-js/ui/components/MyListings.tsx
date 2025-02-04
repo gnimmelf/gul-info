@@ -3,12 +3,10 @@ import { Component, createSignal, For, Show, Suspense } from 'solid-js';
 import { addCss, Theme } from '~/shared/ui/theme';
 import { MAX_LISTINGS } from '~/shared/constants';
 
-import { CRUD_MODES } from '~/solid-js/lib/enums';
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 
 import { Loading } from './Loading';
 import { ListingForm } from '../components/ListingForm';
-import { ListingPayload } from '~/solid-js/application/ListingPayload';
 import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
 import { Listing } from '~/shared/models/listing/Listing';
 import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
@@ -27,7 +25,7 @@ export const MyListings: Component<{}> = (props) => {
 
   const [isDirty, setIsDirty] = createSignal(false);
   const [activeListing, _setActiveListing] =
-    createSignal<ListingPayload | null>(null);
+    createSignal<CreateListingDto | UpdateListingDto | null>(null);
 
   const myListings = () => listings()?.resources.myListings();
   const saving = () => listings()?.resources.saveListing();
@@ -37,21 +35,19 @@ export const MyListings: Component<{}> = (props) => {
     setIsDirty(false);
   }
 
-  function setActiveListing(mode: CRUD_MODES, listing?: Listing) {
-    const payload = { mode } as Partial<ListingPayload>;
-    if (CRUD_MODES.CREATE === mode) {
-      payload.data = CreateListingDto.from({}).data;
-    } else if (CRUD_MODES.UPDATE === mode) {
-      const data = listing!.state();
-      payload.data = UpdateListingDto.from(data).data;
+  function setActiveListing(listing: Listing | null) {
+    let listingDto = null;
+    if (listing === null) {
+      listingDto = CreateListingDto.from({});
+    } else {
+      listingDto = UpdateListingDto.from(listing!.data);
     }
-    _setActiveListing(payload as ListingPayload);
+    _setActiveListing(listingDto);
     setIsDirty(false);
   }
 
-  function handleSubmit(listingPayload: ListingPayload) {
-    const mode = activeListing()!.mode;
-    listings()!.saveListing(listingPayload);
+  function handleSubmit(listingDto: CreateListingDto | UpdateListingDto) {
+    listings()!.saveListing(listingDto);
     setIsDirty(false);
   }
 
@@ -67,10 +63,10 @@ export const MyListings: Component<{}> = (props) => {
             <sl-button
               prop:name="pencil"
               prop:disabled={isDirty()}
-              on:click={() => setActiveListing(CRUD_MODES.UPDATE, listing)}
+              on:click={() => setActiveListing(listing)}
             >
               <sl-icon slot="prefix" prop:name="pencil"></sl-icon>
-              {listing.state().title}
+              {listing.title}
             </sl-button>
           )}
         </For>
@@ -78,7 +74,7 @@ export const MyListings: Component<{}> = (props) => {
         <sl-button
           prop:name="pencil"
           prop:disabled={isDirty()}
-          on:click={() => setActiveListing(CRUD_MODES.CREATE)}
+          on:click={() => setActiveListing(null)}
         >
           <sl-icon slot="prefix" prop:name="plus-circle"></sl-icon>
           Ny
@@ -88,7 +84,7 @@ export const MyListings: Component<{}> = (props) => {
       <Show when={activeListing()}>
         <Suspense fallback={<Loading>Form</Loading>}>
           <ListingForm
-            listingPayload={activeListing()!}
+            listingDto={activeListing()!}
             setIsDirty={setIsDirty}
             onSubmit={handleSubmit}
             onCancel={() => clearActiveListing()}

@@ -1,5 +1,3 @@
-import { _State } from '~/shared/lib/_State';
-
 import { IDatabase } from '../../infrastructure/database/IDatabase';
 
 import { TagViewModel } from '../../../shared/models/TagViewModel';

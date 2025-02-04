@@ -13,11 +13,11 @@ export const createDirectoryServiceAdapter = async (db: IDatabase) => {
     }),
   );
 
-  const instance = new DirectoryService(db);
+  const directoryService = new DirectoryService(db);
 
-  const [tags] = createResource(() => instance.loadTags());
+  const [tags] = createResource(() => directoryService.loadTags());
 
-  const [indexLetters] = createResource(() => instance.loadIndexLetters());
+  const [indexLetters] = createResource(() => directoryService.loadIndexLetters());
 
   const adapter = checkAdapterReturnType({
     resources: {

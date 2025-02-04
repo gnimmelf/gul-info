@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { _State } from '~/shared/lib/_State';
+import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 import { parseWithDefaults } from '~/shared/zod/helpers';
 
 export const LinkShema = z.object({
@@ -25,9 +25,17 @@ export const ListingSchema = z.object({
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;
 
-export class Listing extends _State<ListingSchemaType> {
+// Add Schema props type definitions
+export interface Listing extends ListingSchemaType {}
+
+@ExposeDataAsSchemaProps(ListingSchema)
+export class Listing {
+  public schema = ListingSchema;
+  public data: ListingSchemaType;
+
   constructor(data: ListingSchemaType) {
-    super(data);
+    this.data = data;
+    Object.freeze(this.data);
   }
 
   static from(data: Partial<ListingSchemaType>): Listing {

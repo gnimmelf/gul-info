@@ -5,6 +5,7 @@ import { ListingSchema, LinkShema } from './Listing';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const UpdateListingDtoSchema = ListingSchema.extend({
+  id: ListingSchema.shape.id,
   isActive: ListingSchema.shape.isActive,
   title: ListingSchema.shape.title.min(3).max(70),
   description: ListingSchema.shape.description.min(15).max(150),
@@ -26,6 +27,7 @@ export interface Listing extends UpdateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(UpdateListingDtoSchema)
 export class UpdateListingDto {
+  public schema = UpdateListingDtoSchema;
   public data: UpdateListingDtoSchemaType;
 
   constructor(data: UpdateListingDtoSchemaType) {

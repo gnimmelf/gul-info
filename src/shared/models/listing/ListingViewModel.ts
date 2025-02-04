@@ -26,7 +26,8 @@ export interface ListingViewModel extends ListingViewSchemaType {}
 
 @ExposeDataAsSchemaProps(ListingViewSchema)
 export class ListingViewModel {
-  private data;
+  public schema = ListingViewSchema;
+  public data;
 
   constructor(data: ListingViewSchemaType) {
     this.data = data;

@@ -1,6 +1,6 @@
 import { createMemo, createResource, createSignal } from 'solid-js';
 
-import { AccountService } from '~/domains/ui/account/AccountService';
+import { AccountService } from '~/domains/ui/accountService/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
@@ -9,7 +9,7 @@ export const createAccountServiceAdaper = (
   db: IDatabase,
   auth: IAuthentication,
 ) => {
-  const account = new AccountService(db);
+  const accountService = new AccountService(db);
 
   const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);
 
@@ -39,7 +39,7 @@ export const createAccountServiceAdaper = (
     },
     async () => {
       const token = await auth.getAccessToken();
-      const user = await account.getUser(token);
+      const user = await accountService.getUser(token);
       return user;
     },
   );

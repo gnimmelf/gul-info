@@ -1,4 +1,3 @@
-import { _State } from '~/shared/lib/_State';
 import { timeout } from '~/shared/lib/utils';
 
 /**

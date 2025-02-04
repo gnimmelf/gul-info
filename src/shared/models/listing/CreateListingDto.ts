@@ -28,6 +28,7 @@ export interface CreateListingDto extends CreateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(CreateListingDtoSchema)
 export class CreateListingDto {
+  public schema = CreateListingDtoSchema;
   public data: CreateListingDtoSchemaType;
 
   constructor(data: CreateListingDtoSchemaType) {

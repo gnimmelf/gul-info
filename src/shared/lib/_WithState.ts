@@ -8,7 +8,11 @@ interface IState<TState> {
   setState: StateSetter<TState>;
 }
 
-export abstract class _State<TState> implements IState<TState> {
+/**
+ * Extends a class with a state setter and getter.
+ * Classes extended with _WithState should be proxied with reactive signals.
+ */
+export abstract class _WithState<TState> implements IState<TState> {
   private _state: TState;
 
   constructor(initialState: Partial<TState>) {

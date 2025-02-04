@@ -141,19 +141,20 @@ export class SurrealDbAdapter implements IDatabase {
   }
 
   async createListing(data: CreateListingDtoSchemaType) {
-    // TODO! Implement query and access
-    const query = `;`;
+    data.tags = ['tags:1']
+    const query = `CREATE ONLY listing CONTENT ${JSON.stringify(data)} RETURN diff;`;
     console.log({ query });
-    const res = pop<ListingSchemaType[]>(await this.client.query(query));
-    return res.map(idObjToString);
+    const res = pop<ListingSchemaType>(await this.client.query(query));
+    return idObjToString(res);
   }
 
   async updateListing(data: UpdateListingDtoSchemaType) {
-    // TODO! Implement query and access
-    const query = `;`;
+    const id = data.id;
+    delete data.id;
+    const query = `UPDATE ONLY ${id} CONTENT ${JSON.stringify(data)} RETURN diff;`;
     console.log({ query });
-    const res = pop<ListingSchemaType[]>(await this.client.query(query));
-    return res.map(idObjToString);
+    const res = pop<ListingSchemaType>(await this.client.query(query));
+    return idObjToString(res);
   }
 }
 

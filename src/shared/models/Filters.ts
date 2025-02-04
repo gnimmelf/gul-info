@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { _State } from '~/shared/lib/_State';
+import { _WithState } from '~/shared/lib/_WithState';
 import { parseWithDefaults } from '~/shared/zod/helpers';
 
 export enum TagsMatchType {
@@ -16,7 +16,7 @@ export const FilterStateSchema = z.object({
 
 export type FilterSchemaType = z.infer<typeof FilterStateSchema>;
 
-export class Filters extends _State<FilterSchemaType> {
+export class Filters extends _WithState<FilterSchemaType> {
   constructor(data: FilterSchemaType) {
     super(data);
   }

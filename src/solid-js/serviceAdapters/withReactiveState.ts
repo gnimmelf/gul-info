@@ -1,5 +1,5 @@
 import { createSignal } from 'solid-js';
-import { _State } from '~/shared/lib/_State';
+import { _WithState } from '~/shared/lib/_WithState';
 
 /**
  * Wraps `instance.state()` and `instance.setState()` with a reactive signal.
@@ -9,8 +9,8 @@ import { _State } from '~/shared/lib/_State';
 export const withReactiveState = <TInstance>(
   instance: TInstance,
 ): TInstance => {
-  if (!(instance instanceof _State)) {
-    throw new Error('Passed instance must extend `_State`');
+  if (!(instance instanceof _WithState)) {
+    throw new Error('Passed instance must extend `_WithState`');
   }
 
   // `createSignal` for SolidJs, `useState` for React. Vue?

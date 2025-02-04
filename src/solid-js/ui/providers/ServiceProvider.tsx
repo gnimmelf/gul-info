@@ -13,9 +13,9 @@ import { useSystem } from '~/solid-js/ui/providers/SystemProvider';
 
 import { createAuthenticationAdaper } from '~/domains/infrastructure/authentication/createAuthenticationAdaper';
 
-import { createDirectoryServiceAdapter } from '~/solid-js/application/createDirectoryServiceAdaper';
-import { createAccountServiceAdaper } from '~/solid-js/application/createAccountServiceAdaper';
-import { createListingsServiceAdaper } from '~/solid-js/application/createListingsServiceAdaper';
+import { createDirectoryServiceAdapter } from '~/solid-js/serviceAdapters/createDirectoryServiceAdaper';
+import { createAccountServiceAdaper } from '~/solid-js/serviceAdapters/createAccountServiceAdaper';
+import { createListingsServiceAdaper } from '~/solid-js/serviceAdapters/createListingsServiceAdaper';
 import { UserViewModel } from '~/shared/models/UserViewModel';
 
 type TDirectoryAdapter = Awaited<

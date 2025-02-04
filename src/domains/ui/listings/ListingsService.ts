@@ -4,8 +4,8 @@ import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { Listing } from '~/shared/models/listing/Listing';
 import { FilterSchemaType } from '~/shared/models/Filters';
 import { ListingViewModel } from '../../../shared/models/listing/ListingViewModel';
-import { CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
-import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
+import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
+import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
 
 /**
  * Class
@@ -35,15 +35,15 @@ export class ListingsService {
     return res;
   }
 
-  public async createListing(listing: CreateListingDtoSchemaType) {
+  public async createListing(listing: CreateListingDto) {
     await timeout(500);
-    // const data = await this.db.createListing(listing);
-    return { created: true };
+    const data = await this.db.createListing(listing.data);
+    return Listing.from({ ...listing, ...data });
   }
 
-  public async updateListing(listing: UpdateListingDtoSchemaType) {
+  public async updateListing(listing: UpdateListingDto) {
     await timeout(500);
-    // const data = await this.db.updateListing(listing);
-    return { updated: true };
+    const data = await this.db.updateListing(listing.data);
+    return Listing.from({ ...listing, ...data });
   }
 }

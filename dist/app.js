@@ -15961,8 +15961,8 @@
     ZodError
   });
 
-  // src/shared/lib/_State.ts
-  var _State = class {
+  // src/shared/lib/_WithState.ts
+  var _WithState = class {
     _state;
     constructor(initialState) {
       this._state = initialState;
@@ -16229,7 +16229,7 @@
     indexLetter: z.string().optional().default(""),
     tagsMatchType: z.nativeEnum(TagsMatchType).default("ALL" /* ALL */)
   });
-  var Filters = class _Filters extends _State {
+  var Filters = class _Filters extends _WithState {
     constructor(data) {
       super(data);
     }
@@ -16369,16 +16369,19 @@
       return res.map(idObjToString);
     }
     async createListing(data) {
-      const query = `;`;
+      data.tags = ["tags:1"];
+      const query = `CREATE ONLY listing CONTENT ${JSON.stringify(data)} RETURN diff;`;
       console.log({ query });
       const res = pop(await this.client.query(query));
-      return res.map(idObjToString);
+      return idObjToString(res);
     }
     async updateListing(data) {
-      const query = `;`;
+      const id4 = data.id;
+      delete data.id;
+      const query = `UPDATE ONLY ${id4} CONTENT ${JSON.stringify(data)} RETURN diff;`;
       console.log({ query });
       const res = pop(await this.client.query(query));
-      return res.map(idObjToString);
+      return idObjToString(res);
     }
   };
   var pop = (data, options) => {
@@ -17520,10 +17523,10 @@
     return instance;
   };
 
-  // src/solid-js/application/withReactiveState.ts
+  // src/solid-js/serviceAdapters/withReactiveState.ts
   var withReactiveState = (instance) => {
-    if (!(instance instanceof _State)) {
-      throw new Error("Passed instance must extend `_State`");
+    if (!(instance instanceof _WithState)) {
+      throw new Error("Passed instance must extend `_WithState`");
     }
     const [state, setState] = createSignal(instance.state());
     const originalSetState = instance.setState.bind(instance);
@@ -17627,12 +17630,12 @@
     }
   };
 
-  // src/solid-js/application/checkAdapterReturnType.ts
+  // src/solid-js/serviceAdapters/checkAdapterReturnType.ts
   var checkAdapterReturnType = (config) => {
     return config;
   };
 
-  // src/solid-js/application/createDirectoryServiceAdaper.ts
+  // src/solid-js/serviceAdapters/createDirectoryServiceAdaper.ts
   var createDirectoryServiceAdapter = async (db) => {
     const filters = withReactiveState(
       Filters.from({
@@ -17687,7 +17690,7 @@
     }
   };
 
-  // src/solid-js/application/createAccountServiceAdaper.ts
+  // src/solid-js/serviceAdapters/createAccountServiceAdaper.ts
   var createAccountServiceAdaper = (db, auth) => {
     const account = new AccountService(db);
     const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);
@@ -17749,15 +17752,21 @@
     // SubSchemas
     links: z.array(LinkShema)
   });
-  var Listing = class _Listing extends _State {
+  var Listing = class {
+    schema = ListingSchema;
+    data;
     constructor(data) {
-      super(data);
+      this.data = data;
+      Object.freeze(this.data);
     }
     static from(data) {
       const parsedData = parseWithDefaults(ListingSchema, data);
-      return new _Listing(parsedData);
+      return new Listing(parsedData);
     }
   };
+  Listing = __decorateClass([
+    ExposeDataAsSchemaProps(ListingSchema)
+  ], Listing);
 
   // src/shared/models/listing/ListingViewModel.ts
   var ListingViewSchema = z.object({
@@ -17776,6 +17785,7 @@
     tags: z.array(TagViewSchema.omit({ usageCount: true }))
   });
   var ListingViewModel = class {
+    schema = ListingViewSchema;
     data;
     constructor(data) {
       this.data = data;
@@ -17809,15 +17819,97 @@
     }
     async createListing(listing) {
       await timeout(500);
-      return { created: true };
+      const data = await this.db.createListing(listing.data);
+      return Listing.from({ ...listing, ...data });
     }
     async updateListing(listing) {
       await timeout(500);
-      return { updated: true };
+      const data = await this.db.updateListing(listing.data);
+      return Listing.from({ ...listing, ...data });
     }
   };
 
-  // src/solid-js/application/createListingsServiceAdaper.ts
+  // src/shared/zod/schemas.ts
+  var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
+  var rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
+  var reStreet = new RegExp(/^[\p{L}'][ \p{L}\p{N}'-,]{8,}$/u);
+  var reZip = new RegExp(/^\d{4}$/);
+  var email = z.string().trim().email("Must be a valid email address");
+  var name = z.string().trim().regex(reName, "Must be a valid name");
+  var address = z.string().trim().regex(reStreet, "Must be a valid street address");
+  var zip = z.string().trim().regex(reZip, "Must be a valid zip code");
+  var phone = z.preprocess(
+    (val) => val?.split(" ").join(""),
+    z.string().trim().regex(rePhone, "Must be a valid phone number")
+  );
+
+  // src/shared/models/listing/UpdateListingDto.ts
+  var UpdateListingDtoSchema = ListingSchema.extend({
+    id: ListingSchema.shape.id,
+    isActive: ListingSchema.shape.isActive,
+    title: ListingSchema.shape.title.min(3).max(70),
+    description: ListingSchema.shape.description.min(15).max(150),
+    address,
+    zip,
+    muncipiality: ListingSchema.shape.muncipiality,
+    phone,
+    email,
+    // TODO! Tags
+    tags: z.array(z.any()).min(1).default([]),
+    // Sub-schemas
+    links: z.array(LinkShema).default([])
+  });
+  var UpdateListingDto = class {
+    schema = UpdateListingDtoSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
+      return new UpdateListingDto(parsedData);
+    }
+  };
+  UpdateListingDto = __decorateClass([
+    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
+  ], UpdateListingDto);
+
+  // src/shared/models/listing/CreateListingDto.ts
+  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
+    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
+    title: UpdateListingDtoSchema.shape.title.default(""),
+    description: UpdateListingDtoSchema.shape.description.default(""),
+    address: UpdateListingDtoSchema.shape.address.default(""),
+    zip: UpdateListingDtoSchema.shape.zip.default(""),
+    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
+    phone: UpdateListingDtoSchema.shape.phone.default(""),
+    email: UpdateListingDtoSchema.shape.email.default(""),
+    // TODO! Tags
+    tags: UpdateListingDtoSchema.shape.tags,
+    // Sub-schemas
+    links: UpdateListingDtoSchema.shape.links
+  }).omit({
+    id: true,
+    owner: true
+  });
+  var CreateListingDto = class {
+    schema = CreateListingDtoSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
+      return new CreateListingDto(parsedData);
+    }
+  };
+  CreateListingDto = __decorateClass([
+    ExposeDataAsSchemaProps(CreateListingDtoSchema)
+  ], CreateListingDto);
+
+  // src/solid-js/serviceAdapters/createListingsServiceAdaper.ts
   var createListingsServiceAdaper = (db, user) => {
     const service = new ListingsService(db);
     const [onSaveListing, setSaveListing] = createSignal(
@@ -17841,14 +17933,12 @@
     );
     const [saveListing] = createResource(
       onSaveListing,
-      async (listingPayload) => {
-        console.log({ listingPayload });
-        const { mode, data } = listingPayload;
+      async (listingDto) => {
         let res;
-        if ("CRUD_CREATE" /* CREATE */ === mode) {
-          res = db.createListing(data);
-        } else if ("CRUD_UPDATE" /* UPDATE */ === mode) {
-          res = db.updateListing(data);
+        if (listingDto instanceof CreateListingDto) {
+          res = service.createListing(listingDto);
+        } else if (listingDto instanceof UpdateListingDto) {
+          res = service.updateListing(listingDto);
         }
       }
     );
@@ -18777,83 +18867,6 @@
     };
   }
 
-  // src/shared/zod/schemas.ts
-  var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
-  var rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
-  var reStreet = new RegExp(/^[\p{L}'][ \p{L}\p{N}'-,]{8,}$/u);
-  var reZip = new RegExp(/^\d{4}$/);
-  var email = z.string().trim().email("Must be a valid email address");
-  var name = z.string().trim().regex(reName, "Must be a valid name");
-  var address = z.string().trim().regex(reStreet, "Must be a valid street address");
-  var zip = z.string().trim().regex(reZip, "Must be a valid zip code");
-  var phone = z.preprocess(
-    (val) => val?.split(" ").join(""),
-    z.string().trim().regex(rePhone, "Must be a valid phone number")
-  );
-
-  // src/shared/models/listing/UpdateListingDto.ts
-  var UpdateListingDtoSchema = ListingSchema.extend({
-    isActive: ListingSchema.shape.isActive,
-    title: ListingSchema.shape.title.min(3).max(70),
-    description: ListingSchema.shape.description.min(15).max(150),
-    address,
-    zip,
-    muncipiality: ListingSchema.shape.muncipiality,
-    phone,
-    email,
-    // TODO! Tags
-    tags: z.array(z.any()).min(1).default([]),
-    // Sub-schemas
-    links: z.array(LinkShema).default([])
-  });
-  var UpdateListingDto = class {
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
-      return new UpdateListingDto(parsedData);
-    }
-  };
-  UpdateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
-  ], UpdateListingDto);
-
-  // src/shared/models/listing/CreateListingDto.ts
-  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
-    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
-    title: UpdateListingDtoSchema.shape.title.default(""),
-    description: UpdateListingDtoSchema.shape.description.default(""),
-    address: UpdateListingDtoSchema.shape.address.default(""),
-    zip: UpdateListingDtoSchema.shape.zip.default(""),
-    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
-    phone: UpdateListingDtoSchema.shape.phone.default(""),
-    email: UpdateListingDtoSchema.shape.email.default(""),
-    // TODO! Tags
-    tags: UpdateListingDtoSchema.shape.tags,
-    // Sub-schemas
-    links: UpdateListingDtoSchema.shape.links
-  }).omit({
-    id: true,
-    owner: true
-  });
-  var CreateListingDto = class {
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
-      return new CreateListingDto(parsedData);
-    }
-  };
-  CreateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(CreateListingDtoSchema)
-  ], CreateListingDto);
-
   // node_modules/.pnpm/dot-prop@9.0.0/node_modules/dot-prop/index.js
   var isObject2 = (value) => {
     const type = typeof value;
@@ -19328,18 +19341,14 @@
       justifyContent: "center"
     })
   });
-  var SCHEMAS = {
-    ["CRUD_CREATE" /* CREATE */]: CreateListingDtoSchema,
-    ["CRUD_UPDATE" /* UPDATE */]: UpdateListingDtoSchema
-  };
   var ListingForm = (props) => {
     const defaultFormElementSize = "small";
     const formState = new FormState();
     const [values, setValue] = formState.getStore();
     createEffect(() => {
       formState.initialize({
-        initialValues: props.listingPayload.data,
-        schema: SCHEMAS[props.listingPayload.mode]
+        initialValues: props.listingDto.data,
+        schema: props.listingDto.schema
       });
     });
     createEffect(() => {
@@ -19358,14 +19367,16 @@
     }
     function handleSubmit() {
       formState.validateAll();
+      console.log("values", unwrap(values));
       if (formState.hasErrors()) {
         console.log("errors", unwrap(formState.errors));
         return;
       }
-      props.onSubmit({
-        ...props.listingPayload,
-        data: deepCopy(values)
-      });
+      if (props.listingDto instanceof CreateListingDto) {
+        props.onSubmit(CreateListingDto.from({}));
+      } else if (props.listingDto instanceof UpdateListingDto) {
+        props.onSubmit(UpdateListingDto.from(values));
+      }
     }
     return (() => {
       var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$7.nextSibling, _el$8 = _el$10.nextSibling, _el$11 = _el$5.nextSibling, _el$12 = _el$4.nextSibling, _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild, _el$15 = _el$14.nextSibling;
@@ -19650,22 +19661,18 @@
       _setActiveListing(null);
       setIsDirty(false);
     }
-    function setActiveListing(mode, listing) {
-      const payload = {
-        mode
-      };
-      if ("CRUD_CREATE" /* CREATE */ === mode) {
-        payload.data = CreateListingDto.from({}).data;
-      } else if ("CRUD_UPDATE" /* UPDATE */ === mode) {
-        const data = listing.state();
-        payload.data = UpdateListingDto.from(data).data;
+    function setActiveListing(listing) {
+      let listingDto = null;
+      if (listing === null) {
+        listingDto = CreateListingDto.from({});
+      } else {
+        listingDto = UpdateListingDto.from(listing.data);
       }
-      _setActiveListing(payload);
+      _setActiveListing(listingDto);
       setIsDirty(false);
     }
-    function handleSubmit(listingPayload) {
-      const mode = activeListing().mode;
-      listings().saveListing(listingPayload);
+    function handleSubmit(listingDto) {
+      listings().saveListing(listingDto);
       setIsDirty(false);
     }
     return (() => {
@@ -19678,17 +19685,17 @@
         },
         children: (listing, idx) => (() => {
           var _el$13 = _tmpl$35(), _el$14 = _el$13.firstChild;
-          addEventListener(_el$13, "click", () => setActiveListing("CRUD_UPDATE" /* UPDATE */, listing));
+          addEventListener(_el$13, "click", () => setActiveListing(listing));
           _el$13.name = "pencil";
           _el$13._$owner = getOwner();
           _el$14.name = "pencil";
           _el$14._$owner = getOwner();
-          insert(_el$13, () => listing.state().title, null);
+          insert(_el$13, () => listing.title, null);
           createRenderEffect(() => _el$13.disabled = isDirty2());
           return _el$13;
         })()
       }), _el$9);
-      addEventListener(_el$9, "click", () => setActiveListing("CRUD_CREATE" /* CREATE */));
+      addEventListener(_el$9, "click", () => setActiveListing(null));
       _el$9.name = "pencil";
       _el$9._$owner = getOwner();
       _el$10.name = "plus-circle";
@@ -19706,7 +19713,7 @@
             },
             get children() {
               return [createComponent(ListingForm, {
-                get listingPayload() {
+                get listingDto() {
                   return activeListing();
                 },
                 setIsDirty,
@@ -19877,7 +19884,7 @@
   };
   var App_default = App;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3Y6SB6QS.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3Y6SB6QS.js
   var basePath = "";
   function setBasePath(path) {
     basePath = path;
@@ -19902,14 +19909,14 @@
     return basePath.replace(/\/$/, "") + (subpath ? `/${subpath.replace(/^\//, "")}` : ``);
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.P7ZG6EMR.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.P7ZG6EMR.js
   var library = {
     name: "default",
     resolver: (name2) => getBasePath(`assets/icons/${name2}.svg`)
   };
   var library_default_default = library;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3TFKS637.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3TFKS637.js
   var icons = {
     caret: `
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -20033,7 +20040,7 @@
   };
   var library_system_default = systemLibrary;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ZL53POKZ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ZL53POKZ.js
   var registry = [library_default_default, library_system_default];
   var watchedIcons = [];
   function watchIcon(icon) {
@@ -20591,7 +20598,7 @@
   i5?.({ LitElement: r5 });
   (globalThis.litElementVersions ??= []).push("4.1.1");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QLXRCYS4.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QLXRCYS4.js
   var icon_styles_default = i2`
   :host {
     display: inline-block;
@@ -20607,7 +20614,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KAW7D32O.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KAW7D32O.js
   var __defProp3 = Object.defineProperty;
   var __defProps = Object.defineProperties;
   var __getOwnPropDesc2 = Object.getOwnPropertyDescriptor;
@@ -20644,7 +20651,7 @@
   var __privateAdd = (obj, member, value) => member.has(obj) ? __typeError("Cannot add the same private member more than once") : member instanceof WeakSet ? member.add(obj) : member.set(obj, value);
   var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "write to private field"), setter ? setter.call(obj, value) : member.set(obj, value), value);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GMYPQTFK.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GMYPQTFK.js
   function watch(propertyName, options) {
     const resolvedOptions = __spreadValues({
       waitUntilFirstUpdate: false
@@ -20670,7 +20677,7 @@
     };
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.TUVJKY7S.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.TUVJKY7S.js
   var component_styles_default = i2`
   :host {
     box-sizing: border-box;
@@ -20757,7 +20764,7 @@
     };
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.EVP45OG4.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.PFOQ5QRR.js
   var _hasRecordedInitialProperties;
   var ShoelaceElement = class extends r5 {
     constructor() {
@@ -20828,7 +20835,7 @@
     }
   };
   _hasRecordedInitialProperties = /* @__PURE__ */ new WeakMap();
-  ShoelaceElement.version = "2.19.0";
+  ShoelaceElement.version = "2.20.0";
   ShoelaceElement.dependencies = {};
   __decorateClass2([
     n5()
@@ -20844,7 +20851,7 @@
   var u4 = {};
   var m3 = (o11, t7 = u4) => o11._$AH = t7;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QCFOL4VF.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.4GJTAPTW.js
   var CACHEABLE_ERROR = Symbol();
   var RETRYABLE_ERROR = Symbol();
   var parser;
@@ -20998,10 +21005,10 @@
     watch(["name", "src", "library"])
   ], SlIcon.prototype, "setIcon", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.EOK2IIOU.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.J2YOIYDS.js
   SlIcon.define("sl-icon");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.6I2T3DLI.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.6I2T3DLI.js
   var icon_button_styles_default = i2`
   :host {
     display: inline-block;
@@ -21128,7 +21135,7 @@
   // node_modules/.pnpm/lit-html@3.2.1/node_modules/lit-html/directives/if-defined.js
   var o7 = (o11) => o11 ?? E2;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.G6R7BW5E.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.HLJ2JR6P.js
   var SlIconButton = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -21231,7 +21238,7 @@
     n5({ type: Boolean, reflect: true })
   ], SlIconButton.prototype, "disabled", 2);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.K7JGTRV7.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.K7JGTRV7.js
   var defaultAnimationRegistry = /* @__PURE__ */ new Map();
   var customAnimationRegistry = /* @__PURE__ */ new WeakMap();
   function ensureAnimation(animation) {
@@ -21264,7 +21271,7 @@
     };
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.B4BZKR24.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.B4BZKR24.js
   function waitForEvent(el, eventName) {
     return new Promise((resolve) => {
       function done(event) {
@@ -21277,7 +21284,7 @@
     });
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.AJ3ENQ5C.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.AJ3ENQ5C.js
   function animateTo(el, keyframes, options) {
     return new Promise((resolve) => {
       if ((options == null ? void 0 : options.duration) === Infinity) {
@@ -21308,6 +21315,64 @@
     return keyframes.map((keyframe) => __spreadProps(__spreadValues({}, keyframe), {
       height: keyframe.height === "auto" ? `${calculatedHeight}px` : keyframe.height
     }));
+  }
+
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.NYIIDP5N.js
+  var HasSlotController = class {
+    constructor(host, ...slotNames) {
+      this.slotNames = [];
+      this.handleSlotChange = (event) => {
+        const slot = event.target;
+        if (this.slotNames.includes("[default]") && !slot.name || slot.name && this.slotNames.includes(slot.name)) {
+          this.host.requestUpdate();
+        }
+      };
+      (this.host = host).addController(this);
+      this.slotNames = slotNames;
+    }
+    hasDefaultSlot() {
+      return [...this.host.childNodes].some((node) => {
+        if (node.nodeType === node.TEXT_NODE && node.textContent.trim() !== "") {
+          return true;
+        }
+        if (node.nodeType === node.ELEMENT_NODE) {
+          const el = node;
+          const tagName = el.tagName.toLowerCase();
+          if (tagName === "sl-visually-hidden") {
+            return false;
+          }
+          if (!el.hasAttribute("slot")) {
+            return true;
+          }
+        }
+        return false;
+      });
+    }
+    hasNamedSlot(name2) {
+      return this.host.querySelector(`:scope > [slot="${name2}"]`) !== null;
+    }
+    test(slotName) {
+      return slotName === "[default]" ? this.hasDefaultSlot() : this.hasNamedSlot(slotName);
+    }
+    hostConnected() {
+      this.host.shadowRoot.addEventListener("slotchange", this.handleSlotChange);
+    }
+    hostDisconnected() {
+      this.host.shadowRoot.removeEventListener("slotchange", this.handleSlotChange);
+    }
+  };
+  function getTextContent(slot) {
+    if (!slot) {
+      return "";
+    }
+    const nodes = slot.assignedNodes({ flatten: true });
+    let text = "";
+    [...nodes].forEach((node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        text += node.textContent;
+      }
+    });
+    return text;
   }
 
   // node_modules/.pnpm/@shoelace-style+localize@3.2.1/node_modules/@shoelace-style/localize/dist/index.js
@@ -21417,7 +21482,7 @@
     }
   };
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.7BTDLTNI.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.7BTDLTNI.js
   var translation = {
     $code: "en",
     $name: "English",
@@ -21452,70 +21517,12 @@
   registerTranslation(translation);
   var en_default = translation;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.6CTB5ZDJ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.6CTB5ZDJ.js
   var LocalizeController2 = class extends LocalizeController {
   };
   registerTranslation(en_default);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.NYIIDP5N.js
-  var HasSlotController = class {
-    constructor(host, ...slotNames) {
-      this.slotNames = [];
-      this.handleSlotChange = (event) => {
-        const slot = event.target;
-        if (this.slotNames.includes("[default]") && !slot.name || slot.name && this.slotNames.includes(slot.name)) {
-          this.host.requestUpdate();
-        }
-      };
-      (this.host = host).addController(this);
-      this.slotNames = slotNames;
-    }
-    hasDefaultSlot() {
-      return [...this.host.childNodes].some((node) => {
-        if (node.nodeType === node.TEXT_NODE && node.textContent.trim() !== "") {
-          return true;
-        }
-        if (node.nodeType === node.ELEMENT_NODE) {
-          const el = node;
-          const tagName = el.tagName.toLowerCase();
-          if (tagName === "sl-visually-hidden") {
-            return false;
-          }
-          if (!el.hasAttribute("slot")) {
-            return true;
-          }
-        }
-        return false;
-      });
-    }
-    hasNamedSlot(name2) {
-      return this.host.querySelector(`:scope > [slot="${name2}"]`) !== null;
-    }
-    test(slotName) {
-      return slotName === "[default]" ? this.hasDefaultSlot() : this.hasNamedSlot(slotName);
-    }
-    hostConnected() {
-      this.host.shadowRoot.addEventListener("slotchange", this.handleSlotChange);
-    }
-    hostDisconnected() {
-      this.host.shadowRoot.removeEventListener("slotchange", this.handleSlotChange);
-    }
-  };
-  function getTextContent(slot) {
-    if (!slot) {
-      return "";
-    }
-    const nodes = slot.assignedNodes({ flatten: true });
-    let text = "";
-    [...nodes].forEach((node) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        text += node.textContent;
-      }
-    });
-    return text;
-  }
-
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.62HVOPEB.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.62HVOPEB.js
   var alert_styles_default = i2`
   :host {
     display: contents;
@@ -21657,9 +21664,8 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.D4YH5HPE.js
-  var toastStack = Object.assign(document.createElement("div"), { className: "sl-toast-stack" });
-  var SlAlert = class extends ShoelaceElement {
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XB76PK4I.js
+  var _SlAlert = class _SlAlert2 extends ShoelaceElement {
     constructor() {
       super(...arguments);
       this.hasSlotController = new HasSlotController(this, "icon", "suffix");
@@ -21669,6 +21675,14 @@
       this.variant = "primary";
       this.duration = Infinity;
       this.remainingTime = this.duration;
+    }
+    static get toastStack() {
+      if (!this.currentToastStack) {
+        this.currentToastStack = Object.assign(document.createElement("div"), {
+          className: "sl-toast-stack"
+        });
+      }
+      return this.currentToastStack;
     }
     firstUpdated() {
       this.base.hidden = !this.open;
@@ -21764,10 +21778,10 @@
     async toast() {
       return new Promise((resolve) => {
         this.handleCountdownChange();
-        if (toastStack.parentElement === null) {
-          document.body.append(toastStack);
+        if (_SlAlert2.toastStack.parentElement === null) {
+          document.body.append(_SlAlert2.toastStack);
         }
-        toastStack.appendChild(this);
+        _SlAlert2.toastStack.appendChild(this);
         requestAnimationFrame(() => {
           this.clientWidth;
           this.show();
@@ -21775,10 +21789,10 @@
         this.addEventListener(
           "sl-after-hide",
           () => {
-            toastStack.removeChild(this);
+            _SlAlert2.toastStack.removeChild(this);
             resolve();
-            if (toastStack.querySelector("sl-alert") === null) {
-              toastStack.remove();
+            if (_SlAlert2.toastStack.querySelector("sl-alert") === null) {
+              _SlAlert2.toastStack.remove();
             }
           },
           { once: true }
@@ -21842,38 +21856,39 @@
     `;
     }
   };
-  SlAlert.styles = [component_styles_default, alert_styles_default];
-  SlAlert.dependencies = { "sl-icon-button": SlIconButton };
+  _SlAlert.styles = [component_styles_default, alert_styles_default];
+  _SlAlert.dependencies = { "sl-icon-button": SlIconButton };
   __decorateClass2([
     e6('[part~="base"]')
-  ], SlAlert.prototype, "base", 2);
+  ], _SlAlert.prototype, "base", 2);
   __decorateClass2([
     e6(".alert__countdown-elapsed")
-  ], SlAlert.prototype, "countdownElement", 2);
+  ], _SlAlert.prototype, "countdownElement", 2);
   __decorateClass2([
     n5({ type: Boolean, reflect: true })
-  ], SlAlert.prototype, "open", 2);
+  ], _SlAlert.prototype, "open", 2);
   __decorateClass2([
     n5({ type: Boolean, reflect: true })
-  ], SlAlert.prototype, "closable", 2);
+  ], _SlAlert.prototype, "closable", 2);
   __decorateClass2([
     n5({ reflect: true })
-  ], SlAlert.prototype, "variant", 2);
+  ], _SlAlert.prototype, "variant", 2);
   __decorateClass2([
     n5({ type: Number })
-  ], SlAlert.prototype, "duration", 2);
+  ], _SlAlert.prototype, "duration", 2);
   __decorateClass2([
     n5({ type: String, reflect: true })
-  ], SlAlert.prototype, "countdown", 2);
+  ], _SlAlert.prototype, "countdown", 2);
   __decorateClass2([
     r7()
-  ], SlAlert.prototype, "remainingTime", 2);
+  ], _SlAlert.prototype, "remainingTime", 2);
   __decorateClass2([
     watch("open", { waitUntilFirstUpdate: true })
-  ], SlAlert.prototype, "handleOpenChange", 1);
+  ], _SlAlert.prototype, "handleOpenChange", 1);
   __decorateClass2([
     watch("duration")
-  ], SlAlert.prototype, "handleDurationChange", 1);
+  ], _SlAlert.prototype, "handleDurationChange", 1);
+  var SlAlert = _SlAlert;
   setDefaultAnimation("alert.show", {
     keyframes: [
       { opacity: 0, scale: 0.8 },
@@ -21889,10 +21904,10 @@
     options: { duration: 250, easing: "ease" }
   });
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.6CPFZNL4.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3LKW2IFA.js
   SlAlert.define("sl-alert");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.7DUCI5S4.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.7DUCI5S4.js
   var spinner_styles_default = i2`
   :host {
     --track-width: 2px;
@@ -21952,7 +21967,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.2V366PRZ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.MK453YAN.js
   var SlSpinner = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -21969,7 +21984,7 @@
   };
   SlSpinner.styles = [component_styles_default, spinner_styles_default];
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3RPBFEDE.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3RPBFEDE.js
   var formCollections = /* @__PURE__ */ new WeakMap();
   var reportValidityOverloads = /* @__PURE__ */ new WeakMap();
   var checkValidityOverloads = /* @__PURE__ */ new WeakMap();
@@ -22259,7 +22274,7 @@
     customError: true
   }));
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.MAQXLKQ7.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.MAQXLKQ7.js
   var button_styles_default = i2`
   :host {
     display: inline-block;
@@ -22855,7 +22870,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.COXGQD2T.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KEXJVXAU.js
   var SlButton = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -23109,10 +23124,10 @@
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlButton.prototype, "handleDisabledChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BOEMEVVW.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.UG6RICOR.js
   SlButton.define("sl-button");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GGT72J62.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GGT72J62.js
   var input_styles_default = i2`
   :host {
     display: block;
@@ -23401,7 +23416,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GI7VDIWX.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GI7VDIWX.js
   var defaultValue = (propertyName = "value") => (proto, key) => {
     const ctor = proto.constructor;
     const attributeChangedCallback = ctor.prototype.attributeChangedCallback;
@@ -23421,7 +23436,7 @@
     };
   };
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.SI4ACBFK.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.SI4ACBFK.js
   var form_control_styles_default = i2`
   .form-control .form-control__label {
     display: none;
@@ -23501,7 +23516,7 @@
     }
   });
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.UA4HYG7D.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.NS24TQAP.js
   var SlInput = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -23949,10 +23964,10 @@
     watch("value", { waitUntilFirstUpdate: true })
   ], SlInput.prototype, "handleValueChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.AYM4DUFB.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.K7OY4NWI.js
   SlInput.define("sl-input");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.K35GSB4N.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.K35GSB4N.js
   var avatar_styles_default = i2`
   :host {
     display: inline-block;
@@ -24018,7 +24033,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.LC7H7NPQ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XCILOT2T.js
   var SlAvatar = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -24102,13 +24117,13 @@
     watch("image")
   ], SlAvatar.prototype, "handleImageChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.VKUFXANV.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.M343NXS3.js
   SlAvatar.define("sl-avatar");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.IEJHVVJE.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.PWF436UQ.js
   SlSpinner.define("sl-spinner");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.A5D6FTFY.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.A5D6FTFY.js
   var card_styles_default = i2`
   :host {
     --border-color: var(--sl-color-neutral-200);
@@ -24176,7 +24191,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.VRMI7PZD.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.YUOHZV33.js
   var SlCard = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -24203,10 +24218,10 @@
   };
   SlCard.styles = [component_styles_default, card_styles_default];
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.DRU75V4E.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.JYMZWSP5.js
   SlCard.define("sl-card");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.J7PLVEQM.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.J7PLVEQM.js
   var details_styles_default = i2`
   :host {
     display: block;
@@ -24291,7 +24306,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KYPWTZAR.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.2OJZ4GYU.js
   var SlDetails = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -24482,10 +24497,10 @@
     options: { duration: 250, easing: "linear" }
   });
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BDXKNOIF.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.CVHNT5ZP.js
   SlDetails.define("sl-details");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.SUSCR7CI.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.SUSCR7CI.js
   var divider_styles_default = i2`
   :host {
     --color: var(--sl-panel-border-color);
@@ -24507,7 +24522,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.VSGEKCRE.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.6EQLH47D.js
   var SlDivider = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -24529,10 +24544,10 @@
     watch("vertical")
   ], SlDivider.prototype, "handleVerticalChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QFMNHP3G.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.TS4FQXY2.js
   SlDivider.define("sl-divider");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.V2OL7VMD.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.V2OL7VMD.js
   var tag_styles_default = i2`
   :host {
     display: inline-block;
@@ -24648,7 +24663,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KN3J5VWI.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GQULGLWO.js
   var SlTag = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -24716,10 +24731,10 @@
     n5({ type: Boolean })
   ], SlTag.prototype, "removable", 2);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.H5RLO2CN.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GTD6ML73.js
   SlTag.define("sl-tag");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.LXP7GVU3.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.LXP7GVU3.js
   var dropdown_styles_default = i2`
   :host {
     display: inline-block;
@@ -24770,7 +24785,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.LXDTFLWU.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.OSU5LOVZ.js
   var computedStyleMap = /* @__PURE__ */ new WeakMap();
   function getCachedComputedStyle(el) {
     let computedStyle = computedStyleMap.get(el);
@@ -24819,8 +24834,15 @@
     if (el.closest("[inert]")) {
       return false;
     }
-    if (tag === "input" && el.getAttribute("type") === "radio" && !el.hasAttribute("checked")) {
-      return false;
+    if (tag === "input" && el.getAttribute("type") === "radio") {
+      const rootNode = el.getRootNode();
+      const findRadios = `input[type='radio'][name="${el.getAttribute("name")}"]`;
+      const firstChecked = rootNode.querySelector(`${findRadios}:checked`);
+      if (firstChecked) {
+        return firstChecked === el;
+      }
+      const firstRadio = rootNode.querySelector(findRadios);
+      return firstRadio === el;
     }
     if (!isVisible(el)) {
       return false;
@@ -24897,7 +24919,7 @@
     });
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3KSWVBQ5.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3KSWVBQ5.js
   var popup_styles_default = i2`
   :host {
     --arrow-color: var(--sl-color-neutral-1000);
@@ -26420,7 +26442,7 @@
     return null;
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.AGN5FBOG.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.R37ISJMH.js
   function isVirtualElement(e13) {
     return e13 !== null && typeof e13 === "object" && "getBoundingClientRect" in e13 && ("contextElement" in e13 ? e13 instanceof Element : true);
   }
@@ -26811,7 +26833,7 @@
     n5({ attribute: "hover-bridge", type: Boolean })
   ], SlPopup.prototype, "hoverBridge", 2);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.HW4ZDOHE.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GUCRZEMY.js
   var SlDropdown = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -27141,10 +27163,10 @@
     options: { duration: 100, easing: "ease" }
   });
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.K4DMSZDN.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.Q3GT5LXI.js
   SlDropdown.define("sl-dropdown");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.WQC6OWUE.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.WQC6OWUE.js
   var badge_styles_default = i2`
   :host {
     display: inline-flex;
@@ -27236,7 +27258,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.L4XPMVVI.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.SBEV2IKJ.js
   var SlBadge = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -27276,10 +27298,10 @@
     n5({ type: Boolean, reflect: true })
   ], SlBadge.prototype, "pulse", 2);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.RNJRBJGZ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.D6KJQGFZ.js
   SlBadge.define("sl-badge");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.EU44RQUN.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.EU44RQUN.js
   var switch_styles_default = i2`
   :host {
     display: inline-block;
@@ -27447,7 +27469,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.HGGN4WX3.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.5D46J4QT.js
   var SlSwitch = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -27658,10 +27680,10 @@
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlSwitch.prototype, "handleDisabledChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.S2DUEYZU.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.CZJW6426.js
   SlSwitch.define("sl-switch");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.R3NF57O3.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.R3NF57O3.js
   var checkbox_styles_default = i2`
   :host {
     display: inline-block;
@@ -27782,7 +27804,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.YZSPQB4P.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.AHFQSUH3.js
   var SlCheckbox = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -28002,10 +28024,10 @@
     watch(["checked", "indeterminate"], { waitUntilFirstUpdate: true })
   ], SlCheckbox.prototype, "handleStateChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QCWFNQJD.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ZD2IWFWF.js
   SlCheckbox.define("sl-checkbox");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KZJNDGFO.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.KZJNDGFO.js
   var menu_item_styles_default = i2`
   :host {
     --submenu-offset: -2px;
@@ -28248,7 +28270,7 @@
     }
   });
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ZLIGP6HZ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ZLIGP6HZ.js
   var SubmenuController = class {
     constructor(host, hasSlotController) {
       this.popupRef = e11();
@@ -28478,7 +28500,7 @@
     }
   };
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GHG37OLZ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.JGDQQFMA.js
   var SlMenuItem = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -28629,10 +28651,10 @@
     watch("type")
   ], SlMenuItem.prototype, "handleTypeChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.EKO3L6KO.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QEDIRWQS.js
   SlMenuItem.define("sl-menu-item");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.VVA35HTY.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.VVA35HTY.js
   var menu_styles_default = i2`
   :host {
     display: block;
@@ -28650,7 +28672,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.UHA22HSA.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GIGQL3HG.js
   var SlMenu = class extends ShoelaceElement {
     connectedCallback() {
       super.connectedCallback();
@@ -28767,13 +28789,13 @@
     e6("slot")
   ], SlMenu.prototype, "defaultSlot", 2);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.4KSSK4CB.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.JGMXX6EB.js
   SlMenu.define("sl-menu");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XCHVWIJM.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.J6GO6RVP.js
   SlIconButton.define("sl-icon-button");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.2OUC42YY.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.2OUC42YY.js
   var button_group_styles_default = i2`
   :host {
     display: inline-block;
@@ -28785,7 +28807,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GRDZU4DK.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.UEYUGH42.js
   var SlButtonGroup = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -28858,10 +28880,10 @@
     return (_a = el.closest(selector)) != null ? _a : el.querySelector(selector);
   }
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.WLDLOEOA.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.SVYKHJ3R.js
   SlButtonGroup.define("sl-button-group");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XNOUITPX.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XNOUITPX.js
   var select_styles_default = i2`
   :host {
     display: block;
@@ -29206,7 +29228,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.RWUUFNUL.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.RWUUFNUL.js
   function getOffset(element, parent) {
     return {
       top: Math.round(element.getBoundingClientRect().top - parent.getBoundingClientRect().top),
@@ -29255,7 +29277,7 @@
   e12.directiveName = "unsafeHTML", e12.resultType = 1;
   var o10 = e8(e12);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.NHYY7X64.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.7BBVTMGQ.js
   var SlSelect = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -30010,10 +30032,10 @@
     options: { duration: 100, easing: "ease" }
   });
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BDFXHH5V.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.CXV5POUE.js
   SlSelect.define("sl-select");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.FXXKMG2P.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.FXXKMG2P.js
   var option_styles_default = i2`
   :host {
     display: block;
@@ -30100,11 +30122,12 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.LHYNW26B.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.LKVYRWLR.js
   var SlOption = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
       this.localize = new LocalizeController2(this);
+      this.isInitialized = false;
       this.current = false;
       this.selected = false;
       this.hasHover = false;
@@ -30117,12 +30140,16 @@
       this.setAttribute("aria-selected", "false");
     }
     handleDefaultSlotChange() {
-      customElements.whenDefined("sl-select").then(() => {
-        const controller = this.closest("sl-select");
-        if (controller) {
-          controller.handleDefaultSlotChange();
-        }
-      });
+      if (this.isInitialized) {
+        customElements.whenDefined("sl-select").then(() => {
+          const controller = this.closest("sl-select");
+          if (controller) {
+            controller.handleDefaultSlotChange();
+          }
+        });
+      } else {
+        this.isInitialized = true;
+      }
     }
     handleMouseEnter() {
       this.hasHover = true;
@@ -30213,10 +30240,10 @@
     watch("value")
   ], SlOption.prototype, "handleValueChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.MXB57G5B.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.OW2SNIQF.js
   SlOption.define("sl-option");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XJU7WU2G.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.XJU7WU2G.js
   var tab_group_styles_default = i2`
   :host {
     --indicator-color: var(--sl-color-primary-600);
@@ -30453,14 +30480,14 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.5VKIB4HA.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.5VKIB4HA.js
   var resize_observer_styles_default = i2`
   :host {
     display: contents;
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.CLFXSSNK.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.RFUVGQ2A.js
   var SlResizeObserver = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -30519,7 +30546,7 @@
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlResizeObserver.prototype, "handleDisabledChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.Q2RKBAJQ.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GGEFQQUA.js
   var SlTabGroup = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -30552,6 +30579,12 @@
         }
         if (mutations.some((m4) => m4.attributeName === "disabled")) {
           this.syncTabsAndPanels();
+        } else if (mutations.some((m4) => m4.attributeName === "active")) {
+          const tabs = mutations.filter((m4) => m4.attributeName === "active" && m4.target.tagName.toLowerCase() === "sl-tab").map((m4) => m4.target);
+          const newActiveTab = tabs.find((tab) => tab.active);
+          if (newActiveTab) {
+            this.setActiveTab(newActiveTab);
+          }
         }
       });
       this.updateComplete.then(() => {
@@ -30908,10 +30941,10 @@
     watch("placement", { waitUntilFirstUpdate: true })
   ], SlTabGroup.prototype, "syncIndicator", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.H677XEBO.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.P7736WD6.js
   SlTabGroup.define("sl-tab-group");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.OQXPL73S.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ZH2AND3P.js
   var debounce = (fn, delay) => {
     let timerId = 0;
     return function(...args) {
@@ -30928,45 +30961,50 @@
       decorateFn.call(this, superFn, ...args);
     };
   };
-  var isSupported = "onscrollend" in window;
-  if (!isSupported) {
-    const pointers = /* @__PURE__ */ new Set();
-    const scrollHandlers = /* @__PURE__ */ new WeakMap();
-    const handlePointerDown = (event) => {
-      for (const touch of event.changedTouches) {
-        pointers.add(touch.identifier);
-      }
-    };
-    const handlePointerUp = (event) => {
-      for (const touch of event.changedTouches) {
-        pointers.delete(touch.identifier);
-      }
-    };
-    document.addEventListener("touchstart", handlePointerDown, true);
-    document.addEventListener("touchend", handlePointerUp, true);
-    document.addEventListener("touchcancel", handlePointerUp, true);
-    decorate(EventTarget.prototype, "addEventListener", function(addEventListener2, type) {
-      if (type !== "scrollend") return;
-      const handleScrollEnd = debounce(() => {
-        if (!pointers.size) {
-          this.dispatchEvent(new Event("scrollend"));
-        } else {
-          handleScrollEnd();
+  (() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const isSupported = "onscrollend" in window;
+    if (!isSupported) {
+      const pointers = /* @__PURE__ */ new Set();
+      const scrollHandlers = /* @__PURE__ */ new WeakMap();
+      const handlePointerDown = (event) => {
+        for (const touch of event.changedTouches) {
+          pointers.add(touch.identifier);
         }
-      }, 100);
-      addEventListener2.call(this, "scroll", handleScrollEnd, { passive: true });
-      scrollHandlers.set(this, handleScrollEnd);
-    });
-    decorate(EventTarget.prototype, "removeEventListener", function(removeEventListener, type) {
-      if (type !== "scrollend") return;
-      const scrollHandler = scrollHandlers.get(this);
-      if (scrollHandler) {
-        removeEventListener.call(this, "scroll", scrollHandler, { passive: true });
-      }
-    });
-  }
+      };
+      const handlePointerUp = (event) => {
+        for (const touch of event.changedTouches) {
+          pointers.delete(touch.identifier);
+        }
+      };
+      document.addEventListener("touchstart", handlePointerDown, true);
+      document.addEventListener("touchend", handlePointerUp, true);
+      document.addEventListener("touchcancel", handlePointerUp, true);
+      decorate(EventTarget.prototype, "addEventListener", function(addEventListener2, type) {
+        if (type !== "scrollend") return;
+        const handleScrollEnd = debounce(() => {
+          if (!pointers.size) {
+            this.dispatchEvent(new Event("scrollend"));
+          } else {
+            handleScrollEnd();
+          }
+        }, 100);
+        addEventListener2.call(this, "scroll", handleScrollEnd, { passive: true });
+        scrollHandlers.set(this, handleScrollEnd);
+      });
+      decorate(EventTarget.prototype, "removeEventListener", function(removeEventListener, type) {
+        if (type !== "scrollend") return;
+        const scrollHandler = scrollHandlers.get(this);
+        if (scrollHandler) {
+          removeEventListener.call(this, "scroll", scrollHandler, { passive: true });
+        }
+      });
+    }
+  })();
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.CNMNUZLG.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.CNMNUZLG.js
   var tab_styles_default = i2`
   :host {
     display: inline-block;
@@ -31034,7 +31072,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.3A7IH3I2.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.YVNZAAAF.js
   var id2 = 0;
   var SlTab = class extends ShoelaceElement {
     constructor() {
@@ -31123,10 +31161,10 @@
     watch("disabled")
   ], SlTab.prototype, "handleDisabledChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.Q4RQY3NF.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.NPC6ZJIS.js
   SlTab.define("sl-tab");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BQSEJD7X.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BQSEJD7X.js
   var tab_panel_styles_default = i2`
   :host {
     --padding: 0;
@@ -31144,7 +31182,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BOQAU5BC.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.MI22USMT.js
   var id3 = 0;
   var SlTabPanel = class extends ShoelaceElement {
     constructor() {
@@ -31185,10 +31223,10 @@
     watch("active")
   ], SlTabPanel.prototype, "handleActiveChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.REUF334Y.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.BWPPYEQO.js
   SlTabPanel.define("sl-tab-panel");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.B63YXDJO.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.B63YXDJO.js
   var radio_group_styles_default = i2`
   :host {
     display: block;
@@ -31223,7 +31261,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.YRC2LFOR.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.GV6SB2T4.js
   var SlRadioGroup = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -31547,10 +31585,10 @@
     watch("value")
   ], SlRadioGroup.prototype, "handleValueChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.T6N3KRRV.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.E37SKQWO.js
   SlRadioGroup.define("sl-radio-group");
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.2P5EQCYK.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.2P5EQCYK.js
   var radio_button_styles_default = i2`
   ${button_styles_default}
 
@@ -31577,7 +31615,7 @@
   }
 `;
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.OCZMYLNR.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.ONKYEDUJ.js
   var SlRadioButton = class extends ShoelaceElement {
     constructor() {
       super(...arguments);
@@ -31685,7 +31723,7 @@
     watch("disabled", { waitUntilFirstUpdate: true })
   ], SlRadioButton.prototype, "handleDisabledChange", 1);
 
-  // node_modules/.pnpm/@shoelace-style+shoelace@2.19.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.QNHJ67FH.js
+  // node_modules/.pnpm/@shoelace-style+shoelace@2.20.0_@floating-ui+utils@0.2.8_@types+react@18.3.14/node_modules/@shoelace-style/shoelace/dist/chunks/chunk.J3OB4WAW.js
   SlRadioButton.define("sl-radio-button");
 
   // src/solid-js/lib/shoelace-setup.ts

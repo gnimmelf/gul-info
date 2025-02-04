@@ -4,16 +4,13 @@ import { unwrap } from 'solid-js/store';
 import { deepCopy, toDotPath } from '~/shared/lib/utils';
 import { MAX_LINKS } from '~/shared/constants';
 
-import { ListingSchemaType } from '~/shared/models/listing/Listing';
-import { CreateListingDtoSchema } from '~/shared/models/listing/CreateListingDto';
-import { UpdateListingDtoSchema } from '~/shared/models/listing/UpdateListingDto';
+import { CreateListingDto, CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
+import { UpdateListingDto, UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
 
-import { CRUD_MODES } from '~/solid-js/lib/enums';
 import { FormState } from '~/solid-js/lib/FormState';
 
 import { join, addCss, Theme } from '~/shared/ui/theme';
 import { FormField } from './FormField';
-import { ListingPayload } from '~/solid-js/application/ListingPayload';
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -46,23 +43,18 @@ const css = addCss({
   }),
 });
 
-const SCHEMAS = {
-  [CRUD_MODES.CREATE]: CreateListingDtoSchema,
-  [CRUD_MODES.UPDATE]: UpdateListingDtoSchema,
-} as const;
-
 /**
  * Component
  */
 export const ListingForm: Component<{
-  listingPayload: ListingPayload;
+  listingDto: CreateListingDto | UpdateListingDto;
   setIsDirty: Setter<boolean>;
-  onSubmit: (listingPayload: ListingPayload) => void;
+  onSubmit: (listing: CreateListingDto | UpdateListingDto) => void;
   onCancel: () => void;
 }> = (props) => {
   const defaultFormElementSize = 'small';
 
-  const formState = new FormState<ListingSchemaType>();
+  const formState = new FormState<CreateListingDtoSchemaType & UpdateListingDtoSchemaType>();
 
   // Get the values, only known way to keep type definitions
   const [values, setValue] = formState.getStore();
@@ -70,11 +62,8 @@ export const ListingForm: Component<{
   createEffect(() => {
     // (Re)Initialize formState when model changes
     formState.initialize({
-      initialValues: props.listingPayload.data,
-      schema:
-        SCHEMAS[
-          props.listingPayload.mode as CRUD_MODES.CREATE | CRUD_MODES.UPDATE
-        ],
+      initialValues: props.listingDto.data,
+      schema: props.listingDto.schema,
     });
   });
 
@@ -97,14 +86,17 @@ export const ListingForm: Component<{
 
   function handleSubmit() {
     formState.validateAll();
+    console.log('values', unwrap(values))
     if (formState.hasErrors()) {
       console.log('errors', unwrap(formState.errors));
       return;
     }
-    props.onSubmit({
-      ...props.listingPayload,
-      data: deepCopy(values),
-    });
+
+    if (props.listingDto instanceof CreateListingDto) {
+      props.onSubmit(CreateListingDto.from({}));
+    } else if (props.listingDto instanceof UpdateListingDto) {
+      props.onSubmit(UpdateListingDto.from(values));
+    }
   }
 
   return (
