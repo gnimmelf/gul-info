@@ -141,7 +141,7 @@ export class SurrealDbAdapter implements IDatabase {
   }
 
   async createListing(data: CreateListingDtoSchemaType) {
-    data.tags = ['tags:1']
+    data.tags = ['tags:1'];
     const query = `CREATE ONLY listing CONTENT ${JSON.stringify(data)} RETURN diff;`;
     console.log({ query });
     const res = pop<ListingSchemaType>(await this.client.query(query));

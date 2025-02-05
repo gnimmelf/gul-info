@@ -1,11 +1,17 @@
 import { Setter, Component, createEffect, For } from 'solid-js';
 import { unwrap } from 'solid-js/store';
 
-import { deepCopy, toDotPath } from '~/shared/lib/utils';
+import { toDotPath } from '~/shared/lib/utils';
 import { MAX_LINKS } from '~/shared/constants';
 
-import { CreateListingDto, CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
-import { UpdateListingDto, UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
+import {
+  CreateListingDto,
+  CreateListingDtoSchemaType,
+} from '~/shared/models/listing/CreateListingDto';
+import {
+  UpdateListingDto,
+  UpdateListingDtoSchemaType,
+} from '~/shared/models/listing/UpdateListingDto';
 
 import { FormState } from '~/solid-js/lib/FormState';
 
@@ -54,7 +60,9 @@ export const ListingForm: Component<{
 }> = (props) => {
   const defaultFormElementSize = 'small';
 
-  const formState = new FormState<CreateListingDtoSchemaType & UpdateListingDtoSchemaType>();
+  const formState = new FormState<
+    CreateListingDtoSchemaType & UpdateListingDtoSchemaType
+  >();
 
   // Get the values, only known way to keep type definitions
   const [values, setValue] = formState.getStore();
@@ -86,7 +94,7 @@ export const ListingForm: Component<{
 
   function handleSubmit() {
     formState.validateAll();
-    console.log('values', unwrap(values))
+    console.log('values', unwrap(values));
     if (formState.hasErrors()) {
       console.log('errors', unwrap(formState.errors));
       return;

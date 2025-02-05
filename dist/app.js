@@ -15961,23 +15961,6 @@
     ZodError
   });
 
-  // src/shared/lib/_WithState.ts
-  var _WithState = class {
-    _state;
-    constructor(initialState) {
-      this._state = initialState;
-    }
-    state = () => {
-      return { ...this._state };
-    };
-    setState = (value) => {
-      this._state = typeof value === "function" ? value(this._state) : {
-        ...this._state,
-        ...value
-      };
-    };
-  };
-
   // node_modules/.pnpm/just-clone@6.2.0/node_modules/just-clone/index.mjs
   var collectionClone = clone;
   function clone(obj) {
@@ -16223,44 +16206,46 @@
     TagsMatchType2["ANY"] = "ANY";
     return TagsMatchType2;
   })(TagsMatchType || {});
-  var FilterStateSchema = z.object({
+  var FiltersSchema = z.object({
     text: z.string().optional().default(""),
     tagKeys: z.array(z.string()).optional().default([]),
     indexLetter: z.string().optional().default(""),
     tagsMatchType: z.nativeEnum(TagsMatchType).default("ALL" /* ALL */)
   });
-  var Filters = class _Filters extends _WithState {
+  var Filters = class _Filters {
+    schema = FiltersSchema;
+    data;
     constructor(data) {
-      super(data);
+      this.data = data;
     }
     static from(data) {
-      const parsedData = parseWithDefaults(FilterStateSchema, data);
+      const parsedData = parseWithDefaults(FiltersSchema, data);
       return new _Filters(parsedData);
     }
     setText(value) {
-      this.setState({ text: value });
+      this.data.text = value;
     }
     setIndexLetter(value) {
-      const next = value.toLocaleLowerCase() != this.state().indexLetter ? value : "";
-      this.setState({ indexLetter: next.toLocaleLowerCase() });
+      const prev = this.data.indexLetter;
+      const next = value.toLocaleLowerCase() != prev ? value.toLocaleLowerCase() : "";
+      this.data.indexLetter = next;
     }
     setTag(tagKey, toggle = true) {
-      const prev = this.state().tagKeys;
-      const idx = prev.indexOf(tagKey);
-      const next = toggle ? idx < 0 ? prev.concat(tagKey) : [...prev.slice(0, idx), ...prev.slice(idx + 1)] : (
+      const { tagKeys } = this.data;
+      const idx = tagKeys.indexOf(tagKey);
+      this.data.tagKeys = toggle ? idx < 0 ? tagKeys.concat(tagKey) : [...tagKeys.slice(0, idx), ...tagKeys.slice(idx + 1)] : (
         // No toggle, just replace
         [tagKey]
       );
-      this.setState({ tagKeys: next });
     }
     setTagsMatchType(matchType) {
-      this.setState({ tagsMatchType: matchType });
+      this.data.tagsMatchType = matchType;
     }
     isActiveIndexLetter(letter) {
-      return this.state().indexLetter === letter.toLocaleLowerCase();
+      return this.data.indexLetter === letter.toLocaleLowerCase();
     }
     hasTag(tagKey) {
-      return this.state().tagKeys.includes(tagKey);
+      return this.data.tagKeys.includes(tagKey);
     }
   };
 
@@ -17523,37 +17508,6 @@
     return instance;
   };
 
-  // src/solid-js/serviceAdapters/withReactiveState.ts
-  var withReactiveState = (instance) => {
-    if (!(instance instanceof _WithState)) {
-      throw new Error("Passed instance must extend `_WithState`");
-    }
-    const [state, setState] = createSignal(instance.state());
-    const originalSetState = instance.setState.bind(instance);
-    const proxy = new Proxy(instance, {
-      get(target, prop) {
-        if (prop === "state") {
-          return state;
-        }
-        if (prop === "setState" && typeof originalSetState === "function") {
-          return (value) => {
-            originalSetState(value);
-            setState(instance.state());
-          };
-        }
-        return target[prop];
-      },
-      set(target, prop, value) {
-        if (prop === "state" || prop === "setState") {
-          throw new Error(`Cannot overwrite ${String(prop)}.`);
-        }
-        target[prop] = value;
-        return true;
-      }
-    });
-    return proxy;
-  };
-
   // src/shared/lib/ExposeDataAsSchemaProps.ts
   function ExposeDataAsSchemaProps(schema) {
     return function(constructor) {
@@ -17631,917 +17585,9 @@
   };
 
   // src/solid-js/serviceAdapters/checkAdapterReturnType.ts
-  var checkAdapterReturnType = (config) => {
-    return config;
+  var checkAdapterReturnType = (shape) => {
+    return shape;
   };
-
-  // src/solid-js/serviceAdapters/createDirectoryServiceAdaper.ts
-  var createDirectoryServiceAdapter = async (db) => {
-    const filters = withReactiveState(
-      Filters.from({
-        tagsMatchType: "ANY" /* ANY */
-      })
-    );
-    const instance = new DirectoryService(db);
-    const [tags] = createResource(() => instance.loadTags());
-    const [indexLetters] = createResource(() => instance.loadIndexLetters());
-    const adapter = checkAdapterReturnType({
-      resources: {
-        tags,
-        indexLetters
-      },
-      filters: () => filters
-    });
-    return adapter;
-  };
-
-  // src/shared/models/UserViewModel.ts
-  var UserViewSchema = z.object({
-    id: z.any(),
-    name: z.string(),
-    email: z.string().email()
-  });
-  var UserViewModel = class {
-    data;
-    constructor(data) {
-      this.data = data;
-    }
-    static from(data) {
-      const parsedData = UserViewSchema.parse(data);
-      return new UserViewModel(parsedData);
-    }
-  };
-  UserViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(UserViewSchema)
-  ], UserViewModel);
-
-  // src/domains/ui/account/AccountService.ts
-  var AccountService = class {
-    db;
-    constructor(db) {
-      this.db = db;
-    }
-    async getUser(token) {
-      await timeout();
-      await this.db.authenticate(token, true);
-      const data = await this.db.getUserData();
-      const model = UserViewModel.from(data);
-      return model;
-    }
-  };
-
-  // src/solid-js/serviceAdapters/createAccountServiceAdaper.ts
-  var createAccountServiceAdaper = (db, auth) => {
-    const account = new AccountService(db);
-    const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);
-    const [isAuthenticated] = createResource(
-      () => shouldAuthenticate(),
-      () => auth.isAuthenticated()
-    );
-    const [authData] = createResource(
-      () => isAuthenticated(),
-      async () => {
-        const data = await auth.getAuthData();
-        return data;
-      }
-    );
-    const mustVerifyEmail = createMemo(
-      () => authData()?.email_verified ? false : authData()?.email
-    );
-    const [user] = createResource(
-      () => {
-        if (authData() && !mustVerifyEmail()) {
-          return true;
-        }
-        setShouldAuthenticate(true);
-      },
-      async () => {
-        const token = await auth.getAccessToken();
-        const user2 = await account.getUser(token);
-        return user2;
-      }
-    );
-    const adapter = checkAdapterReturnType({
-      resources: {
-        user
-      },
-      mustVerifyEmail,
-      login: auth.login.bind(auth),
-      logout: auth.logout.bind(auth)
-    });
-    return adapter;
-  };
-
-  // src/shared/models/listing/Listing.ts
-  var LinkShema = z.object({
-    href: z.string().url()
-  });
-  var ListingSchema = z.object({
-    id: z.any(),
-    owner: z.any(),
-    isActive: z.boolean(),
-    title: z.string(),
-    description: z.string(),
-    address: z.string(),
-    zip: z.string(),
-    muncipiality: z.string(),
-    phone: z.string(),
-    email: z.string(),
-    // TODO! Tags
-    tags: z.array(z.any()),
-    // SubSchemas
-    links: z.array(LinkShema)
-  });
-  var Listing = class {
-    schema = ListingSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(ListingSchema, data);
-      return new Listing(parsedData);
-    }
-  };
-  Listing = __decorateClass([
-    ExposeDataAsSchemaProps(ListingSchema)
-  ], Listing);
-
-  // src/shared/models/listing/ListingViewModel.ts
-  var ListingViewSchema = z.object({
-    title: z.string(),
-    description: z.string(),
-    address: z.string(),
-    zip: z.string(),
-    muncipiality: z.string(),
-    phone: z.string(),
-    email: z.string().email(),
-    links: z.array(
-      z.object({
-        href: z.string()
-      })
-    ),
-    tags: z.array(TagViewSchema.omit({ usageCount: true }))
-  });
-  var ListingViewModel = class {
-    schema = ListingViewSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(ListingViewSchema, data);
-      return new ListingViewModel(parsedData);
-    }
-  };
-  ListingViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(ListingViewSchema)
-  ], ListingViewModel);
-
-  // src/domains/ui/listings/ListingsService.ts
-  var ListingsService = class {
-    db;
-    constructor(db) {
-      this.db = db;
-    }
-    async loadListingsByFilters(filters) {
-      await timeout();
-      const data = await this.db.getListingsByFilters(filters);
-      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => ListingViewModel.from(data2));
-      return res;
-    }
-    async loadListingsByEmail(email2) {
-      await timeout();
-      const data = await this.db.getListingsByEmail(email2);
-      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => Listing.from(data2));
-      return res;
-    }
-    async createListing(listing) {
-      await timeout(500);
-      const data = await this.db.createListing(listing.data);
-      return Listing.from({ ...listing, ...data });
-    }
-    async updateListing(listing) {
-      await timeout(500);
-      const data = await this.db.updateListing(listing.data);
-      return Listing.from({ ...listing, ...data });
-    }
-  };
-
-  // src/shared/zod/schemas.ts
-  var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
-  var rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
-  var reStreet = new RegExp(/^[\p{L}'][ \p{L}\p{N}'-,]{8,}$/u);
-  var reZip = new RegExp(/^\d{4}$/);
-  var email = z.string().trim().email("Must be a valid email address");
-  var name = z.string().trim().regex(reName, "Must be a valid name");
-  var address = z.string().trim().regex(reStreet, "Must be a valid street address");
-  var zip = z.string().trim().regex(reZip, "Must be a valid zip code");
-  var phone = z.preprocess(
-    (val) => val?.split(" ").join(""),
-    z.string().trim().regex(rePhone, "Must be a valid phone number")
-  );
-
-  // src/shared/models/listing/UpdateListingDto.ts
-  var UpdateListingDtoSchema = ListingSchema.extend({
-    id: ListingSchema.shape.id,
-    isActive: ListingSchema.shape.isActive,
-    title: ListingSchema.shape.title.min(3).max(70),
-    description: ListingSchema.shape.description.min(15).max(150),
-    address,
-    zip,
-    muncipiality: ListingSchema.shape.muncipiality,
-    phone,
-    email,
-    // TODO! Tags
-    tags: z.array(z.any()).min(1).default([]),
-    // Sub-schemas
-    links: z.array(LinkShema).default([])
-  });
-  var UpdateListingDto = class {
-    schema = UpdateListingDtoSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
-      return new UpdateListingDto(parsedData);
-    }
-  };
-  UpdateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
-  ], UpdateListingDto);
-
-  // src/shared/models/listing/CreateListingDto.ts
-  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
-    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
-    title: UpdateListingDtoSchema.shape.title.default(""),
-    description: UpdateListingDtoSchema.shape.description.default(""),
-    address: UpdateListingDtoSchema.shape.address.default(""),
-    zip: UpdateListingDtoSchema.shape.zip.default(""),
-    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
-    phone: UpdateListingDtoSchema.shape.phone.default(""),
-    email: UpdateListingDtoSchema.shape.email.default(""),
-    // TODO! Tags
-    tags: UpdateListingDtoSchema.shape.tags,
-    // Sub-schemas
-    links: UpdateListingDtoSchema.shape.links
-  }).omit({
-    id: true,
-    owner: true
-  });
-  var CreateListingDto = class {
-    schema = CreateListingDtoSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
-      return new CreateListingDto(parsedData);
-    }
-  };
-  CreateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(CreateListingDtoSchema)
-  ], CreateListingDto);
-
-  // src/solid-js/serviceAdapters/createListingsServiceAdaper.ts
-  var createListingsServiceAdaper = (db, user) => {
-    const service = new ListingsService(db);
-    const [onSaveListing, setSaveListing] = createSignal(
-      null
-    );
-    const [onFilterListings, setFilterListings] = createSignal(null);
-    const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
-      onFilterListings,
-      async (filters) => {
-        console.log({ filters });
-        const listings = await service.loadListingsByFilters(filters);
-        return listings;
-      }
-    );
-    const [myListings, { mutate: mutateMyListings }] = createResource(
-      user,
-      async ({ email: email2 }) => {
-        const listings = await service.loadListingsByEmail(email2);
-        return listings;
-      }
-    );
-    const [saveListing] = createResource(
-      onSaveListing,
-      async (listingDto) => {
-        let res;
-        if (listingDto instanceof CreateListingDto) {
-          res = service.createListing(listingDto);
-        } else if (listingDto instanceof UpdateListingDto) {
-          res = service.updateListing(listingDto);
-        }
-      }
-    );
-    const adapter = checkAdapterReturnType({
-      resources: {
-        filteredListings,
-        myListings,
-        saveListing
-      },
-      saveListing: setSaveListing,
-      filterListings: setFilterListings
-    });
-    return adapter;
-  };
-
-  // src/solid-js/ui/providers/ServiceProvider.tsx
-  var ServiceContext = createContext();
-  var ServiceProvider = (props) => {
-    const {
-      db,
-      configs
-    } = useSystem();
-    const [user, setUser] = createSignal(void 0);
-    const [account] = createResource(async () => {
-      const auth = await createAuthenticationAdaper(db, configs.auth0);
-      return createAccountServiceAdaper(db, auth);
-    });
-    createEffect(() => setUser(account()?.resources.user()));
-    const [listings] = createResource(() => createListingsServiceAdaper(db, user));
-    const [directory] = createResource(() => createDirectoryServiceAdapter(db));
-    const services = {
-      account,
-      listings,
-      directory
-    };
-    return createComponent(ServiceContext.Provider, {
-      value: services,
-      get children() {
-        return props.children;
-      }
-    });
-  };
-  var useService = () => {
-    const context = useContext(ServiceContext);
-    if (!context) {
-      throw new Error("useService must be used within an ServiceProvider");
-    }
-    return context;
-  };
-
-  // src/solid-js/ui/components/Loading.tsx
-  var _tmpl$ = /* @__PURE__ */ template(`<div><sl-spinner></sl-spinner><div>`, true, false);
-  var SIZES = /* @__PURE__ */ function(SIZES2) {
-    SIZES2["small"] = "small";
-    SIZES2["medium"] = "medium";
-    SIZES2["large"] = "large";
-    return SIZES2;
-  }(SIZES || {});
-  var css = addCss({
-    centered: (theme2) => ({
-      textAlign: "center"
-    })
-  });
-  var styleSizes = withTheme((theme2) => ({
-    small: `font-size: ${theme2.fontSizeSm}; --trackwidth: 3px;`,
-    medium: `font-size: ${theme2.fontSizeMd}; --trackwidth: 5px;`,
-    large: `font-size: ${theme2.fontSizeLg}; --trackwidth: 10px;`
-  }));
-  var Loading = (props) => {
-    const spinnerKey = props.size || SIZES.large;
-    const spinnerStyle = styleSizes()[spinnerKey];
-    return (() => {
-      var _el$ = _tmpl$(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
-      _el$2._$owner = getOwner();
-      insert(_el$3, () => props.children);
-      createRenderEffect((_p$) => {
-        var _v$ = join("loading", css.centered), _v$2 = spinnerStyle;
-        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
-        _p$.t = style(_el$2, _v$2, _p$.t);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0
-      });
-      return _el$;
-    })();
-  };
-
-  // src/solid-js/ui/components/AccountHead.tsx
-  var _tmpl$2 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
-  var AccountHead = (props) => {
-    const {
-      account
-    } = useService();
-    const user = () => account()?.resources.user();
-    return createComponent(Suspense, {
-      get fallback() {
-        return createComponent(Loading, {
-          size: "large"
-        });
-      },
-      get children() {
-        return [createMemo(() => props.children), createComponent(Show, {
-          get when() {
-            return user();
-          },
-          get children() {
-            return [createMemo(() => user()?.name), (() => {
-              var _el$ = _tmpl$2();
-              addEventListener(_el$, "click", () => account()?.logout());
-              _el$._$owner = getOwner();
-              return _el$;
-            })()];
-          }
-        })];
-      }
-    });
-  };
-
-  // src/solid-js/ui/components/Layout.tsx
-  var _tmpl$3 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
-  var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div>`);
-  var _tmpl$32 = /* @__PURE__ */ template(`<div>Error: `);
-  var css2 = addCss({
-    app: (theme2) => ({
-      padding: "10px 15px",
-      color: theme2.colorOnPrimary,
-      backgroundColor: theme2.colorPrimary,
-      font: "16px var(--sl-font-sans)",
-      fontWeight: "var(--sl-font-weight-normal)"
-    }),
-    border: (theme2) => ({
-      borderRadius: "10px",
-      border: "5px solid",
-      borderColor: theme2.colorAccent
-    }),
-    header: {
-      display: "flex",
-      justifyContent: "space-between"
-    },
-    title: (theme2) => ({
-      fontFamily: "'Playwrite HU', sans-serif",
-      fontSize: theme2.fontSizeLg,
-      cursor: "pointer"
-    }),
-    user: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "end"
-    }
-  });
-  var Layout = (props) => {
-    return (() => {
-      var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
-      addEventListener(_el$4, "click", props.toggleMainPages);
-      insert(_el$4, () => props.title);
-      insert(_el$5, createComponent(AccountHead, {
-        get children() {
-          var _el$6 = _tmpl$3();
-          addEventListener(_el$6, "click", props.toggleMainPages);
-          _el$6._$owner = getOwner();
-          createRenderEffect(() => _el$6.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
-          return _el$6;
-        }
-      }));
-      insert(_el$, createComponent(ErrorBoundary, {
-        fallback: (error) => {
-          console.error(error);
-          return (() => {
-            var _el$7 = _tmpl$32(), _el$8 = _el$7.firstChild;
-            insert(_el$7, () => error.message, null);
-            return _el$7;
-          })();
-        },
-        get children() {
-          return createComponent(Suspense, {
-            get fallback() {
-              return createComponent(Loading, {
-                children: "Layout"
-              });
-            },
-            get children() {
-              return props.children;
-            }
-          });
-        }
-      }), null);
-      createRenderEffect((_p$) => {
-        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title, _v$4 = css2.user;
-        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
-        _v$4 !== _p$.o && className(_el$5, _p$.o = _v$4);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0
-      });
-      return _el$;
-    })();
-  };
-
-  // src/solid-js/ui/components/IconLabel.tsx
-  var _tmpl$4 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
-  var css3 = addCss({
-    wrapper: {
-      display: "flex"
-    },
-    label: {
-      paddingInlineStart: "var(--sl-spacing-2x-small)"
-    },
-    icon: {
-      minWidth: "20px"
-    }
-  });
-  var IconLabel = (props) => {
-    return (() => {
-      var _el$ = _tmpl$4(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
-      _el$2._$owner = getOwner();
-      insert(_el$3, () => props.children);
-      createRenderEffect((_p$) => {
-        var _v$ = css3.wrapper, _v$2 = css3.icon, _v$3 = props.icon, _v$4 = props.label, _v$5 = css3.label;
-        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$2.name = _p$.a = _v$3);
-        _v$4 !== _p$.o && (_el$2.label = _p$.o = _v$4);
-        _v$5 !== _p$.i && className(_el$3, _p$.i = _v$5);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0,
-        i: void 0
-      });
-      return _el$;
-    })();
-  };
-
-  // src/solid-js/ui/components/WebLink.tsx
-  var _tmpl$5 = /* @__PURE__ */ template(`<a target=_blank>`);
-  var WebLink = (props) => {
-    const {
-      pathname,
-      hostname
-    } = new URL(props.link.href);
-    const link = {
-      icon: "globe",
-      title: "Website"
-    };
-    if (hostname.match(/facebook\.(no|com)/)) {
-      link.icon = "facebook";
-      link.title = "Facebook";
-    } else if (hostname.match(/instagram\.(no|com)/)) {
-      link.icon = "instagram";
-      link.title = `@${pathname.split("/").pop()}`;
-    } else if (hostname.match(/linkedin\.(no|com)/)) {
-      link.icon = "linkedin";
-      link.title = "LinkedIn";
-    }
-    return createComponent(IconLabel, {
-      get icon() {
-        return link.icon;
-      },
-      label: hostname,
-      get children() {
-        var _el$ = _tmpl$5();
-        insert(_el$, () => link.title);
-        createRenderEffect(() => setAttribute(_el$, "href", props.link.href));
-        return _el$;
-      }
-    });
-  };
-
-  // src/solid-js/ui/components/Phone.tsx
-  var _tmpl$6 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
-  var Phone = (props) => {
-    const copyToClipboard = () => {
-      navigator.clipboard.writeText(props.phoneNumber);
-    };
-    const triggerCall = () => {
-      window.location.href = `tel:${props.phoneNumber}`;
-    };
-    return (() => {
-      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
-      _el$._$owner = getOwner();
-      _el$2.slot = "trigger";
-      _el$2.caret = true;
-      _el$2._$owner = getOwner();
-      _el$3.name = "telephone";
-      _el$3._$owner = getOwner();
-      insert(_el$2, () => props.phoneNumber, null);
-      _el$4._$owner = getOwner();
-      addEventListener(_el$5, "click", copyToClipboard);
-      _el$5._$owner = getOwner();
-      _el$6.name = "copy";
-      _el$6._$owner = getOwner();
-      addEventListener(_el$7, "click", triggerCall);
-      _el$7._$owner = getOwner();
-      _el$8.name = "telephone";
-      _el$8._$owner = getOwner();
-      return _el$;
-    })();
-  };
-
-  // src/solid-js/ui/components/Address.tsx
-  var _tmpl$7 = /* @__PURE__ */ template(`<br>`);
-  var Address = (props) => {
-    return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
-  };
-
-  // src/solid-js/ui/components/BadgeButton.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<div><div class=text>`);
-  var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
-  var css4 = addCss({
-    button: {
-      // width: "34px",
-      marginTop: "5px",
-      marginRight: "5px"
-    },
-    badge: {
-      position: "absolute",
-      top: "-2px",
-      right: "-2px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      width: "12px",
-      height: "12px",
-      borderWidth: "1px",
-      borderStyle: "solid",
-      borderRadius: "5px",
-      backgroundColor: "var(--sl-color-primary-50)",
-      borderColor: "var(--sl-color-primary-200)",
-      "& > .text": {
-        fontSize: "8px",
-        color: "var(--sl-color-primary-800)"
-      }
-    }
-  });
-  var BadgeButton = (props) => {
-    return (() => {
-      var _el$ = _tmpl$23(), _el$2 = _el$.firstChild;
-      addEventListener(_el$, "click", props.onClick, true);
-      _el$._$owner = getOwner();
-      insert(_el$2, () => props.buttonLabel);
-      insert(_el$, createComponent(Show, {
-        get when() {
-          return props.badgeLabel;
-        },
-        get children() {
-          var _el$3 = _tmpl$8(), _el$4 = _el$3.firstChild;
-          insert(_el$4, () => props.badgeLabel);
-          createRenderEffect(() => className(_el$3, css4.badge));
-          return _el$3;
-        }
-      }), null);
-      createRenderEffect((_p$) => {
-        var _v$ = props.size || "medium", _v$2 = props.isActive ? "primary" : "default", _v$3 = css4.button, _v$4 = props.disabled;
-        _v$ !== _p$.e && (_el$.size = _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$.variant = _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$, _p$.a = _v$3);
-        _v$4 !== _p$.o && (_el$.disabled = _p$.o = _v$4);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0
-      });
-      return _el$;
-    })();
-  };
-  delegateEvents(["click"]);
-
-  // src/solid-js/ui/components/ListingsFilters.tsx
-  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div><sl-switch>:</sl-switch></div><div>`, true, false);
-  var css5 = addCss({
-    section: (theme2) => ({
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      marginBottom: theme2.gapMd
-    }),
-    filter: (theme2) => ({
-      display: "flex",
-      overflowY: "hidden",
-      overflowX: "scroll"
-    })
-  });
-  var ListingsFilters = (props) => {
-    const {
-      directory,
-      listings
-    } = useService();
-    const filters = () => directory()?.filters();
-    const tags = () => directory()?.resources.tags();
-    const indexLetters = () => directory()?.resources.indexLetters();
-    const isLoading = () => listings()?.resources.filteredListings.loading;
-    const isTagMatchTypeAll = () => filters()?.state().tagsMatchType === "ALL" /* ALL */;
-    const toggleTagMatchType = () => {
-      const next = isTagMatchTypeAll() ? "ANY" /* ANY */ : "ALL" /* ALL */;
-      filters()?.setTagsMatchType(next);
-    };
-    return (() => {
-      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$3.nextSibling;
-      insert(_el$2, () => indexLetters()?.map(({
-        letter,
-        count
-      }) => createComponent(BadgeButton, {
-        buttonLabel: letter,
-        badgeLabel: count,
-        get isActive() {
-          return Boolean(filters()?.isActiveIndexLetter(letter));
-        },
-        get disabled() {
-          return isLoading();
-        },
-        onClick: () => filters()?.setIndexLetter(letter)
-      })));
-      addEventListener(_el$4, "click", () => toggleTagMatchType());
-      _el$4.size = "small";
-      _el$4._$owner = getOwner();
-      insert(_el$4, () => isTagMatchTypeAll() ? "M\xE5 match alle valgte tagger" : "Match p\xE5 minst \xE9n av valgte tager", _el$5);
-      insert(_el$6, () => tags()?.map((tag) => createComponent(BadgeButton, {
-        size: "small",
-        get isActive() {
-          return Boolean(filters()?.hasTag(tag.key));
-        },
-        get buttonLabel() {
-          return tag.name;
-        },
-        get badgeLabel() {
-          return tag.usageCount;
-        },
-        get disabled() {
-          return isLoading();
-        },
-        onClick: () => filters()?.setTag(tag.key, true)
-      })));
-      insert(_el$, () => props.children, null);
-      createRenderEffect((_p$) => {
-        var _v$ = css5.section, _v$2 = css5.filter, _v$3 = isTagMatchTypeAll(), _v$4 = isLoading(), _v$5 = css5.filter;
-        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$4.checked = _p$.a = _v$3);
-        _v$4 !== _p$.o && (_el$4.disabled = _p$.o = _v$4);
-        _v$5 !== _p$.i && className(_el$6, _p$.i = _v$5);
-        return _p$;
-      }, {
-        e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0,
-        i: void 0
-      });
-      return _el$;
-    })();
-  };
-
-  // src/solid-js/ui/pages/PageListings.tsx
-  var _tmpl$10 = /* @__PURE__ */ template(`<div> treff.`);
-  var _tmpl$24 = /* @__PURE__ */ template(`<section>`);
-  var _tmpl$33 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
-  var _tmpl$42 = /* @__PURE__ */ template(`<span><br>`);
-  var _tmpl$52 = /* @__PURE__ */ template(`<sl-tag>`, true, false);
-  var css6 = addCss({
-    card: {
-      "--border-radius": "15px",
-      width: "100%",
-      marginBottom: "1rem",
-      "& .flex-middle > *": {
-        justifySelf: "center"
-      }
-    },
-    cardHeader: {
-      display: "flex",
-      flexWrap: "wrap",
-      justifyContent: "space-between",
-      position: "relative",
-      alignItems: "center",
-      rowGap: "1rem",
-      "> * ": {
-        flex: "1 1 33.33%",
-        minWidth: "200px",
-        textAlign: "center",
-        "@media (min-width: 500px)": {
-          "&:first-child": {
-            textAlign: "left"
-          }
-        },
-        "@media (min-width: 700px)": {
-          "&:last-child": {
-            textAlign: "right"
-          }
-        }
-      },
-      "& .title": {
-        fontWeight: "bolder"
-      }
-    },
-    cardBody: {
-      display: "flex",
-      justifyContent: "space-between"
-    }
-  });
-  var PageListings = () => {
-    const {
-      directory,
-      listings
-    } = useService();
-    const [hitCount, setHitCount] = createSignal(0);
-    const filters = createMemo(() => directory()?.filters());
-    const filteredListings = createMemo(() => listings()?.resources.filteredListings());
-    createEffect(() => setHitCount(filteredListings()?.length || 0));
-    createEffect(() => {
-      const filterState = filters()?.state();
-      if (filterState) {
-        console.log({
-          filterState
-        }, listings());
-        listings()?.filterListings(filterState);
-      }
-    });
-    return (() => {
-      var _el$ = _tmpl$24();
-      insert(_el$, createComponent(ListingsFilters, {
-        get children() {
-          var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild;
-          insert(_el$2, hitCount, _el$3);
-          return _el$2;
-        }
-      }), null);
-      insert(_el$, createComponent(Suspense, {
-        get fallback() {
-          return createComponent(Loading, {
-            children: "Listings"
-          });
-        },
-        get children() {
-          return createComponent(For, {
-            get each() {
-              return filteredListings();
-            },
-            children: (listing) => (() => {
-              var _el$4 = _tmpl$33(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
-              _el$4._$owner = getOwner();
-              insert(_el$6, () => listing.title);
-              insert(_el$7, createComponent(IconLabel, {
-                label: "beskrivelse",
-                icon: "info-circle",
-                get children() {
-                  return listing.description;
-                }
-              }));
-              insert(_el$8, createComponent(Phone, {
-                get phoneNumber() {
-                  return listing.phone;
-                }
-              }));
-              insert(_el$11, createComponent(Address, listing));
-              insert(_el$12, () => listing.links.map((link) => (() => {
-                var _el$14 = _tmpl$42(), _el$15 = _el$14.firstChild;
-                insert(_el$14, createComponent(WebLink, {
-                  link
-                }), _el$15);
-                return _el$14;
-              })()));
-              insert(_el$13, () => listing.tags.map((tag) => (() => {
-                var _el$16 = _tmpl$52();
-                addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
-                _el$16.style.setProperty("cursor", "pointer");
-                _el$16.variant = "primary";
-                _el$16.size = "small";
-                _el$16._$owner = getOwner();
-                insert(_el$16, () => tag.name);
-                return _el$16;
-              })()));
-              createRenderEffect((_p$) => {
-                var _v$ = css6.card, _v$2 = css6.cardHeader, _v$3 = css6.cardBody;
-                _v$ !== _p$.e && className(_el$4, _p$.e = _v$);
-                _v$2 !== _p$.t && className(_el$5, _p$.t = _v$2);
-                _v$3 !== _p$.a && className(_el$10, _p$.a = _v$3);
-                return _p$;
-              }, {
-                e: void 0,
-                t: void 0,
-                a: void 0
-              });
-              return _el$4;
-            })()
-          });
-        }
-      }), null);
-      return _el$;
-    })();
-  };
-
-  // src/shared/constants.ts
-  var MAX_LISTINGS = 5;
-  var MAX_LINKS = 3;
 
   // node_modules/.pnpm/solid-js@1.9.4/node_modules/solid-js/store/dist/store.js
   var $RAW = Symbol("store-raw");
@@ -18752,6 +17798,96 @@
     }
     return [wrappedStore, setStore];
   }
+  function proxyDescriptor(target, property) {
+    const desc = Reflect.getOwnPropertyDescriptor(target, property);
+    if (!desc || desc.get || desc.set || !desc.configurable || property === $PROXY || property === $NODE)
+      return desc;
+    delete desc.value;
+    delete desc.writable;
+    desc.get = () => target[$PROXY][property];
+    desc.set = (v3) => target[$PROXY][property] = v3;
+    return desc;
+  }
+  var proxyTraps = {
+    get(target, property, receiver) {
+      if (property === $RAW) return target;
+      if (property === $PROXY) return receiver;
+      if (property === $TRACK) {
+        trackSelf(target);
+        return receiver;
+      }
+      const nodes = getNodes(target, $NODE);
+      const tracked = nodes[property];
+      let value = tracked ? tracked() : target[property];
+      if (property === $NODE || property === $HAS || property === "__proto__") return value;
+      if (!tracked) {
+        const desc = Object.getOwnPropertyDescriptor(target, property);
+        const isFunction2 = typeof value === "function";
+        if (getListener() && (!isFunction2 || target.hasOwnProperty(property)) && !(desc && desc.get))
+          value = getNode(nodes, property, value)();
+        else if (value != null && isFunction2 && value === Array.prototype[property]) {
+          return (...args) => batch(() => Array.prototype[property].apply(receiver, args));
+        }
+      }
+      return isWrappable(value) ? wrap(value) : value;
+    },
+    has(target, property) {
+      if (property === $RAW || property === $PROXY || property === $TRACK || property === $NODE || property === $HAS || property === "__proto__")
+        return true;
+      getListener() && getNode(getNodes(target, $HAS), property)();
+      return property in target;
+    },
+    set(target, property, value) {
+      batch(() => setProperty(target, property, unwrap(value)));
+      return true;
+    },
+    deleteProperty(target, property) {
+      batch(() => setProperty(target, property, void 0, true));
+      return true;
+    },
+    ownKeys,
+    getOwnPropertyDescriptor: proxyDescriptor
+  };
+  function wrap(value) {
+    let p4 = value[$PROXY];
+    if (!p4) {
+      Object.defineProperty(value, $PROXY, {
+        value: p4 = new Proxy(value, proxyTraps)
+      });
+      const keys = Object.keys(value), desc = Object.getOwnPropertyDescriptors(value);
+      const proto = Object.getPrototypeOf(value);
+      const isClass = proto !== null && value !== null && typeof value === "object" && !Array.isArray(value) && proto !== Object.prototype;
+      if (isClass) {
+        const descriptors = Object.getOwnPropertyDescriptors(proto);
+        keys.push(...Object.keys(descriptors));
+        Object.assign(desc, descriptors);
+      }
+      for (let i9 = 0, l6 = keys.length; i9 < l6; i9++) {
+        const prop = keys[i9];
+        if (isClass && prop === "constructor") continue;
+        if (desc[prop].get) {
+          const get = desc[prop].get.bind(p4);
+          Object.defineProperty(value, prop, {
+            get,
+            configurable: true
+          });
+        }
+        if (desc[prop].set) {
+          const og = desc[prop].set, set = (v3) => batch(() => og.call(p4, v3));
+          Object.defineProperty(value, prop, {
+            set,
+            configurable: true
+          });
+        }
+      }
+    }
+    return p4;
+  }
+  function createMutable(state, options) {
+    const unwrappedStore = unwrap(state || {});
+    const wrappedStore = wrap(unwrappedStore);
+    return wrappedStore;
+  }
   var $ROOT = Symbol("store-root");
   function applyState(target, parent, property, merge, key) {
     const previous = parent[property];
@@ -18866,6 +18002,959 @@
       return state;
     };
   }
+
+  // src/solid-js/serviceAdapters/createDirectoryServiceAdaper.ts
+  var createDirectoryServiceAdapter = async (db) => {
+    const filters = createMutable(
+      Filters.from({
+        tagsMatchType: "ANY" /* ANY */
+      })
+    );
+    const directoryService = new DirectoryService(db);
+    const [tags] = createResource(() => directoryService.loadTags());
+    const [indexLetters] = createResource(
+      () => directoryService.loadIndexLetters()
+    );
+    const adapter = checkAdapterReturnType({
+      resources: {
+        tags,
+        indexLetters
+      },
+      filters
+    });
+    return adapter;
+  };
+
+  // src/shared/models/UserViewModel.ts
+  var UserViewSchema = z.object({
+    id: z.any(),
+    name: z.string(),
+    email: z.string().email()
+  });
+  var UserViewModel = class {
+    data;
+    constructor(data) {
+      this.data = data;
+    }
+    static from(data) {
+      const parsedData = UserViewSchema.parse(data);
+      return new UserViewModel(parsedData);
+    }
+  };
+  UserViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(UserViewSchema)
+  ], UserViewModel);
+
+  // src/domains/ui/account/AccountService.ts
+  var AccountService = class {
+    db;
+    constructor(db) {
+      this.db = db;
+    }
+    async getUser(token) {
+      await timeout();
+      await this.db.authenticate(token, true);
+      const data = await this.db.getUserData();
+      const model = UserViewModel.from(data);
+      return model;
+    }
+  };
+
+  // src/solid-js/serviceAdapters/createAccountServiceAdaper.ts
+  var createAccountServiceAdaper = (db, auth) => {
+    const accountService = new AccountService(db);
+    const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);
+    const [isAuthenticated] = createResource(
+      () => shouldAuthenticate(),
+      () => auth.isAuthenticated()
+    );
+    const [authData] = createResource(
+      () => isAuthenticated(),
+      async () => {
+        const data = await auth.getAuthData();
+        return data;
+      }
+    );
+    const mustVerifyEmail = createMemo(
+      () => authData()?.email_verified ? false : authData()?.email
+    );
+    const [user] = createResource(
+      () => {
+        if (authData() && !mustVerifyEmail()) {
+          return true;
+        }
+        setShouldAuthenticate(true);
+      },
+      async () => {
+        const token = await auth.getAccessToken();
+        const user2 = await accountService.getUser(token);
+        return user2;
+      }
+    );
+    const adapter = checkAdapterReturnType({
+      resources: {
+        user
+      },
+      mustVerifyEmail,
+      login: auth.login.bind(auth),
+      logout: auth.logout.bind(auth)
+    });
+    return adapter;
+  };
+
+  // src/shared/models/listing/Listing.ts
+  var LinkShema = z.object({
+    href: z.string().url()
+  });
+  var ListingSchema = z.object({
+    id: z.any(),
+    owner: z.any(),
+    isActive: z.boolean(),
+    title: z.string(),
+    description: z.string(),
+    address: z.string(),
+    zip: z.string(),
+    muncipiality: z.string(),
+    phone: z.string(),
+    email: z.string(),
+    // TODO! Tags
+    tags: z.array(z.any()),
+    // SubSchemas
+    links: z.array(LinkShema)
+  });
+  var Listing = class {
+    schema = ListingSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(ListingSchema, data);
+      return new Listing(parsedData);
+    }
+  };
+  Listing = __decorateClass([
+    ExposeDataAsSchemaProps(ListingSchema)
+  ], Listing);
+
+  // src/shared/models/listing/ListingViewModel.ts
+  var ListingViewSchema = z.object({
+    title: z.string(),
+    description: z.string(),
+    address: z.string(),
+    zip: z.string(),
+    muncipiality: z.string(),
+    phone: z.string(),
+    email: z.string().email(),
+    links: z.array(
+      z.object({
+        href: z.string()
+      })
+    ),
+    tags: z.array(TagViewSchema.omit({ usageCount: true }))
+  });
+  var ListingViewModel = class {
+    schema = ListingViewSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(ListingViewSchema, data);
+      return new ListingViewModel(parsedData);
+    }
+  };
+  ListingViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(ListingViewSchema)
+  ], ListingViewModel);
+
+  // src/domains/ui/listings/ListingsService.ts
+  var ListingsService = class {
+    db;
+    constructor(db) {
+      this.db = db;
+    }
+    async loadListingsByFilters(filters) {
+      await timeout();
+      const data = await this.db.getListingsByFilters(filters);
+      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => ListingViewModel.from(data2));
+      return res;
+    }
+    async loadListingsByEmail(email2) {
+      await timeout();
+      const data = await this.db.getListingsByEmail(email2);
+      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => Listing.from(data2));
+      return res;
+    }
+    async createListing(listing) {
+      await timeout(500);
+      const data = await this.db.createListing(listing.data);
+      return Listing.from({ ...listing, ...data });
+    }
+    async updateListing(listing) {
+      await timeout(500);
+      const data = await this.db.updateListing(listing.data);
+      return Listing.from({ ...listing, ...data });
+    }
+  };
+
+  // src/shared/zod/schemas.ts
+  var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
+  var rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
+  var reStreet = new RegExp(/^[\p{L}'][ \p{L}\p{N}'-,]{8,}$/u);
+  var reZip = new RegExp(/^\d{4}$/);
+  var email = z.string().trim().email("Must be a valid email address");
+  var name = z.string().trim().regex(reName, "Must be a valid name");
+  var address = z.string().trim().regex(reStreet, "Must be a valid street address");
+  var zip = z.string().trim().regex(reZip, "Must be a valid zip code");
+  var phone = z.preprocess(
+    (val) => val?.split(" ").join(""),
+    z.string().trim().regex(rePhone, "Must be a valid phone number")
+  );
+
+  // src/shared/models/listing/UpdateListingDto.ts
+  var UpdateListingDtoSchema = ListingSchema.extend({
+    id: ListingSchema.shape.id,
+    isActive: ListingSchema.shape.isActive,
+    title: ListingSchema.shape.title.min(3).max(70),
+    description: ListingSchema.shape.description.min(15).max(150),
+    address,
+    zip,
+    muncipiality: ListingSchema.shape.muncipiality,
+    phone,
+    email,
+    // TODO! Tags
+    tags: z.array(z.any()).min(1).default([]),
+    // Sub-schemas
+    links: z.array(LinkShema).default([])
+  });
+  var UpdateListingDto = class {
+    schema = UpdateListingDtoSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
+      return new UpdateListingDto(parsedData);
+    }
+  };
+  UpdateListingDto = __decorateClass([
+    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
+  ], UpdateListingDto);
+
+  // src/shared/models/listing/CreateListingDto.ts
+  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
+    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
+    title: UpdateListingDtoSchema.shape.title.default(""),
+    description: UpdateListingDtoSchema.shape.description.default(""),
+    address: UpdateListingDtoSchema.shape.address.default(""),
+    zip: UpdateListingDtoSchema.shape.zip.default(""),
+    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
+    phone: UpdateListingDtoSchema.shape.phone.default(""),
+    email: UpdateListingDtoSchema.shape.email.default(""),
+    // TODO! Tags
+    tags: UpdateListingDtoSchema.shape.tags,
+    // Sub-schemas
+    links: UpdateListingDtoSchema.shape.links
+  }).omit({
+    id: true,
+    owner: true
+  });
+  var CreateListingDto = class {
+    schema = CreateListingDtoSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
+      return new CreateListingDto(parsedData);
+    }
+  };
+  CreateListingDto = __decorateClass([
+    ExposeDataAsSchemaProps(CreateListingDtoSchema)
+  ], CreateListingDto);
+
+  // src/solid-js/serviceAdapters/createListingsServiceAdaper.ts
+  var createListingsServiceAdaper = (db, user) => {
+    const listingService = new ListingsService(db);
+    const [onSaveListing, setSaveListing] = createSignal(null);
+    const [onFilterListings, setFilterListings] = createSignal(null, {
+      equals: false
+    });
+    const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
+      // TODO! Deep copy should not be required when source has { equals: false }
+      () => deepCopy(onFilterListings()),
+      async (filters) => {
+        console.log("onFilterListings", { filters });
+        const listings = await listingService.loadListingsByFilters(filters);
+        return listings;
+      }
+    );
+    const [myListings, { mutate: mutateMyListings }] = createResource(
+      user,
+      async ({ email: email2 }) => {
+        const listings = await listingService.loadListingsByEmail(email2);
+        return listings;
+      }
+    );
+    const [saveListing] = createResource(onSaveListing, async (listingDto) => {
+      let res;
+      if (listingDto instanceof CreateListingDto) {
+        res = listingService.createListing(listingDto);
+      } else if (listingDto instanceof UpdateListingDto) {
+        res = listingService.updateListing(listingDto);
+      }
+    });
+    const adapter = checkAdapterReturnType({
+      resources: {
+        filteredListings,
+        myListings,
+        saveListing
+      },
+      saveListing: setSaveListing,
+      filterListings: setFilterListings
+    });
+    return adapter;
+  };
+
+  // src/solid-js/ui/providers/ServiceProvider.tsx
+  var ServiceContext = createContext();
+  var ServiceProvider = (props) => {
+    const {
+      db,
+      configs
+    } = useSystem();
+    const [user, setUser] = createSignal(void 0);
+    const [account] = createResource(async () => {
+      const auth = await createAuthenticationAdaper(db, configs.auth0);
+      return createAccountServiceAdaper(db, auth);
+    });
+    createEffect(() => setUser(account()?.resources.user()));
+    const [listings] = createResource(() => createListingsServiceAdaper(db, user));
+    const [directory] = createResource(() => createDirectoryServiceAdapter(db));
+    const services = {
+      account,
+      listings,
+      directory
+    };
+    return createComponent(ServiceContext.Provider, {
+      value: services,
+      get children() {
+        return props.children;
+      }
+    });
+  };
+  var useService = () => {
+    const context = useContext(ServiceContext);
+    if (!context) {
+      throw new Error("useService must be used within an ServiceProvider");
+    }
+    return context;
+  };
+
+  // src/solid-js/ui/components/Loading.tsx
+  var _tmpl$ = /* @__PURE__ */ template(`<div><sl-spinner></sl-spinner><div>`, true, false);
+  var SIZES = /* @__PURE__ */ function(SIZES2) {
+    SIZES2["small"] = "small";
+    SIZES2["medium"] = "medium";
+    SIZES2["large"] = "large";
+    return SIZES2;
+  }(SIZES || {});
+  var css = addCss({
+    centered: (theme2) => ({
+      textAlign: "center"
+    })
+  });
+  var styleSizes = withTheme((theme2) => ({
+    small: `font-size: ${theme2.fontSizeSm}; --trackwidth: 3px;`,
+    medium: `font-size: ${theme2.fontSizeMd}; --trackwidth: 5px;`,
+    large: `font-size: ${theme2.fontSizeLg}; --trackwidth: 10px;`
+  }));
+  var Loading = (props) => {
+    const spinnerKey = props.size || SIZES.large;
+    const spinnerStyle = styleSizes()[spinnerKey];
+    return (() => {
+      var _el$ = _tmpl$(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      _el$2._$owner = getOwner();
+      insert(_el$3, () => props.children);
+      createRenderEffect((_p$) => {
+        var _v$ = join("loading", css.centered), _v$2 = spinnerStyle;
+        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
+        _p$.t = style(_el$2, _v$2, _p$.t);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // src/solid-js/ui/components/AccountHead.tsx
+  var _tmpl$2 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
+  var AccountHead = (props) => {
+    const {
+      account
+    } = useService();
+    const user = () => account()?.resources.user();
+    return createComponent(Suspense, {
+      get fallback() {
+        return createComponent(Loading, {
+          size: "large"
+        });
+      },
+      get children() {
+        return [createMemo(() => props.children), createComponent(Show, {
+          get when() {
+            return user();
+          },
+          get children() {
+            return [createMemo(() => user()?.name), (() => {
+              var _el$ = _tmpl$2();
+              addEventListener(_el$, "click", () => account()?.logout());
+              _el$._$owner = getOwner();
+              return _el$;
+            })()];
+          }
+        })];
+      }
+    });
+  };
+
+  // src/solid-js/ui/components/Layout.tsx
+  var _tmpl$3 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
+  var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div>`);
+  var _tmpl$32 = /* @__PURE__ */ template(`<div>Error: `);
+  var css2 = addCss({
+    app: (theme2) => ({
+      padding: "10px 15px",
+      color: theme2.colorOnPrimary,
+      backgroundColor: theme2.colorPrimary,
+      font: "16px var(--sl-font-sans)",
+      fontWeight: "var(--sl-font-weight-normal)"
+    }),
+    border: (theme2) => ({
+      borderRadius: "10px",
+      border: "5px solid",
+      borderColor: theme2.colorAccent
+    }),
+    header: {
+      display: "flex",
+      justifyContent: "space-between"
+    },
+    title: (theme2) => ({
+      fontFamily: "'Playwrite HU', sans-serif",
+      fontSize: theme2.fontSizeLg,
+      cursor: "pointer"
+    }),
+    user: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "end"
+    }
+  });
+  var Layout = (props) => {
+    return (() => {
+      var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
+      addEventListener(_el$4, "click", props.toggleMainPages);
+      insert(_el$4, () => props.title);
+      insert(_el$5, createComponent(AccountHead, {
+        get children() {
+          var _el$6 = _tmpl$3();
+          addEventListener(_el$6, "click", props.toggleMainPages);
+          _el$6._$owner = getOwner();
+          createRenderEffect(() => _el$6.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
+          return _el$6;
+        }
+      }));
+      insert(_el$, createComponent(ErrorBoundary, {
+        fallback: (error) => {
+          console.error(error);
+          return (() => {
+            var _el$7 = _tmpl$32(), _el$8 = _el$7.firstChild;
+            insert(_el$7, () => error.message, null);
+            return _el$7;
+          })();
+        },
+        get children() {
+          return createComponent(Suspense, {
+            get fallback() {
+              return createComponent(Loading, {
+                children: "Layout"
+              });
+            },
+            get children() {
+              return props.children;
+            }
+          });
+        }
+      }), null);
+      createRenderEffect((_p$) => {
+        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title, _v$4 = css2.user;
+        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
+        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
+        _v$4 !== _p$.o && className(_el$5, _p$.o = _v$4);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // node_modules/.pnpm/@solid-primitives+deep@0.3.0_solid-js@1.9.4/node_modules/@solid-primitives/deep/dist/track-store.js
+  var EQUALS_FALSE = { equals: false };
+  var TrackStoreCache = /* @__PURE__ */ new WeakMap();
+  var TrackVersion = 0;
+  function getTrackStoreNode(node) {
+    let track = TrackStoreCache.get(node);
+    if (!track) {
+      createRoot(() => {
+        const unwrapped = unwrap(node);
+        let is_reading = false;
+        let is_stale = true;
+        let version = 0;
+        const [signal, trigger] = createSignal(void 0, EQUALS_FALSE);
+        const memo = createMemo(() => {
+          if (is_reading) {
+            node[$TRACK];
+            for (const [key, child] of Object.entries(unwrapped)) {
+              let childNode;
+              if (child != null && typeof child === "object" && ((childNode = child[$PROXY]) || $TRACK in (childNode = untrack(() => node[key])))) {
+                getTrackStoreNode(childNode)?.();
+              }
+            }
+          } else {
+            signal();
+            is_stale = true;
+          }
+        }, void 0, EQUALS_FALSE);
+        track = () => {
+          is_reading = true;
+          if (is_stale) {
+            trigger();
+            is_stale = false;
+          }
+          const already_tracked = version === TrackVersion;
+          version = TrackVersion;
+          already_tracked || memo();
+          is_reading = false;
+        };
+        TrackStoreCache.set(node, track);
+      });
+    }
+    return track;
+  }
+  function trackStore(store) {
+    TrackVersion++;
+    $TRACK in store && getTrackStoreNode(store)?.();
+    return store;
+  }
+
+  // src/solid-js/ui/components/IconLabel.tsx
+  var _tmpl$4 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
+  var css3 = addCss({
+    wrapper: {
+      display: "flex"
+    },
+    label: {
+      paddingInlineStart: "var(--sl-spacing-2x-small)"
+    },
+    icon: {
+      minWidth: "20px"
+    }
+  });
+  var IconLabel = (props) => {
+    return (() => {
+      var _el$ = _tmpl$4(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      _el$2._$owner = getOwner();
+      insert(_el$3, () => props.children);
+      createRenderEffect((_p$) => {
+        var _v$ = css3.wrapper, _v$2 = css3.icon, _v$3 = props.icon, _v$4 = props.label, _v$5 = css3.label;
+        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
+        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$2.name = _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$2.label = _p$.o = _v$4);
+        _v$5 !== _p$.i && className(_el$3, _p$.i = _v$5);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0,
+        i: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // src/solid-js/ui/components/WebLink.tsx
+  var _tmpl$5 = /* @__PURE__ */ template(`<a target=_blank>`);
+  var WebLink = (props) => {
+    const {
+      pathname,
+      hostname
+    } = new URL(props.link.href);
+    const link = {
+      icon: "globe",
+      title: "Website"
+    };
+    if (hostname.match(/facebook\.(no|com)/)) {
+      link.icon = "facebook";
+      link.title = "Facebook";
+    } else if (hostname.match(/instagram\.(no|com)/)) {
+      link.icon = "instagram";
+      link.title = `@${pathname.split("/").pop()}`;
+    } else if (hostname.match(/linkedin\.(no|com)/)) {
+      link.icon = "linkedin";
+      link.title = "LinkedIn";
+    }
+    return createComponent(IconLabel, {
+      get icon() {
+        return link.icon;
+      },
+      label: hostname,
+      get children() {
+        var _el$ = _tmpl$5();
+        insert(_el$, () => link.title);
+        createRenderEffect(() => setAttribute(_el$, "href", props.link.href));
+        return _el$;
+      }
+    });
+  };
+
+  // src/solid-js/ui/components/Phone.tsx
+  var _tmpl$6 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
+  var Phone = (props) => {
+    const copyToClipboard = () => {
+      navigator.clipboard.writeText(props.phoneNumber);
+    };
+    const triggerCall = () => {
+      window.location.href = `tel:${props.phoneNumber}`;
+    };
+    return (() => {
+      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
+      _el$._$owner = getOwner();
+      _el$2.slot = "trigger";
+      _el$2.caret = true;
+      _el$2._$owner = getOwner();
+      _el$3.name = "telephone";
+      _el$3._$owner = getOwner();
+      insert(_el$2, () => props.phoneNumber, null);
+      _el$4._$owner = getOwner();
+      addEventListener(_el$5, "click", copyToClipboard);
+      _el$5._$owner = getOwner();
+      _el$6.name = "copy";
+      _el$6._$owner = getOwner();
+      addEventListener(_el$7, "click", triggerCall);
+      _el$7._$owner = getOwner();
+      _el$8.name = "telephone";
+      _el$8._$owner = getOwner();
+      return _el$;
+    })();
+  };
+
+  // src/solid-js/ui/components/Address.tsx
+  var _tmpl$7 = /* @__PURE__ */ template(`<br>`);
+  var Address = (props) => {
+    return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
+  };
+
+  // src/solid-js/ui/components/BadgeButton.tsx
+  var _tmpl$8 = /* @__PURE__ */ template(`<div><div class=text>`);
+  var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
+  var css4 = addCss({
+    button: {
+      // width: "34px",
+      marginTop: "5px",
+      marginRight: "5px"
+    },
+    badge: {
+      position: "absolute",
+      top: "-2px",
+      right: "-2px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: "12px",
+      height: "12px",
+      borderWidth: "1px",
+      borderStyle: "solid",
+      borderRadius: "5px",
+      backgroundColor: "var(--sl-color-primary-50)",
+      borderColor: "var(--sl-color-primary-200)",
+      "& > .text": {
+        fontSize: "8px",
+        color: "var(--sl-color-primary-800)"
+      }
+    }
+  });
+  var BadgeButton = (props) => {
+    return (() => {
+      var _el$ = _tmpl$23(), _el$2 = _el$.firstChild;
+      addEventListener(_el$, "click", props.onClick, true);
+      _el$._$owner = getOwner();
+      insert(_el$2, () => props.buttonLabel);
+      insert(_el$, createComponent(Show, {
+        get when() {
+          return props.badgeLabel;
+        },
+        get children() {
+          var _el$3 = _tmpl$8(), _el$4 = _el$3.firstChild;
+          insert(_el$4, () => props.badgeLabel);
+          createRenderEffect(() => className(_el$3, css4.badge));
+          return _el$3;
+        }
+      }), null);
+      createRenderEffect((_p$) => {
+        var _v$ = props.size || "medium", _v$2 = props.isActive ? "primary" : "default", _v$3 = css4.button, _v$4 = props.disabled;
+        _v$ !== _p$.e && (_el$.size = _p$.e = _v$);
+        _v$2 !== _p$.t && (_el$.variant = _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$, _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$.disabled = _p$.o = _v$4);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0
+      });
+      return _el$;
+    })();
+  };
+  delegateEvents(["click"]);
+
+  // src/solid-js/ui/components/ListingsFilters.tsx
+  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div><sl-checkbox>M\xE5 match alle valgte tagger</sl-checkbox></div><div>`, true, false);
+  var css5 = addCss({
+    section: (theme2) => ({
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      marginBottom: theme2.gapMd
+    }),
+    filter: (theme2) => ({
+      display: "flex",
+      overflowY: "hidden",
+      overflowX: "scroll"
+    })
+  });
+  var ListingsFilters = (props) => {
+    const {
+      directory,
+      listings
+    } = useService();
+    const filters = () => directory()?.filters;
+    const tags = () => directory()?.resources.tags();
+    const indexLetters = () => directory()?.resources.indexLetters();
+    const isLoading = () => listings()?.resources.filteredListings.loading;
+    const isTagMatchTypeAll = () => filters()?.data.tagsMatchType === "ALL" /* ALL */;
+    const toggleTagMatchType = () => {
+      const next = isTagMatchTypeAll() ? "ANY" /* ANY */ : "ALL" /* ALL */;
+      filters()?.setTagsMatchType(next);
+    };
+    return (() => {
+      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
+      insert(_el$2, () => indexLetters()?.map(({
+        letter,
+        count
+      }) => createComponent(BadgeButton, {
+        buttonLabel: letter,
+        badgeLabel: count,
+        get isActive() {
+          return Boolean(filters()?.isActiveIndexLetter(letter));
+        },
+        get disabled() {
+          return isLoading();
+        },
+        onClick: () => filters()?.setIndexLetter(letter)
+      })));
+      addEventListener(_el$4, "input", () => toggleTagMatchType());
+      _el$4.size = "small";
+      _el$4._$owner = getOwner();
+      insert(_el$5, () => tags()?.map((tag) => createComponent(BadgeButton, {
+        size: "small",
+        get isActive() {
+          return Boolean(filters()?.hasTag(tag.key));
+        },
+        get buttonLabel() {
+          return tag.name;
+        },
+        get badgeLabel() {
+          return tag.usageCount;
+        },
+        get disabled() {
+          return isLoading();
+        },
+        onClick: () => filters()?.setTag(tag.key, true)
+      })));
+      insert(_el$, () => props.children, null);
+      createRenderEffect((_p$) => {
+        var _v$ = css5.section, _v$2 = css5.filter, _v$3 = isTagMatchTypeAll(), _v$4 = isLoading(), _v$5 = css5.filter;
+        _v$ !== _p$.e && className(_el$, _p$.e = _v$);
+        _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$4.checked = _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$4.disabled = _p$.o = _v$4);
+        _v$5 !== _p$.i && className(_el$5, _p$.i = _v$5);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0,
+        i: void 0
+      });
+      return _el$;
+    })();
+  };
+
+  // src/solid-js/ui/pages/PageListings.tsx
+  var _tmpl$10 = /* @__PURE__ */ template(`<div> treff.`);
+  var _tmpl$24 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$33 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
+  var _tmpl$42 = /* @__PURE__ */ template(`<span><br>`);
+  var _tmpl$52 = /* @__PURE__ */ template(`<sl-tag>`, true, false);
+  var css6 = addCss({
+    card: {
+      "--border-radius": "15px",
+      width: "100%",
+      marginBottom: "1rem",
+      "& .flex-middle > *": {
+        justifySelf: "center"
+      }
+    },
+    cardHeader: {
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      position: "relative",
+      alignItems: "center",
+      rowGap: "1rem",
+      "> * ": {
+        flex: "1 1 33.33%",
+        minWidth: "200px",
+        textAlign: "center",
+        "@media (min-width: 500px)": {
+          "&:first-child": {
+            textAlign: "left"
+          }
+        },
+        "@media (min-width: 700px)": {
+          "&:last-child": {
+            textAlign: "right"
+          }
+        }
+      },
+      "& .title": {
+        fontWeight: "bolder"
+      }
+    },
+    cardBody: {
+      display: "flex",
+      justifyContent: "space-between"
+    }
+  });
+  var PageListings = () => {
+    const {
+      directory,
+      listings
+    } = useService();
+    const [hitCount, setHitCount] = createSignal(0);
+    const filters = () => directory()?.filters;
+    const filteredListings = () => listings()?.resources.filteredListings();
+    createEffect(() => setHitCount(filteredListings()?.length || 0));
+    createEffect(() => {
+      if (directory() && listings()) {
+        trackStore(directory().filters);
+        listings().filterListings(directory().filters.data);
+      }
+    });
+    return (() => {
+      var _el$ = _tmpl$24();
+      insert(_el$, createComponent(ListingsFilters, {
+        get children() {
+          var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild;
+          insert(_el$2, hitCount, _el$3);
+          return _el$2;
+        }
+      }), null);
+      insert(_el$, createComponent(Suspense, {
+        get fallback() {
+          return createComponent(Loading, {
+            children: "Listings"
+          });
+        },
+        get children() {
+          return createComponent(For, {
+            get each() {
+              return filteredListings();
+            },
+            children: (listing) => (() => {
+              var _el$4 = _tmpl$33(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
+              _el$4._$owner = getOwner();
+              insert(_el$6, () => listing.title);
+              insert(_el$7, createComponent(IconLabel, {
+                label: "beskrivelse",
+                icon: "info-circle",
+                get children() {
+                  return listing.description;
+                }
+              }));
+              insert(_el$8, createComponent(Phone, {
+                get phoneNumber() {
+                  return listing.phone;
+                }
+              }));
+              insert(_el$11, createComponent(Address, listing));
+              insert(_el$12, () => listing.links.map((link) => (() => {
+                var _el$14 = _tmpl$42(), _el$15 = _el$14.firstChild;
+                insert(_el$14, createComponent(WebLink, {
+                  link
+                }), _el$15);
+                return _el$14;
+              })()));
+              insert(_el$13, () => listing.tags.map((tag) => (() => {
+                var _el$16 = _tmpl$52();
+                addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
+                _el$16.style.setProperty("cursor", "pointer");
+                _el$16.variant = "primary";
+                _el$16.size = "small";
+                _el$16._$owner = getOwner();
+                insert(_el$16, () => tag.name);
+                return _el$16;
+              })()));
+              createRenderEffect((_p$) => {
+                var _v$ = css6.card, _v$2 = css6.cardHeader, _v$3 = css6.cardBody;
+                _v$ !== _p$.e && className(_el$4, _p$.e = _v$);
+                _v$2 !== _p$.t && className(_el$5, _p$.t = _v$2);
+                _v$3 !== _p$.a && className(_el$10, _p$.a = _v$3);
+                return _p$;
+              }, {
+                e: void 0,
+                t: void 0,
+                a: void 0
+              });
+              return _el$4;
+            })()
+          });
+        }
+      }), null);
+      return _el$;
+    })();
+  };
+
+  // src/shared/constants.ts
+  var MAX_LISTINGS = 5;
+  var MAX_LINKS = 3;
 
   // node_modules/.pnpm/dot-prop@9.0.0/node_modules/dot-prop/index.js
   var isObject2 = (value) => {

@@ -7,6 +7,7 @@ import { UserViewModel } from '~/shared/models/UserViewModel';
 import { FilterSchemaType } from '~/shared/models/Filters';
 import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
 import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
+import { deepCopy } from '~/shared/lib/utils';
 
 export const createListingsServiceAdaper = (
   db: IDatabase,
@@ -14,16 +15,19 @@ export const createListingsServiceAdaper = (
 ) => {
   const listingService = new ListingsService(db);
 
-  const [onSaveListing, setSaveListing] = createSignal<CreateListingDto | UpdateListingDto | null>(
-    null,
-  );
+  const [onSaveListing, setSaveListing] = createSignal<
+    CreateListingDto | UpdateListingDto | null
+  >(null);
   const [onFilterListings, setFilterListings] =
-    createSignal<FilterSchemaType | null>(null);
+    createSignal<FilterSchemaType | null>(null, {
+      equals: false,
+    });
 
   const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
-    onFilterListings,
+    // TODO! Deep copy should not be required when source has { equals: false }
+    () => deepCopy(onFilterListings()),
     async (filters) => {
-      console.log({ filters });
+      console.log('onFilterListings', { filters });
       const listings = await listingService.loadListingsByFilters(filters);
       return listings;
     },
@@ -37,21 +41,18 @@ export const createListingsServiceAdaper = (
     },
   );
 
-  const [saveListing] = createResource(
-    onSaveListing,
-    async (listingDto) => {
-      /**
-       * TODO! Implement refetching of invalid resources
-       * When listings is updated / created, what needs to be refreshed, and how?
-       */
-      let res;
-      if (listingDto instanceof CreateListingDto) {
-        res = listingService.createListing(listingDto);
-      } else if (listingDto instanceof UpdateListingDto) {
-        res = listingService.updateListing(listingDto);
-      }
+  const [saveListing] = createResource(onSaveListing, async (listingDto) => {
+    /**
+     * TODO! Implement refetching of invalid resources
+     * When listings is updated / created, what needs to be refreshed, and how?
+     */
+    let res;
+    if (listingDto instanceof CreateListingDto) {
+      res = listingService.createListing(listingDto);
+    } else if (listingDto instanceof UpdateListingDto) {
+      res = listingService.updateListing(listingDto);
     }
-  );
+  });
 
   const adapter = checkAdapterReturnType({
     resources: {

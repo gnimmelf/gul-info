@@ -1,6 +1,6 @@
 import { createMemo, createResource, createSignal } from 'solid-js';
 
-import { AccountService } from '~/domains/ui/accountService/AccountService';
+import { AccountService } from '~/domains/ui/account/AccountService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 import { checkAdapterReturnType } from './checkAdapterReturnType';

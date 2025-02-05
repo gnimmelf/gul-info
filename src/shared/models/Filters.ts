@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { _WithState } from '~/shared/lib/_WithState';
 import { parseWithDefaults } from '~/shared/zod/helpers';
 
 export enum TagsMatchType {
@@ -7,56 +6,60 @@ export enum TagsMatchType {
   ANY = 'ANY',
 }
 
-export const FilterStateSchema = z.object({
+export const FiltersSchema = z.object({
   text: z.string().optional().default(''),
   tagKeys: z.array(z.string()).optional().default([]),
   indexLetter: z.string().optional().default(''),
   tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL),
 });
 
-export type FilterSchemaType = z.infer<typeof FilterStateSchema>;
+export type FilterSchemaType = z.infer<typeof FiltersSchema>;
 
-export class Filters extends _WithState<FilterSchemaType> {
+export class Filters {
+  public schema = FiltersSchema;
+  public data: FilterSchemaType;
+
   constructor(data: FilterSchemaType) {
-    super(data);
+    this.data = data;
   }
 
   static from(data: Partial<FilterSchemaType>): Filters {
-    const parsedData = parseWithDefaults(FilterStateSchema, data);
+    const parsedData = parseWithDefaults(FiltersSchema, data);
     return new Filters(parsedData);
   }
 
   setText(value: string) {
-    this.setState({ text: value });
+    this.data.text = value;
   }
 
   setIndexLetter(value: string) {
+    const prev = this.data.indexLetter;
     const next =
-      value.toLocaleLowerCase() != this.state().indexLetter ? value : '';
-    this.setState({ indexLetter: next.toLocaleLowerCase() });
+      value.toLocaleLowerCase() != prev ? value.toLocaleLowerCase() : '';
+    this.data.indexLetter = next;
   }
 
   setTag(tagKey: string, toggle = true) {
-    const prev = this.state().tagKeys;
-    const idx = prev.indexOf(tagKey);
-    const next = toggle
+    const { tagKeys } = this.data;
+    const idx = tagKeys.indexOf(tagKey);
+
+    this.data.tagKeys = toggle
       ? idx < 0
-        ? prev.concat(tagKey)
-        : [...prev.slice(0, idx), ...prev.slice(idx + 1)]
+        ? tagKeys.concat(tagKey)
+        : [...tagKeys.slice(0, idx), ...tagKeys.slice(idx + 1)]
       : // No toggle, just replace
         [tagKey];
-    this.setState({ tagKeys: next });
   }
 
   setTagsMatchType(matchType: TagsMatchType) {
-    this.setState({ tagsMatchType: matchType });
+    this.data.tagsMatchType = matchType;
   }
 
   isActiveIndexLetter(letter: string) {
-    return this.state().indexLetter === letter.toLocaleLowerCase();
+    return this.data.indexLetter === letter.toLocaleLowerCase();
   }
 
   hasTag(tagKey: string) {
-    return this.state().tagKeys.includes(tagKey);
+    return this.data.tagKeys.includes(tagKey);
   }
 }

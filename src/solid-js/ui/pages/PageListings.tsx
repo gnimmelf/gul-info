@@ -1,11 +1,5 @@
-import {
-  Component,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Suspense,
-} from 'solid-js';
+import { Component, createEffect, createSignal, For, Suspense } from 'solid-js';
+import { trackStore } from '@solid-primitives/deep';
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 
@@ -66,18 +60,15 @@ export const PageListings: Component = () => {
 
   const [hitCount, setHitCount] = createSignal(0);
 
-  const filters = createMemo(() => directory()?.filters());
-  const filteredListings = createMemo(() =>
-    listings()?.resources.filteredListings(),
-  );
+  const filters = () => directory()?.filters;
+  const filteredListings = () => listings()?.resources.filteredListings();
 
   createEffect(() => setHitCount(filteredListings()?.length || 0));
 
   createEffect(() => {
-    const filterState = filters()?.state();
-    if (filterState) {
-      console.log({ filterState }, listings());
-      listings()?.filterListings(filterState);
+    if (directory() && listings()) {
+      trackStore(directory()!.filters);
+      listings()!.filterListings(directory()!.filters.data);
     }
   });
 

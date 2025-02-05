@@ -24,8 +24,9 @@ export const MyListings: Component<{}> = (props) => {
   const { listings } = useService();
 
   const [isDirty, setIsDirty] = createSignal(false);
-  const [activeListing, _setActiveListing] =
-    createSignal<CreateListingDto | UpdateListingDto | null>(null);
+  const [activeListing, _setActiveListing] = createSignal<
+    CreateListingDto | UpdateListingDto | null
+  >(null);
 
   const myListings = () => listings()?.resources.myListings();
   const saving = () => listings()?.resources.saveListing();

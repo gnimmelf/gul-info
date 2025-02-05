@@ -1,4 +1,4 @@
-import { Component, createEffect, JSXElement } from 'solid-js';
+import { Component, JSXElement } from 'solid-js';
 
 import { BadgeButton } from './BadgeButton';
 import { TagsMatchType } from '~/shared/models/Filters';
@@ -24,13 +24,13 @@ export const ListingsFilters: Component<{
 }> = (props) => {
   const { directory, listings } = useService();
 
-  const filters = () => directory()?.filters();
-  const tags = () => directory()?.resources.tags();
+  const filters = () => directory()?.filters;
+  const tags = () => directory()?.resources!.tags();
   const indexLetters = () => directory()?.resources.indexLetters();
   const isLoading = () => listings()?.resources.filteredListings.loading;
 
   const isTagMatchTypeAll = () =>
-    filters()?.state().tagsMatchType === TagsMatchType.ALL;
+    filters()?.data.tagsMatchType === TagsMatchType.ALL;
 
   const toggleTagMatchType = () => {
     const next = isTagMatchTypeAll() ? TagsMatchType.ANY : TagsMatchType.ALL;
@@ -52,17 +52,14 @@ export const ListingsFilters: Component<{
       </div>
 
       <div>
-        <sl-switch
+        <sl-checkbox
           prop:size="small"
           prop:checked={isTagMatchTypeAll()}
           prop:disabled={isLoading()}
-          on:click={() => toggleTagMatchType()}
+          on:input={() => toggleTagMatchType()}
         >
-          {isTagMatchTypeAll()
-            ? 'Må match alle valgte tagger'
-            : 'Match på minst én av valgte tager'}
-          :
-        </sl-switch>
+          Må match alle valgte tagger
+        </sl-checkbox>
       </div>
       <div class={css.filter}>
         {tags()?.map((tag) => (
