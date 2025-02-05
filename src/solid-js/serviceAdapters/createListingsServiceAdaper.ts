@@ -18,17 +18,19 @@ export const createListingsServiceAdaper = (
   const [onSaveListing, setSaveListing] = createSignal<
     CreateListingDto | UpdateListingDto | null
   >(null);
+
   const [onFilterListings, setFilterListings] =
     createSignal<FilterSchemaType | null>(null, {
-      equals: false,
+      equals: false
     });
 
   const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
-    // TODO! Deep copy should not be required when source has { equals: false }
-    () => deepCopy(onFilterListings()),
-    async (filters) => {
+    // `createResource`-source signal has own memoization, shallow comparison, which is not
+    // exposed, so re-wrap the data in a new object to bypass that
+    () => ({ filters: onFilterListings() }),
+    async ({ filters }) => {
       console.log('onFilterListings', { filters });
-      const listings = await listingService.loadListingsByFilters(filters);
+      const listings = await listingService.loadListingsByFilters(filters!);
       return listings;
     },
   );

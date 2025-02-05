@@ -67,8 +67,8 @@ export const PageListings: Component = () => {
 
   createEffect(() => {
     if (directory() && listings()) {
-      trackStore(directory()!.filters);
-      listings()!.filterListings(directory()!.filters.data);
+      trackStore(filters()!);
+      listings()!.filterListings(filters()!.data);
     }
   });
 
