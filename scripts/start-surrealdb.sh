@@ -28,6 +28,7 @@ fi
 COMMAND="surreal start surrealkv://.dev-data \
   --strict \
   --deny-all \
+  --allow-scripting \
   --allow-guests \
   --allow-net intergate.eu.auth0.com \
   --allow-funcs \

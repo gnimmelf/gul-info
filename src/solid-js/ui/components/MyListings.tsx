@@ -29,7 +29,7 @@ export const MyListings: Component<{}> = (props) => {
   >(null);
 
   const myListings = () => listings()?.resources.myListings();
-  const saving = () => listings()?.resources.saveListing();
+  const isSaved = () => Boolean(listings()?.resources.saveListing());
 
   function clearActiveListing() {
     _setActiveListing(null);
@@ -62,6 +62,11 @@ export const MyListings: Component<{}> = (props) => {
         <For each={myListings()}>
           {(listing, idx) => (
             <sl-button
+              prop:variant={
+                listing.id === (activeListing() as UpdateListingDto)?.id
+                  ? 'primary'
+                  : 'default'
+              }
               prop:name="pencil"
               prop:disabled={isDirty()}
               on:click={() => setActiveListing(listing)}
@@ -73,6 +78,9 @@ export const MyListings: Component<{}> = (props) => {
         </For>
 
         <sl-button
+          prop:variant={
+            activeListing() instanceof CreateListingDto ? 'primary' : 'default'
+          }
           prop:name="pencil"
           prop:disabled={isDirty()}
           on:click={() => setActiveListing(null)}
@@ -91,7 +99,7 @@ export const MyListings: Component<{}> = (props) => {
             onCancel={() => clearActiveListing()}
           />
 
-          <sl-alert prop:variant="success" prop:open={Boolean(saving())}>
+          <sl-alert prop:variant="success" prop:open={isSaved()}>
             <sl-icon slot="icon" prop:name="check2-circle"></sl-icon>
             <strong>Your changes have been saved</strong>
           </sl-alert>

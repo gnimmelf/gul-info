@@ -43,7 +43,7 @@ export class ListingsService {
 
   public async updateListing(listing: UpdateListingDto) {
     await timeout(500);
-    const data = await this.db.updateListing(listing.data);
-    return Listing.from({ ...listing, ...data });
+    const res = await this.db.updateListing(listing.data);
+    return Listing.from({ ...listing.data, ...res });
   }
 }

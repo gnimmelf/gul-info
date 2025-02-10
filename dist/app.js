@@ -16354,18 +16354,19 @@
       return res.map(idObjToString);
     }
     async createListing(data) {
-      data.tags = ["tags:1"];
-      const query = `CREATE ONLY listing CONTENT ${JSON.stringify(data)} RETURN diff;`;
+      const query = `fn::createListingsRecord($data);`;
       console.log({ query });
-      const res = pop(await this.client.query(query));
+      const res = pop(
+        await this.client.query(query, { data })
+      );
       return idObjToString(res);
     }
     async updateListing(data) {
-      const id4 = data.id;
-      delete data.id;
-      const query = `UPDATE ONLY ${id4} CONTENT ${JSON.stringify(data)} RETURN diff;`;
-      console.log({ query });
-      const res = pop(await this.client.query(query));
+      const query = `fn::updateListingsRecord($data);`;
+      console.log({ query, data });
+      const res = pop(
+        await this.client.query(query, { data })
+      );
       return idObjToString(res);
     }
   };
@@ -18194,8 +18195,8 @@
     }
     async updateListing(listing) {
       await timeout(500);
-      const data = await this.db.updateListing(listing.data);
-      return Listing.from({ ...listing, ...data });
+      const res = await this.db.updateListing(listing.data);
+      return Listing.from({ ...listing.data, ...res });
     }
   };
 
@@ -18216,6 +18217,7 @@
   // src/shared/models/listing/UpdateListingDto.ts
   var UpdateListingDtoSchema = ListingSchema.extend({
     id: ListingSchema.shape.id,
+    owner: ListingSchema.shape.owner,
     isActive: ListingSchema.shape.isActive,
     title: ListingSchema.shape.title.min(3).max(70),
     description: ListingSchema.shape.description.min(15).max(150),
@@ -18288,7 +18290,7 @@
     });
     const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
       // `createResource`-source signal has own memoization, shallow comparison, which is not
-      // exposed, so re-wrap the data in a new object to bypass that
+      // exposed, so re-wrap the data in a new object to bypass that:
       () => ({ filters: onFilterListings() }),
       async ({ filters }) => {
         console.log("onFilterListings", { filters });
@@ -18310,6 +18312,7 @@
       } else if (listingDto instanceof UpdateListingDto) {
         res = listingService.updateListing(listingDto);
       }
+      return res;
     });
     const adapter = checkAdapterReturnType({
       resources: {
@@ -18956,6 +18959,7 @@
   // src/shared/constants.ts
   var MAX_LISTINGS = 5;
   var MAX_LINKS = 3;
+  var MAX_TAGS = 3;
 
   // node_modules/.pnpm/dot-prop@9.0.0/node_modules/dot-prop/index.js
   var isObject2 = (value) => {
@@ -19397,7 +19401,7 @@
   };
 
   // src/solid-js/ui/components/ListingForm.tsx
-  var _tmpl$12 = /* @__PURE__ */ template(`<sl-card><form><fieldset><legend>Knagger</legend></fieldset><fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny</sl-button></fieldset><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
+  var _tmpl$12 = /* @__PURE__ */ template(`<sl-card><form><fieldset><legend>Knagger (<!> av <!>)</legend></fieldset><fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny</sl-button></fieldset><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
   var _tmpl$34 = /* @__PURE__ */ template(`<sl-input>`, true, false);
   var _tmpl$43 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
@@ -19432,6 +19436,9 @@
     })
   });
   var ListingForm = (props) => {
+    const {
+      directory
+    } = useService();
     const defaultFormElementSize = "small";
     const formState = new FormState();
     const [values, setValue] = formState.getStore();
@@ -19469,47 +19476,47 @@
       }
     }
     return (() => {
-      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$7.nextSibling, _el$8 = _el$10.nextSibling, _el$11 = _el$5.nextSibling, _el$12 = _el$4.nextSibling, _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild, _el$15 = _el$14.nextSibling;
+      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$6 = _el$8.nextSibling, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$3.nextSibling, _el$11 = _el$10.firstChild, _el$12 = _el$11.firstChild, _el$15 = _el$12.nextSibling, _el$13 = _el$15.nextSibling, _el$16 = _el$13.nextSibling, _el$14 = _el$16.nextSibling, _el$17 = _el$11.nextSibling, _el$18 = _el$10.nextSibling, _el$19 = _el$18.firstChild, _el$20 = _el$19.firstChild, _el$21 = _el$20.nextSibling;
       _el$._$owner = getOwner();
       insert(_el$2, createComponent(FormField, {
         key: "isActive",
         formState,
         "class": "break-flow",
         children: (key) => (() => {
-          var _el$16 = _tmpl$25();
-          addEventListener(_el$16, "input", () => setValue(key, !values[key]));
-          _el$16.size = "small";
-          _el$16._$owner = getOwner();
-          createRenderEffect(() => _el$16.checked = values[key]);
-          return _el$16;
+          var _el$22 = _tmpl$25();
+          addEventListener(_el$22, "input", () => setValue(key, !values[key]));
+          _el$22.size = "small";
+          _el$22._$owner = getOwner();
+          createRenderEffect(() => _el$22.checked = values[key]);
+          return _el$22;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "title",
         formState,
         children: (key) => (() => {
-          var _el$17 = _tmpl$34();
-          addEventListener(_el$17, "blur", () => formState.validateField(key));
-          addEventListener(_el$17, "input", ({
+          var _el$23 = _tmpl$34();
+          addEventListener(_el$23, "blur", () => formState.validateField(key));
+          addEventListener(_el$23, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$17.label = "Virksomhetens navn";
-          _el$17.size = "small";
-          _el$17.name = key;
-          _el$17.required = true;
-          _el$17._$owner = getOwner();
+          _el$23.label = "Virksomhetens navn";
+          _el$23.size = "small";
+          _el$23.name = key;
+          _el$23.required = true;
+          _el$23._$owner = getOwner();
           createRenderEffect((_p$) => {
             var _v$4 = !!formState.hasErrors(key), _v$5 = !!formState.isValid(key), _v$6 = values[key];
-            _v$4 !== _p$.e && _el$17.classList.toggle("user-error", _p$.e = _v$4);
-            _v$5 !== _p$.t && _el$17.classList.toggle("user-valid", _p$.t = _v$5);
-            _v$6 !== _p$.a && (_el$17.value = _p$.a = _v$6);
+            _v$4 !== _p$.e && _el$23.classList.toggle("user-error", _p$.e = _v$4);
+            _v$5 !== _p$.t && _el$23.classList.toggle("user-valid", _p$.t = _v$5);
+            _v$6 !== _p$.a && (_el$23.value = _p$.a = _v$6);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$17;
+          return _el$23;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
@@ -19517,145 +19524,153 @@
         formState,
         "class": "break-flow",
         children: (key) => (() => {
-          var _el$18 = _tmpl$34();
-          addEventListener(_el$18, "blur", () => formState.validateField(key));
-          addEventListener(_el$18, "input", ({
+          var _el$24 = _tmpl$34();
+          addEventListener(_el$24, "blur", () => formState.validateField(key));
+          addEventListener(_el$24, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$18.label = "Beskrivelse av tjeneste eller produkt";
-          _el$18.size = "small";
-          _el$18.name = key;
-          _el$18.required = true;
-          _el$18._$owner = getOwner();
+          _el$24.label = "Beskrivelse av tjeneste eller produkt";
+          _el$24.size = "small";
+          _el$24.name = key;
+          _el$24.required = true;
+          _el$24._$owner = getOwner();
           createRenderEffect((_p$) => {
             var _v$7 = !!formState.hasErrors(key), _v$8 = !!formState.isValid(key), _v$9 = values[key];
-            _v$7 !== _p$.e && _el$18.classList.toggle("user-error", _p$.e = _v$7);
-            _v$8 !== _p$.t && _el$18.classList.toggle("user-valid", _p$.t = _v$8);
-            _v$9 !== _p$.a && (_el$18.value = _p$.a = _v$9);
+            _v$7 !== _p$.e && _el$24.classList.toggle("user-error", _p$.e = _v$7);
+            _v$8 !== _p$.t && _el$24.classList.toggle("user-valid", _p$.t = _v$8);
+            _v$9 !== _p$.a && (_el$24.value = _p$.a = _v$9);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$18;
+          return _el$24;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "address",
         formState,
         children: (key) => (() => {
-          var _el$19 = _tmpl$34();
-          addEventListener(_el$19, "blur", () => formState.validateField(key));
-          addEventListener(_el$19, "input", ({
+          var _el$25 = _tmpl$34();
+          addEventListener(_el$25, "blur", () => formState.validateField(key));
+          addEventListener(_el$25, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$19.label = "Gateadresse";
-          _el$19.size = "small";
-          _el$19.name = key;
-          _el$19.required = true;
-          _el$19._$owner = getOwner();
+          _el$25.label = "Gateadresse";
+          _el$25.size = "small";
+          _el$25.name = key;
+          _el$25.required = true;
+          _el$25._$owner = getOwner();
           createRenderEffect((_p$) => {
             var _v$10 = !!formState.hasErrors(key), _v$11 = !!formState.isValid(key), _v$12 = values[key];
-            _v$10 !== _p$.e && _el$19.classList.toggle("user-error", _p$.e = _v$10);
-            _v$11 !== _p$.t && _el$19.classList.toggle("user-valid", _p$.t = _v$11);
-            _v$12 !== _p$.a && (_el$19.value = _p$.a = _v$12);
+            _v$10 !== _p$.e && _el$25.classList.toggle("user-error", _p$.e = _v$10);
+            _v$11 !== _p$.t && _el$25.classList.toggle("user-valid", _p$.t = _v$11);
+            _v$12 !== _p$.a && (_el$25.value = _p$.a = _v$12);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$19;
+          return _el$25;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "zip",
         formState,
         children: (key) => (() => {
-          var _el$20 = _tmpl$34();
-          addEventListener(_el$20, "blur", () => formState.validateField(key));
-          addEventListener(_el$20, "input", ({
+          var _el$26 = _tmpl$34();
+          addEventListener(_el$26, "blur", () => formState.validateField(key));
+          addEventListener(_el$26, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$20.label = "Postnummer";
-          _el$20.size = "small";
-          _el$20.name = key;
-          _el$20.required = true;
-          _el$20._$owner = getOwner();
+          _el$26.label = "Postnummer";
+          _el$26.size = "small";
+          _el$26.name = key;
+          _el$26.required = true;
+          _el$26._$owner = getOwner();
           createRenderEffect((_p$) => {
             var _v$13 = !!formState.hasErrors(key), _v$14 = !!formState.isValid(key), _v$15 = values[key];
-            _v$13 !== _p$.e && _el$20.classList.toggle("user-error", _p$.e = _v$13);
-            _v$14 !== _p$.t && _el$20.classList.toggle("user-valid", _p$.t = _v$14);
-            _v$15 !== _p$.a && (_el$20.value = _p$.a = _v$15);
+            _v$13 !== _p$.e && _el$26.classList.toggle("user-error", _p$.e = _v$13);
+            _v$14 !== _p$.t && _el$26.classList.toggle("user-valid", _p$.t = _v$14);
+            _v$15 !== _p$.a && (_el$26.value = _p$.a = _v$15);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$20;
+          return _el$26;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "phone",
         formState,
         children: (key) => (() => {
-          var _el$21 = _tmpl$34();
-          addEventListener(_el$21, "blur", () => formState.validateField(key));
-          addEventListener(_el$21, "input", ({
+          var _el$27 = _tmpl$34();
+          addEventListener(_el$27, "blur", () => formState.validateField(key));
+          addEventListener(_el$27, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$21.label = "Telefonnummer";
-          _el$21.size = "small";
-          _el$21.name = key;
-          _el$21.required = true;
-          _el$21._$owner = getOwner();
+          _el$27.label = "Telefonnummer";
+          _el$27.size = "small";
+          _el$27.name = key;
+          _el$27.required = true;
+          _el$27._$owner = getOwner();
           createRenderEffect((_p$) => {
             var _v$16 = !!formState.hasErrors(key), _v$17 = !!formState.isValid(key), _v$18 = values[key];
-            _v$16 !== _p$.e && _el$21.classList.toggle("user-error", _p$.e = _v$16);
-            _v$17 !== _p$.t && _el$21.classList.toggle("user-valid", _p$.t = _v$17);
-            _v$18 !== _p$.a && (_el$21.value = _p$.a = _v$18);
+            _v$16 !== _p$.e && _el$27.classList.toggle("user-error", _p$.e = _v$16);
+            _v$17 !== _p$.t && _el$27.classList.toggle("user-valid", _p$.t = _v$17);
+            _v$18 !== _p$.a && (_el$27.value = _p$.a = _v$18);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$21;
+          return _el$27;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "email",
         formState,
         children: (key) => (() => {
-          var _el$22 = _tmpl$34();
-          addEventListener(_el$22, "blur", () => formState.validateField(key));
-          addEventListener(_el$22, "input", ({
+          var _el$28 = _tmpl$34();
+          addEventListener(_el$28, "blur", () => formState.validateField(key));
+          addEventListener(_el$28, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$22.label = "Epostadresse";
-          _el$22.size = "small";
-          _el$22.name = key;
-          _el$22.required = true;
-          _el$22._$owner = getOwner();
+          _el$28.label = "Epostadresse";
+          _el$28.size = "small";
+          _el$28.name = key;
+          _el$28.required = true;
+          _el$28._$owner = getOwner();
           createRenderEffect((_p$) => {
             var _v$19 = !!formState.hasErrors(key), _v$20 = !!formState.isValid(key), _v$21 = values[key];
-            _v$19 !== _p$.e && _el$22.classList.toggle("user-error", _p$.e = _v$19);
-            _v$20 !== _p$.t && _el$22.classList.toggle("user-valid", _p$.t = _v$20);
-            _v$21 !== _p$.a && (_el$22.value = _p$.a = _v$21);
+            _v$19 !== _p$.e && _el$28.classList.toggle("user-error", _p$.e = _v$19);
+            _v$20 !== _p$.t && _el$28.classList.toggle("user-valid", _p$.t = _v$20);
+            _v$21 !== _p$.a && (_el$28.value = _p$.a = _v$21);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$22;
+          return _el$28;
         })()
       }), _el$3);
-      insert(_el$5, () => values.links?.length, _el$9);
-      insert(_el$5, MAX_LINKS, _el$10);
-      insert(_el$4, createComponent(For, {
+      insert(_el$4, () => values.tags?.length, _el$8);
+      insert(_el$4, MAX_TAGS, _el$9);
+      insert(_el$3, createComponent(For, {
+        get each() {
+          return values.tags;
+        },
+        children: (tag, idx) => tag
+      }), null);
+      insert(_el$11, () => values.links?.length, _el$15);
+      insert(_el$11, MAX_LINKS, _el$16);
+      insert(_el$10, createComponent(For, {
         get each() {
           return values.links;
         },
@@ -19666,24 +19681,24 @@
           formState,
           hideError: true,
           children: (key) => (() => {
-            var _el$23 = _tmpl$43(), _el$24 = _el$23.firstChild, _el$25 = _el$24.nextSibling;
-            addEventListener(_el$24, "blur", () => formState.validateField(key));
-            addEventListener(_el$24, "input", (e13) => updateLink(idx(), e13.target.value));
-            _el$24.size = "small";
-            _el$24.name = key;
-            _el$24.type = "url";
-            _el$24.required = true;
-            _el$24._$owner = getOwner();
-            addEventListener(_el$25, "click", () => removeLink(idx()));
-            _el$25.name = "trash";
-            _el$25._$owner = getOwner();
+            var _el$29 = _tmpl$43(), _el$30 = _el$29.firstChild, _el$31 = _el$30.nextSibling;
+            addEventListener(_el$30, "blur", () => formState.validateField(key));
+            addEventListener(_el$30, "input", (e13) => updateLink(idx(), e13.target.value));
+            _el$30.size = "small";
+            _el$30.name = key;
+            _el$30.type = "url";
+            _el$30.required = true;
+            _el$30._$owner = getOwner();
+            addEventListener(_el$31, "click", () => removeLink(idx()));
+            _el$31.name = "trash";
+            _el$31._$owner = getOwner();
             createRenderEffect((_p$) => {
               var _v$22 = css7.itemRow, _v$23 = !!formState.hasErrors(key), _v$24 = !!formState.isValid(key), _v$25 = `Lenke ${idx() + 1}`, _v$26 = link.href;
-              _v$22 !== _p$.e && className(_el$23, _p$.e = _v$22);
-              _v$23 !== _p$.t && _el$24.classList.toggle("user-error", _p$.t = _v$23);
-              _v$24 !== _p$.a && _el$24.classList.toggle("user-valid", _p$.a = _v$24);
-              _v$25 !== _p$.o && (_el$24.label = _p$.o = _v$25);
-              _v$26 !== _p$.i && (_el$24.value = _p$.i = _v$26);
+              _v$22 !== _p$.e && className(_el$29, _p$.e = _v$22);
+              _v$23 !== _p$.t && _el$30.classList.toggle("user-error", _p$.t = _v$23);
+              _v$24 !== _p$.a && _el$30.classList.toggle("user-valid", _p$.a = _v$24);
+              _v$25 !== _p$.o && (_el$30.label = _p$.o = _v$25);
+              _v$26 !== _p$.i && (_el$30.value = _p$.i = _v$26);
               return _p$;
             }, {
               e: void 0,
@@ -19692,31 +19707,31 @@
               o: void 0,
               i: void 0
             });
-            return _el$23;
+            return _el$29;
           })()
         })
-      }), _el$11);
-      addEventListener(_el$11, "click", addLink);
-      _el$11.size = "small";
-      _el$11.type = "button";
-      _el$11.variant = "primary";
-      _el$11._$owner = getOwner();
-      _el$13._$owner = getOwner();
-      addEventListener(_el$14, "click", handleSubmit);
-      _el$14.size = "medium";
-      _el$14.type = "button";
-      _el$14.variant = "primary";
-      _el$14._$owner = getOwner();
-      addEventListener(_el$15, "click", props.onCancel);
-      _el$15.size = "medium";
-      _el$15.type = "button";
-      _el$15.variant = "neutral";
-      _el$15._$owner = getOwner();
+      }), _el$17);
+      addEventListener(_el$17, "click", addLink);
+      _el$17.size = "small";
+      _el$17.type = "button";
+      _el$17.variant = "primary";
+      _el$17._$owner = getOwner();
+      _el$19._$owner = getOwner();
+      addEventListener(_el$20, "click", handleSubmit);
+      _el$20.size = "medium";
+      _el$20.type = "button";
+      _el$20.variant = "primary";
+      _el$20._$owner = getOwner();
+      addEventListener(_el$21, "click", props.onCancel);
+      _el$21.size = "medium";
+      _el$21.type = "button";
+      _el$21.variant = "neutral";
+      _el$21._$owner = getOwner();
       createRenderEffect((_p$) => {
         var _v$ = join(css7.form, "validity-styles"), _v$2 = values.links?.length === MAX_LINKS, _v$3 = join(css7.controls, "break-flow");
         _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$11.disabled = _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$12, _p$.a = _v$3);
+        _v$2 !== _p$.t && (_el$17.disabled = _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$18, _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
@@ -19746,7 +19761,7 @@
     const [isDirty2, setIsDirty] = createSignal(false);
     const [activeListing, _setActiveListing] = createSignal(null);
     const myListings = () => listings()?.resources.myListings();
-    const saving = () => listings()?.resources.saveListing();
+    const isSaved = () => Boolean(listings()?.resources.saveListing());
     function clearActiveListing() {
       _setActiveListing(null);
       setIsDirty(false);
@@ -19781,7 +19796,15 @@
           _el$14.name = "pencil";
           _el$14._$owner = getOwner();
           insert(_el$13, () => listing.title, null);
-          createRenderEffect(() => _el$13.disabled = isDirty2());
+          createRenderEffect((_p$) => {
+            var _v$4 = listing.id === activeListing()?.id ? "primary" : "default", _v$5 = isDirty2();
+            _v$4 !== _p$.e && (_el$13.variant = _p$.e = _v$4);
+            _v$5 !== _p$.t && (_el$13.disabled = _p$.t = _v$5);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0
+          });
           return _el$13;
         })()
       }), _el$9);
@@ -19815,7 +19838,7 @@
                 _el$11._$owner = getOwner();
                 _el$12.name = "check2-circle";
                 _el$12._$owner = getOwner();
-                createRenderEffect(() => _el$11.open = Boolean(saving()));
+                createRenderEffect(() => _el$11.open = isSaved());
                 return _el$11;
               })()];
             }
@@ -19823,13 +19846,15 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = css8.listings, _v$2 = isDirty2();
+        var _v$ = css8.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2();
         _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$9.disabled = _p$.t = _v$2);
+        _v$2 !== _p$.t && (_el$9.variant = _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$9.disabled = _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0
       });
       return _el$;
     })();

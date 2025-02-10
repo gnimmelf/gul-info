@@ -8,9 +8,7 @@ import {
 } from 'solid-js';
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
-import { ListingForm } from '../components/ListingForm';
 import { addCss, Theme } from '~/shared/ui/theme';
-import { Listing } from '~/shared/models/listing/Listing';
 import { MyListings } from '../components/MyListings';
 
 const css = addCss({});

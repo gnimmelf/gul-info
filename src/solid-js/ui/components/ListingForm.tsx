@@ -2,7 +2,7 @@ import { Setter, Component, createEffect, For } from 'solid-js';
 import { unwrap } from 'solid-js/store';
 
 import { toDotPath } from '~/shared/lib/utils';
-import { MAX_LINKS } from '~/shared/constants';
+import { MAX_LINKS, MAX_TAGS } from '~/shared/constants';
 
 import {
   CreateListingDto,
@@ -17,6 +17,7 @@ import { FormState } from '~/solid-js/lib/FormState';
 
 import { join, addCss, Theme } from '~/shared/ui/theme';
 import { FormField } from './FormField';
+import { useService } from '../providers/ServiceProvider';
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -58,6 +59,8 @@ export const ListingForm: Component<{
   onSubmit: (listing: CreateListingDto | UpdateListingDto) => void;
   onCancel: () => void;
 }> = (props) => {
+  const { directory } = useService();
+
   const defaultFormElementSize = 'small';
 
   const formState = new FormState<
@@ -250,7 +253,10 @@ export const ListingForm: Component<{
           </FormField>
 
           <fieldset>
-            <legend>Knagger</legend>
+            <legend>
+              Knagger ({values.tags?.length} av {MAX_TAGS})
+            </legend>
+            <For each={values.tags}>{(tag, idx) => tag}</For>
           </fieldset>
 
           <fieldset>

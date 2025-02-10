@@ -3,6 +3,8 @@ DEFINE TABLE listings SCHEMAFULL
 PERMISSIONS
     FOR select
     	WHERE isActive = true || owner = $auth.id
+    FOR select
+        WHERE $after.owner = $auth.id;
 
 -- Define fields for the listings table
 DEFINE FIELD owner ON TABLE listings TYPE record<users>;

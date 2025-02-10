@@ -1,4 +1,4 @@
-import Surreal, { RecordId } from 'surrealdb';
+import Surreal, { RecordId, StringRecordId } from 'surrealdb';
 import { IDatabase } from '../IDatabase';
 import { FilterSchemaType, TagsMatchType } from '~/shared/models/Filters';
 
@@ -141,19 +141,20 @@ export class SurrealDbAdapter implements IDatabase {
   }
 
   async createListing(data: CreateListingDtoSchemaType) {
-    data.tags = ['tags:1'];
-    const query = `CREATE ONLY listing CONTENT ${JSON.stringify(data)} RETURN diff;`;
+    const query = `fn::createListingsRecord($data);`;
     console.log({ query });
-    const res = pop<ListingSchemaType>(await this.client.query(query));
+    const res = pop<ListingSchemaType>(
+      await this.client.query(query, { data }),
+    );
     return idObjToString(res);
   }
 
   async updateListing(data: UpdateListingDtoSchemaType) {
-    const id = data.id;
-    delete data.id;
-    const query = `UPDATE ONLY ${id} CONTENT ${JSON.stringify(data)} RETURN diff;`;
-    console.log({ query });
-    const res = pop<ListingSchemaType>(await this.client.query(query));
+    const query = `fn::updateListingsRecord($data);`;
+    console.log({ query, data });
+    const res = pop<ListingSchemaType>(
+      await this.client.query(query, { data }),
+    );
     return idObjToString(res);
   }
 }

@@ -21,12 +21,12 @@ export const createListingsServiceAdaper = (
 
   const [onFilterListings, setFilterListings] =
     createSignal<FilterSchemaType | null>(null, {
-      equals: false
+      equals: false,
     });
 
   const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
     // `createResource`-source signal has own memoization, shallow comparison, which is not
-    // exposed, so re-wrap the data in a new object to bypass that
+    // exposed, so re-wrap the data in a new object to bypass that:
     () => ({ filters: onFilterListings() }),
     async ({ filters }) => {
       console.log('onFilterListings', { filters });
@@ -46,7 +46,7 @@ export const createListingsServiceAdaper = (
   const [saveListing] = createResource(onSaveListing, async (listingDto) => {
     /**
      * TODO! Implement refetching of invalid resources
-     * When listings is updated / created, what needs to be refreshed, and how?
+     * when listings is updated / created, what needs to be refreshed, and how?
      */
     let res;
     if (listingDto instanceof CreateListingDto) {
@@ -54,6 +54,7 @@ export const createListingsServiceAdaper = (
     } else if (listingDto instanceof UpdateListingDto) {
       res = listingService.updateListing(listingDto);
     }
+    return res;
   });
 
   const adapter = checkAdapterReturnType({

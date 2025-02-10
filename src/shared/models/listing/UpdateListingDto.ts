@@ -6,6 +6,7 @@ import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const UpdateListingDtoSchema = ListingSchema.extend({
   id: ListingSchema.shape.id,
+  owner: ListingSchema.shape.owner,
   isActive: ListingSchema.shape.isActive,
   title: ListingSchema.shape.title.min(3).max(70),
   description: ListingSchema.shape.description.min(15).max(150),
@@ -23,7 +24,7 @@ export const UpdateListingDtoSchema = ListingSchema.extend({
 export type UpdateListingDtoSchemaType = z.infer<typeof UpdateListingDtoSchema>;
 
 // Add Schema props type definitions
-export interface Listing extends UpdateListingDtoSchemaType {}
+export interface UpdateListingDto extends UpdateListingDtoSchemaType {}
 
 @ExposeDataAsSchemaProps(UpdateListingDtoSchema)
 export class UpdateListingDto {
