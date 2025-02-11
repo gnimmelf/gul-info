@@ -16208,7 +16208,7 @@
   })(TagsMatchType || {});
   var FiltersSchema = z.object({
     text: z.string().optional().default(""),
-    tagKeys: z.array(z.string()).optional().default([]),
+    tagIds: z.array(z.string()).optional().default([]),
     indexLetter: z.string().optional().default(""),
     tagsMatchType: z.nativeEnum(TagsMatchType).default("ALL" /* ALL */)
   });
@@ -16230,12 +16230,12 @@
       const next = value.toLocaleLowerCase() != prev ? value.toLocaleLowerCase() : "";
       this.data.indexLetter = next;
     }
-    setTag(tagKey, toggle = true) {
-      const { tagKeys } = this.data;
-      const idx = tagKeys.indexOf(tagKey);
-      this.data.tagKeys = toggle ? idx < 0 ? tagKeys.concat(tagKey) : [...tagKeys.slice(0, idx), ...tagKeys.slice(idx + 1)] : (
+    setTag(tagId, toggle = true) {
+      const { tagIds } = this.data;
+      const idx = tagIds.indexOf(tagId);
+      this.data.tagIds = toggle ? idx < 0 ? tagIds.concat(tagId) : [...tagIds.slice(0, idx), ...tagIds.slice(idx + 1)] : (
         // No toggle, just replace
-        [tagKey]
+        [tagId]
       );
     }
     setTagsMatchType(matchType) {
@@ -16244,8 +16244,8 @@
     isActiveIndexLetter(letter) {
       return this.data.indexLetter === letter.toLocaleLowerCase();
     }
-    hasTag(tagKey) {
-      return this.data.tagKeys.includes(tagKey);
+    hasTag(tagId) {
+      return this.data.tagIds.includes(tagId);
     }
   };
 
@@ -16328,14 +16328,14 @@
           `string::starts_with(string::lowercase(title), '${filters.indexLetter.toLocaleLowerCase()}')`
         );
       }
-      if (filters?.tagKeys?.length) {
-        const tagstr = filters.tagKeys.map((key) => key).join("', '");
+      if (filters?.tagIds?.length) {
+        const tagstr = filters.tagIds.map((key) => key).join(", ");
         if (filters.tagsMatchType === "ALL" /* ALL */) {
           conditions.push(
-            `array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`
+            `array::len(array::intersect(tags.id, [${tagstr}])) = ${filters.tagIds.length}`
           );
         } else {
-          conditions.push(`tags[WHERE key IN ['${tagstr}']];`);
+          conditions.push(`tags[WHERE id IN [${tagstr}]];`);
         }
       }
       if (conditions.length) {
@@ -17530,6 +17530,7 @@
 
   // src/shared/models/TagViewModel.ts
   var TagViewSchema = z.object({
+    id: z.any(),
     key: z.string(),
     name: z.string(),
     usageCount: z.number()
@@ -18788,7 +18789,7 @@
       insert(_el$5, () => tags()?.map((tag) => createComponent(BadgeButton, {
         size: "small",
         get isActive() {
-          return Boolean(filters()?.hasTag(tag.key));
+          return Boolean(filters()?.hasTag(tag.id));
         },
         get buttonLabel() {
           return tag.name;
@@ -18799,7 +18800,7 @@
         get disabled() {
           return isLoading();
         },
-        onClick: () => filters()?.setTag(tag.key, true)
+        onClick: () => filters()?.setTag(tag.id, true)
       })));
       insert(_el$, () => props.children, null);
       createRenderEffect((_p$) => {
@@ -18928,7 +18929,7 @@
               })()));
               insert(_el$13, () => listing.tags.map((tag) => (() => {
                 var _el$16 = _tmpl$52();
-                addEventListener(_el$16, "click", () => filters()?.setTag(tag.key));
+                addEventListener(_el$16, "click", () => filters()?.setTag(tag.id));
                 _el$16.style.setProperty("cursor", "pointer");
                 _el$16.variant = "primary";
                 _el$16.size = "small";
@@ -19401,10 +19402,11 @@
   };
 
   // src/solid-js/ui/components/ListingForm.tsx
-  var _tmpl$12 = /* @__PURE__ */ template(`<sl-card><form><fieldset><legend>Knagger (<!> av <!>)</legend></fieldset><fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny</sl-button></fieldset><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
+  var _tmpl$12 = /* @__PURE__ */ template(`<sl-card><form>find<fieldset><legend>Knagger (<!> av <!>)</legend><sl-button>Legg til</sl-button></fieldset><fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny</sl-button></fieldset><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
   var _tmpl$34 = /* @__PURE__ */ template(`<sl-input>`, true, false);
-  var _tmpl$43 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
+  var _tmpl$43 = /* @__PURE__ */ template(`<div><sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
+  var _tmpl$53 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
   var css7 = addCss({
     form: (theme2) => ({
       display: "flex",
@@ -19451,17 +19453,27 @@
     createEffect(() => {
       props.setIsDirty(formState.isDirty());
     });
-    function updateLink(linkIdx, value) {
-      setValue(toDotPath("links", linkIdx, "href"), value);
-    }
-    function addLink() {
-      setValue(toDotPath("links", values.links.length), {
-        href: ""
-      });
-    }
-    function removeLink(linkIdx) {
-      setValue("links", (links) => links.filter((_3, i9) => i9 !== linkIdx));
-    }
+    const links = {
+      update(idx, value) {
+        setValue(toDotPath("links", idx, "href"), value);
+      },
+      add() {
+        setValue(toDotPath("links", values.links.length), {
+          href: ""
+        });
+      },
+      remove(idx) {
+        setValue("links", (links2) => links2.filter((_3, i9) => i9 !== idx));
+      }
+    };
+    const tags = {
+      add(tagId) {
+        setValue(toDotPath("tags", values.tags.length), tagId);
+      },
+      remove(tagId) {
+        setValue("tags", (tags2) => tags2.filter((tag) => tag.id != tagId));
+      }
+    };
     function handleSubmit() {
       formState.validateAll();
       console.log("values", unwrap(values));
@@ -19476,80 +19488,23 @@
       }
     }
     return (() => {
-      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$8 = _el$5.nextSibling, _el$6 = _el$8.nextSibling, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$3.nextSibling, _el$11 = _el$10.firstChild, _el$12 = _el$11.firstChild, _el$15 = _el$12.nextSibling, _el$13 = _el$15.nextSibling, _el$16 = _el$13.nextSibling, _el$14 = _el$16.nextSibling, _el$17 = _el$11.nextSibling, _el$18 = _el$10.nextSibling, _el$19 = _el$18.firstChild, _el$20 = _el$19.firstChild, _el$21 = _el$20.nextSibling;
+      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$7.nextSibling, _el$8 = _el$10.nextSibling, _el$11 = _el$5.nextSibling, _el$12 = _el$4.nextSibling, _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild, _el$17 = _el$14.nextSibling, _el$15 = _el$17.nextSibling, _el$18 = _el$15.nextSibling, _el$16 = _el$18.nextSibling, _el$19 = _el$13.nextSibling, _el$20 = _el$12.nextSibling, _el$21 = _el$20.firstChild, _el$22 = _el$21.firstChild, _el$23 = _el$22.nextSibling;
       _el$._$owner = getOwner();
       insert(_el$2, createComponent(FormField, {
         key: "isActive",
         formState,
         "class": "break-flow",
         children: (key) => (() => {
-          var _el$22 = _tmpl$25();
-          addEventListener(_el$22, "input", () => setValue(key, !values[key]));
-          _el$22.size = "small";
-          _el$22._$owner = getOwner();
-          createRenderEffect(() => _el$22.checked = values[key]);
-          return _el$22;
-        })()
-      }), _el$3);
-      insert(_el$2, createComponent(FormField, {
-        key: "title",
-        formState,
-        children: (key) => (() => {
-          var _el$23 = _tmpl$34();
-          addEventListener(_el$23, "blur", () => formState.validateField(key));
-          addEventListener(_el$23, "input", ({
-            target
-          }) => setValue(key, target.value));
-          _el$23.label = "Virksomhetens navn";
-          _el$23.size = "small";
-          _el$23.name = key;
-          _el$23.required = true;
-          _el$23._$owner = getOwner();
-          createRenderEffect((_p$) => {
-            var _v$4 = !!formState.hasErrors(key), _v$5 = !!formState.isValid(key), _v$6 = values[key];
-            _v$4 !== _p$.e && _el$23.classList.toggle("user-error", _p$.e = _v$4);
-            _v$5 !== _p$.t && _el$23.classList.toggle("user-valid", _p$.t = _v$5);
-            _v$6 !== _p$.a && (_el$23.value = _p$.a = _v$6);
-            return _p$;
-          }, {
-            e: void 0,
-            t: void 0,
-            a: void 0
-          });
-          return _el$23;
-        })()
-      }), _el$3);
-      insert(_el$2, createComponent(FormField, {
-        key: "description",
-        formState,
-        "class": "break-flow",
-        children: (key) => (() => {
-          var _el$24 = _tmpl$34();
-          addEventListener(_el$24, "blur", () => formState.validateField(key));
-          addEventListener(_el$24, "input", ({
-            target
-          }) => setValue(key, target.value));
-          _el$24.label = "Beskrivelse av tjeneste eller produkt";
+          var _el$24 = _tmpl$25();
+          addEventListener(_el$24, "input", () => setValue(key, !values[key]));
           _el$24.size = "small";
-          _el$24.name = key;
-          _el$24.required = true;
           _el$24._$owner = getOwner();
-          createRenderEffect((_p$) => {
-            var _v$7 = !!formState.hasErrors(key), _v$8 = !!formState.isValid(key), _v$9 = values[key];
-            _v$7 !== _p$.e && _el$24.classList.toggle("user-error", _p$.e = _v$7);
-            _v$8 !== _p$.t && _el$24.classList.toggle("user-valid", _p$.t = _v$8);
-            _v$9 !== _p$.a && (_el$24.value = _p$.a = _v$9);
-            return _p$;
-          }, {
-            e: void 0,
-            t: void 0,
-            a: void 0
-          });
+          createRenderEffect(() => _el$24.checked = values[key]);
           return _el$24;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "address",
+        key: "title",
         formState,
         children: (key) => (() => {
           var _el$25 = _tmpl$34();
@@ -19557,16 +19512,16 @@
           addEventListener(_el$25, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$25.label = "Gateadresse";
+          _el$25.label = "Virksomhetens navn";
           _el$25.size = "small";
           _el$25.name = key;
           _el$25.required = true;
           _el$25._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$10 = !!formState.hasErrors(key), _v$11 = !!formState.isValid(key), _v$12 = values[key];
-            _v$10 !== _p$.e && _el$25.classList.toggle("user-error", _p$.e = _v$10);
-            _v$11 !== _p$.t && _el$25.classList.toggle("user-valid", _p$.t = _v$11);
-            _v$12 !== _p$.a && (_el$25.value = _p$.a = _v$12);
+            var _v$5 = !!formState.hasErrors(key), _v$6 = !!formState.isValid(key), _v$7 = values[key];
+            _v$5 !== _p$.e && _el$25.classList.toggle("user-error", _p$.e = _v$5);
+            _v$6 !== _p$.t && _el$25.classList.toggle("user-valid", _p$.t = _v$6);
+            _v$7 !== _p$.a && (_el$25.value = _p$.a = _v$7);
             return _p$;
           }, {
             e: void 0,
@@ -19577,24 +19532,25 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "zip",
+        key: "description",
         formState,
+        "class": "break-flow",
         children: (key) => (() => {
           var _el$26 = _tmpl$34();
           addEventListener(_el$26, "blur", () => formState.validateField(key));
           addEventListener(_el$26, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$26.label = "Postnummer";
+          _el$26.label = "Beskrivelse av tjeneste eller produkt";
           _el$26.size = "small";
           _el$26.name = key;
           _el$26.required = true;
           _el$26._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$13 = !!formState.hasErrors(key), _v$14 = !!formState.isValid(key), _v$15 = values[key];
-            _v$13 !== _p$.e && _el$26.classList.toggle("user-error", _p$.e = _v$13);
-            _v$14 !== _p$.t && _el$26.classList.toggle("user-valid", _p$.t = _v$14);
-            _v$15 !== _p$.a && (_el$26.value = _p$.a = _v$15);
+            var _v$8 = !!formState.hasErrors(key), _v$9 = !!formState.isValid(key), _v$10 = values[key];
+            _v$8 !== _p$.e && _el$26.classList.toggle("user-error", _p$.e = _v$8);
+            _v$9 !== _p$.t && _el$26.classList.toggle("user-valid", _p$.t = _v$9);
+            _v$10 !== _p$.a && (_el$26.value = _p$.a = _v$10);
             return _p$;
           }, {
             e: void 0,
@@ -19605,7 +19561,7 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "phone",
+        key: "address",
         formState,
         children: (key) => (() => {
           var _el$27 = _tmpl$34();
@@ -19613,16 +19569,16 @@
           addEventListener(_el$27, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$27.label = "Telefonnummer";
+          _el$27.label = "Gateadresse";
           _el$27.size = "small";
           _el$27.name = key;
           _el$27.required = true;
           _el$27._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$16 = !!formState.hasErrors(key), _v$17 = !!formState.isValid(key), _v$18 = values[key];
-            _v$16 !== _p$.e && _el$27.classList.toggle("user-error", _p$.e = _v$16);
-            _v$17 !== _p$.t && _el$27.classList.toggle("user-valid", _p$.t = _v$17);
-            _v$18 !== _p$.a && (_el$27.value = _p$.a = _v$18);
+            var _v$11 = !!formState.hasErrors(key), _v$12 = !!formState.isValid(key), _v$13 = values[key];
+            _v$11 !== _p$.e && _el$27.classList.toggle("user-error", _p$.e = _v$11);
+            _v$12 !== _p$.t && _el$27.classList.toggle("user-valid", _p$.t = _v$12);
+            _v$13 !== _p$.a && (_el$27.value = _p$.a = _v$13);
             return _p$;
           }, {
             e: void 0,
@@ -19633,7 +19589,7 @@
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
-        key: "email",
+        key: "zip",
         formState,
         children: (key) => (() => {
           var _el$28 = _tmpl$34();
@@ -19641,16 +19597,16 @@
           addEventListener(_el$28, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$28.label = "Epostadresse";
+          _el$28.label = "Postnummer";
           _el$28.size = "small";
           _el$28.name = key;
           _el$28.required = true;
           _el$28._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$19 = !!formState.hasErrors(key), _v$20 = !!formState.isValid(key), _v$21 = values[key];
-            _v$19 !== _p$.e && _el$28.classList.toggle("user-error", _p$.e = _v$19);
-            _v$20 !== _p$.t && _el$28.classList.toggle("user-valid", _p$.t = _v$20);
-            _v$21 !== _p$.a && (_el$28.value = _p$.a = _v$21);
+            var _v$14 = !!formState.hasErrors(key), _v$15 = !!formState.isValid(key), _v$16 = values[key];
+            _v$14 !== _p$.e && _el$28.classList.toggle("user-error", _p$.e = _v$14);
+            _v$15 !== _p$.t && _el$28.classList.toggle("user-valid", _p$.t = _v$15);
+            _v$16 !== _p$.a && (_el$28.value = _p$.a = _v$16);
             return _p$;
           }, {
             e: void 0,
@@ -19660,17 +19616,91 @@
           return _el$28;
         })()
       }), _el$3);
-      insert(_el$4, () => values.tags?.length, _el$8);
-      insert(_el$4, MAX_TAGS, _el$9);
-      insert(_el$3, createComponent(For, {
+      insert(_el$2, createComponent(FormField, {
+        key: "phone",
+        formState,
+        children: (key) => (() => {
+          var _el$29 = _tmpl$34();
+          addEventListener(_el$29, "blur", () => formState.validateField(key));
+          addEventListener(_el$29, "input", ({
+            target
+          }) => setValue(key, target.value));
+          _el$29.label = "Telefonnummer";
+          _el$29.size = "small";
+          _el$29.name = key;
+          _el$29.required = true;
+          _el$29._$owner = getOwner();
+          createRenderEffect((_p$) => {
+            var _v$17 = !!formState.hasErrors(key), _v$18 = !!formState.isValid(key), _v$19 = values[key];
+            _v$17 !== _p$.e && _el$29.classList.toggle("user-error", _p$.e = _v$17);
+            _v$18 !== _p$.t && _el$29.classList.toggle("user-valid", _p$.t = _v$18);
+            _v$19 !== _p$.a && (_el$29.value = _p$.a = _v$19);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0,
+            a: void 0
+          });
+          return _el$29;
+        })()
+      }), _el$4);
+      insert(_el$2, createComponent(FormField, {
+        key: "email",
+        formState,
+        children: (key) => (() => {
+          var _el$30 = _tmpl$34();
+          addEventListener(_el$30, "blur", () => formState.validateField(key));
+          addEventListener(_el$30, "input", ({
+            target
+          }) => setValue(key, target.value));
+          _el$30.label = "Epostadresse";
+          _el$30.size = "small";
+          _el$30.name = key;
+          _el$30.required = true;
+          _el$30._$owner = getOwner();
+          createRenderEffect((_p$) => {
+            var _v$20 = !!formState.hasErrors(key), _v$21 = !!formState.isValid(key), _v$22 = values[key];
+            _v$20 !== _p$.e && _el$30.classList.toggle("user-error", _p$.e = _v$20);
+            _v$21 !== _p$.t && _el$30.classList.toggle("user-valid", _p$.t = _v$21);
+            _v$22 !== _p$.a && (_el$30.value = _p$.a = _v$22);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0,
+            a: void 0
+          });
+          return _el$30;
+        })()
+      }), _el$4);
+      insert(_el$5, () => values.tags?.length, _el$9);
+      insert(_el$5, MAX_TAGS, _el$10);
+      insert(_el$4, createComponent(For, {
         get each() {
           return values.tags;
         },
-        children: (tag, idx) => tag
-      }), null);
-      insert(_el$11, () => values.links?.length, _el$15);
-      insert(_el$11, MAX_LINKS, _el$16);
-      insert(_el$10, createComponent(For, {
+        children: (tagId) => {
+          const tag = directory()?.resources.tags()?.find((tag2) => tag2.id === tagId);
+          return (() => {
+            var _el$31 = _tmpl$43(), _el$32 = _el$31.firstChild, _el$33 = _el$32.firstChild, _el$34 = _el$33.firstChild;
+            _el$32._$owner = getOwner();
+            addEventListener(_el$33, "click", () => tags.remove(tagId));
+            _el$33.size = "small";
+            _el$33._$owner = getOwner();
+            _el$34.name = "trash";
+            _el$34._$owner = getOwner();
+            insert(_el$33, () => tag.name, null);
+            return _el$31;
+          })();
+        }
+      }), _el$11);
+      addEventListener(_el$11, "click", () => tags.add(selectedTag()));
+      _el$11.size = "small";
+      _el$11.type = "button";
+      _el$11.variant = "primary";
+      _el$11._$owner = getOwner();
+      insert(_el$13, () => values.links?.length, _el$17);
+      insert(_el$13, MAX_LINKS, _el$18);
+      insert(_el$12, createComponent(For, {
         get each() {
           return values.links;
         },
@@ -19681,24 +19711,24 @@
           formState,
           hideError: true,
           children: (key) => (() => {
-            var _el$29 = _tmpl$43(), _el$30 = _el$29.firstChild, _el$31 = _el$30.nextSibling;
-            addEventListener(_el$30, "blur", () => formState.validateField(key));
-            addEventListener(_el$30, "input", (e13) => updateLink(idx(), e13.target.value));
-            _el$30.size = "small";
-            _el$30.name = key;
-            _el$30.type = "url";
-            _el$30.required = true;
-            _el$30._$owner = getOwner();
-            addEventListener(_el$31, "click", () => removeLink(idx()));
-            _el$31.name = "trash";
-            _el$31._$owner = getOwner();
+            var _el$35 = _tmpl$53(), _el$36 = _el$35.firstChild, _el$37 = _el$36.nextSibling;
+            addEventListener(_el$36, "blur", () => formState.validateField(key));
+            addEventListener(_el$36, "input", (e13) => links.update(idx(), e13.target.value));
+            _el$36.size = "small";
+            _el$36.name = key;
+            _el$36.type = "url";
+            _el$36.required = true;
+            _el$36._$owner = getOwner();
+            addEventListener(_el$37, "click", () => links.remove(idx()));
+            _el$37.name = "trash";
+            _el$37._$owner = getOwner();
             createRenderEffect((_p$) => {
-              var _v$22 = css7.itemRow, _v$23 = !!formState.hasErrors(key), _v$24 = !!formState.isValid(key), _v$25 = `Lenke ${idx() + 1}`, _v$26 = link.href;
-              _v$22 !== _p$.e && className(_el$29, _p$.e = _v$22);
-              _v$23 !== _p$.t && _el$30.classList.toggle("user-error", _p$.t = _v$23);
-              _v$24 !== _p$.a && _el$30.classList.toggle("user-valid", _p$.a = _v$24);
-              _v$25 !== _p$.o && (_el$30.label = _p$.o = _v$25);
-              _v$26 !== _p$.i && (_el$30.value = _p$.i = _v$26);
+              var _v$23 = css7.itemRow, _v$24 = !!formState.hasErrors(key), _v$25 = !!formState.isValid(key), _v$26 = `Lenke ${idx() + 1}`, _v$27 = link.href;
+              _v$23 !== _p$.e && className(_el$35, _p$.e = _v$23);
+              _v$24 !== _p$.t && _el$36.classList.toggle("user-error", _p$.t = _v$24);
+              _v$25 !== _p$.a && _el$36.classList.toggle("user-valid", _p$.a = _v$25);
+              _v$26 !== _p$.o && (_el$36.label = _p$.o = _v$26);
+              _v$27 !== _p$.i && (_el$36.value = _p$.i = _v$27);
               return _p$;
             }, {
               e: void 0,
@@ -19707,36 +19737,38 @@
               o: void 0,
               i: void 0
             });
-            return _el$29;
+            return _el$35;
           })()
         })
-      }), _el$17);
-      addEventListener(_el$17, "click", addLink);
-      _el$17.size = "small";
-      _el$17.type = "button";
-      _el$17.variant = "primary";
-      _el$17._$owner = getOwner();
+      }), _el$19);
+      addEventListener(_el$19, "click", links.add);
+      _el$19.size = "small";
+      _el$19.type = "button";
+      _el$19.variant = "primary";
       _el$19._$owner = getOwner();
-      addEventListener(_el$20, "click", handleSubmit);
-      _el$20.size = "medium";
-      _el$20.type = "button";
-      _el$20.variant = "primary";
-      _el$20._$owner = getOwner();
-      addEventListener(_el$21, "click", props.onCancel);
-      _el$21.size = "medium";
-      _el$21.type = "button";
-      _el$21.variant = "neutral";
       _el$21._$owner = getOwner();
+      addEventListener(_el$22, "click", handleSubmit);
+      _el$22.size = "medium";
+      _el$22.type = "button";
+      _el$22.variant = "primary";
+      _el$22._$owner = getOwner();
+      addEventListener(_el$23, "click", props.onCancel);
+      _el$23.size = "medium";
+      _el$23.type = "button";
+      _el$23.variant = "neutral";
+      _el$23._$owner = getOwner();
       createRenderEffect((_p$) => {
-        var _v$ = join(css7.form, "validity-styles"), _v$2 = values.links?.length === MAX_LINKS, _v$3 = join(css7.controls, "break-flow");
+        var _v$ = join(css7.form, "validity-styles"), _v$2 = values.links?.length === MAX_LINKS, _v$3 = values.links?.length === MAX_LINKS, _v$4 = join(css7.controls, "break-flow");
         _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$17.disabled = _p$.t = _v$2);
-        _v$3 !== _p$.a && className(_el$18, _p$.a = _v$3);
+        _v$2 !== _p$.t && (_el$11.disabled = _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$19.disabled = _p$.a = _v$3);
+        _v$4 !== _p$.o && className(_el$20, _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
-        a: void 0
+        a: void 0,
+        o: void 0
       });
       return _el$;
     })();
@@ -19865,7 +19897,7 @@
   var _tmpl$27 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
   var _tmpl$36 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
-  var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$54 = /* @__PURE__ */ template(`<section>`);
   var css9 = addCss({});
   var PageAccount = (props) => {
     const {
@@ -19874,7 +19906,7 @@
     const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
     const isLoggedIn = createMemo(() => account()?.resources.user());
     return (() => {
-      var _el$ = _tmpl$53();
+      var _el$ = _tmpl$54();
       insert(_el$, createComponent(Show, {
         get when() {
           return !isLoggedIn();

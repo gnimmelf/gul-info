@@ -113,7 +113,7 @@ export const PageListings: Component = () => {
                       style={{ cursor: 'pointer' }}
                       prop:variant="primary"
                       prop:size="small"
-                      on:click={() => filters()?.setTag(tag.key)}
+                      on:click={() => filters()?.setTag(tag.id)}
                     >
                       {tag.name}
                     </sl-tag>

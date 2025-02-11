@@ -111,14 +111,14 @@ export class SurrealDbAdapter implements IDatabase {
       );
     }
 
-    if (filters?.tagKeys?.length) {
-      const tagstr = filters.tagKeys.map((key) => key).join("', '");
+    if (filters?.tagIds?.length) {
+      const tagstr = filters.tagIds.map((key) => key).join(", ");
       if (filters.tagsMatchType === TagsMatchType.ALL) {
         conditions.push(
-          `array::len(array::intersect(tags.key, ['${tagstr}'])) = ${filters.tagKeys.length}`,
+          `array::len(array::intersect(tags.id, [${tagstr}])) = ${filters.tagIds.length}`,
         );
       } else {
-        conditions.push(`tags[WHERE key IN ['${tagstr}']];`);
+        conditions.push(`tags[WHERE id IN [${tagstr}]];`);
       }
     }
 

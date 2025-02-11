@@ -65,11 +65,11 @@ export const ListingsFilters: Component<{
         {tags()?.map((tag) => (
           <BadgeButton
             size="small"
-            isActive={Boolean(filters()?.hasTag(tag.key))}
+            isActive={Boolean(filters()?.hasTag(tag.id))}
             buttonLabel={tag.name}
             badgeLabel={tag.usageCount}
             disabled={isLoading()}
-            onClick={() => filters()?.setTag(tag.key, true)}
+            onClick={() => filters()?.setTag(tag.id, true)}
           />
         ))}
       </div>

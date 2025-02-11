@@ -8,7 +8,7 @@ export enum TagsMatchType {
 
 export const FiltersSchema = z.object({
   text: z.string().optional().default(''),
-  tagKeys: z.array(z.string()).optional().default([]),
+  tagIds: z.array(z.string()).optional().default([]),
   indexLetter: z.string().optional().default(''),
   tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL),
 });
@@ -39,16 +39,16 @@ export class Filters {
     this.data.indexLetter = next;
   }
 
-  setTag(tagKey: string, toggle = true) {
-    const { tagKeys } = this.data;
-    const idx = tagKeys.indexOf(tagKey);
+  setTag(tagId: string, toggle = true) {
+    const { tagIds } = this.data;
+    const idx = tagIds.indexOf(tagId);
 
-    this.data.tagKeys = toggle
+    this.data.tagIds = toggle
       ? idx < 0
-        ? tagKeys.concat(tagKey)
-        : [...tagKeys.slice(0, idx), ...tagKeys.slice(idx + 1)]
+        ? tagIds.concat(tagId)
+        : [...tagIds.slice(0, idx), ...tagIds.slice(idx + 1)]
       : // No toggle, just replace
-        [tagKey];
+        [tagId];
   }
 
   setTagsMatchType(matchType: TagsMatchType) {
@@ -59,7 +59,7 @@ export class Filters {
     return this.data.indexLetter === letter.toLocaleLowerCase();
   }
 
-  hasTag(tagKey: string) {
-    return this.data.tagKeys.includes(tagKey);
+  hasTag(tagId: string) {
+    return this.data.tagIds.includes(tagId);
   }
 }

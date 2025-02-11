@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const TagViewSchema = z.object({
+  id: z.any(),
   key: z.string(),
   name: z.string(),
   usageCount: z.number(),

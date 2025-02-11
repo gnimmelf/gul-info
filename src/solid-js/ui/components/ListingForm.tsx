@@ -83,17 +83,26 @@ export const ListingForm: Component<{
     props.setIsDirty(formState.isDirty());
   });
 
-  function updateLink(linkIdx: number, value: string) {
-    setValue(toDotPath('links', linkIdx, 'href'), value);
-  }
+  const links = {
+    update(idx: number, value: string) {
+      setValue(toDotPath('links', idx, 'href'), value);
+    },
+    add() {
+      setValue(toDotPath('links', values.links.length), { href: '' });
+    },
+    remove(idx: number) {
+      setValue('links', (links) => links.filter((_, i) => i !== idx));
+    },
+  };
 
-  function addLink() {
-    setValue(toDotPath('links', values.links.length), { href: '' });
-  }
-
-  function removeLink(linkIdx: number) {
-    setValue('links', (links) => links.filter((_, i) => i !== linkIdx));
-  }
+  const tags = {
+    add(tagId: string) {
+      setValue(toDotPath('tags', values.tags.length), tagId);
+    },
+    remove(tagId: string) {
+      setValue('tags', (tags) => tags.filter((tag) => tag.id != tagId));
+    },
+  };
 
   function handleSubmit() {
     formState.validateAll();
@@ -208,7 +217,7 @@ export const ListingForm: Component<{
                 on:blur={() => formState.validateField(key)}
               />
             )}
-          </FormField>
+          </FormField>find
 
           <FormField key="phone" formState={formState}>
             {(key) => (
@@ -256,7 +265,33 @@ export const ListingForm: Component<{
             <legend>
               Knagger ({values.tags?.length} av {MAX_TAGS})
             </legend>
-            <For each={values.tags}>{(tag, idx) => tag}</For>
+            <For each={values.tags}>
+              {(tagId) => {
+                const tag = directory()?.resources.tags()?.find(tag => tag.id === tagId)!;
+                return (
+                <div>
+                  <sl-button-group>
+                    <sl-button
+                      prop:size="small"
+                      on:click={() => tags.remove(tagId)}
+                    >
+                      <sl-icon slot="suffix" prop:name="trash"></sl-icon>
+                      {tag.name}
+                    </sl-button>
+                  </sl-button-group>
+                </div>
+              )}}
+            </For>
+
+            <sl-button
+              prop:size={defaultFormElementSize}
+              prop:disabled={values.links?.length === MAX_LINKS}
+              prop:type="button"
+              prop:variant="primary"
+              on:click={() => tags.add(selectedTag())}
+            >
+              Legg til
+            </sl-button>
           </fieldset>
 
           <fieldset>
@@ -284,7 +319,7 @@ export const ListingForm: Component<{
                         prop:required={true}
                         prop:value={link.href}
                         on:input={(e) =>
-                          updateLink(
+                          links.update(
                             idx(),
                             (e.target as HTMLInputElement).value,
                           )
@@ -294,7 +329,7 @@ export const ListingForm: Component<{
                       <sl-icon-button
                         color="red"
                         prop:name="trash"
-                        on:click={() => removeLink(idx())}
+                        on:click={() => links.remove(idx())}
                       />
                     </div>
                   )}
@@ -307,7 +342,7 @@ export const ListingForm: Component<{
               prop:disabled={values.links?.length === MAX_LINKS}
               prop:type="button"
               prop:variant="primary"
-              on:click={addLink}
+              on:click={links.add}
             >
               Legg til ny
             </sl-button>
