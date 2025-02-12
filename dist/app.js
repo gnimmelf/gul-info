@@ -98,7 +98,7 @@
         }
         showSourceCode(color) {
           if (!this.source) return "";
-          let css10 = this.source;
+          let css12 = this.source;
           if (color == null) color = pico.isColorSupported;
           let aside = (text) => text;
           let mark = (text) => text;
@@ -111,7 +111,7 @@
               highlight = (text) => terminalHighlight(text);
             }
           }
-          let lines = css10.split(/\r?\n/);
+          let lines = css12.split(/\r?\n/);
           let start = Math.max(this.line - 3, 0);
           let end = Math.min(this.line + 2, lines.length);
           let maxWidth = String(end).length;
@@ -1380,9 +1380,9 @@
         }
       }
       var PreviousMap = class {
-        constructor(css10, opts) {
+        constructor(css12, opts) {
           if (opts.map === false) return;
-          this.loadAnnotation(css10);
+          this.loadAnnotation(css12);
           this.inline = this.startWith(this.annotation, "data:");
           let prev = opts.map ? opts.map.prev : void 0;
           let text = this.loadMap(opts.from, prev);
@@ -1421,13 +1421,13 @@
           if (typeof map !== "object") return false;
           return typeof map.mappings === "string" || typeof map._mappings === "string" || Array.isArray(map.sections);
         }
-        loadAnnotation(css10) {
-          let comments = css10.match(/\/\*\s*# sourceMappingURL=/g);
+        loadAnnotation(css12) {
+          let comments = css12.match(/\/\*\s*# sourceMappingURL=/g);
           if (!comments) return;
-          let start = css10.lastIndexOf(comments.pop());
-          let end = css10.indexOf("*/", start);
+          let start = css12.lastIndexOf(comments.pop());
+          let end = css12.indexOf("*/", start);
           if (start > -1 && end > -1) {
-            this.annotation = this.getAnnotationURL(css10.substring(start, end));
+            this.annotation = this.getAnnotationURL(css12.substring(start, end));
           }
         }
         loadFile(path) {
@@ -1500,11 +1500,11 @@
       var sourceMapAvailable = Boolean(SourceMapConsumer && SourceMapGenerator);
       var pathAvailable = Boolean(resolve && isAbsolute);
       var Input2 = class {
-        constructor(css10, opts = {}) {
-          if (css10 === null || typeof css10 === "undefined" || typeof css10 === "object" && !css10.toString) {
-            throw new Error(`PostCSS received ${css10} instead of CSS string`);
+        constructor(css12, opts = {}) {
+          if (css12 === null || typeof css12 === "undefined" || typeof css12 === "object" && !css12.toString) {
+            throw new Error(`PostCSS received ${css12} instead of CSS string`);
           }
-          this.css = css10.toString();
+          this.css = css12.toString();
           if (this.css[0] === "\uFEFF" || this.css[0] === "\uFFFE") {
             this.hasBOM = true;
             this.css = this.css.slice(1);
@@ -2231,11 +2231,11 @@
       var RE_BAD_BRACKET = /.[\r\n"'(/\\]/;
       var RE_HEX_ESCAPE = /[\da-f]/i;
       module.exports = function tokenizer(input, options = {}) {
-        let css10 = input.css.valueOf();
+        let css12 = input.css.valueOf();
         let ignore = options.ignoreErrors;
         let code, content, escape, next, quote;
         let currentToken, escaped, escapePos, n9, prev;
-        let length = css10.length;
+        let length = css12.length;
         let pos = 0;
         let buffer = [];
         let returned = [];
@@ -2252,7 +2252,7 @@
           if (returned.length) return returned.pop();
           if (pos >= length) return;
           let ignoreUnclosed = opts ? opts.ignoreUnclosed : false;
-          code = css10.charCodeAt(pos);
+          code = css12.charCodeAt(pos);
           switch (code) {
             case NEWLINE:
             case SPACE:
@@ -2262,9 +2262,9 @@
               next = pos;
               do {
                 next += 1;
-                code = css10.charCodeAt(next);
+                code = css12.charCodeAt(next);
               } while (code === SPACE || code === NEWLINE || code === TAB || code === CR || code === FEED);
-              currentToken = ["space", css10.slice(pos, next)];
+              currentToken = ["space", css12.slice(pos, next)];
               pos = next - 1;
               break;
             }
@@ -2281,12 +2281,12 @@
             }
             case OPEN_PARENTHESES: {
               prev = buffer.length ? buffer.pop()[1] : "";
-              n9 = css10.charCodeAt(pos + 1);
+              n9 = css12.charCodeAt(pos + 1);
               if (prev === "url" && n9 !== SINGLE_QUOTE && n9 !== DOUBLE_QUOTE && n9 !== SPACE && n9 !== NEWLINE && n9 !== TAB && n9 !== FEED && n9 !== CR) {
                 next = pos;
                 do {
                   escaped = false;
-                  next = css10.indexOf(")", next + 1);
+                  next = css12.indexOf(")", next + 1);
                   if (next === -1) {
                     if (ignore || ignoreUnclosed) {
                       next = pos;
@@ -2296,16 +2296,16 @@
                     }
                   }
                   escapePos = next;
-                  while (css10.charCodeAt(escapePos - 1) === BACKSLASH) {
+                  while (css12.charCodeAt(escapePos - 1) === BACKSLASH) {
                     escapePos -= 1;
                     escaped = !escaped;
                   }
                 } while (escaped);
-                currentToken = ["brackets", css10.slice(pos, next + 1), pos, next];
+                currentToken = ["brackets", css12.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
-                next = css10.indexOf(")", pos + 1);
-                content = css10.slice(pos, next + 1);
+                next = css12.indexOf(")", pos + 1);
+                content = css12.slice(pos, next + 1);
                 if (next === -1 || RE_BAD_BRACKET.test(content)) {
                   currentToken = ["(", "(", pos];
                 } else {
@@ -2321,7 +2321,7 @@
               next = pos;
               do {
                 escaped = false;
-                next = css10.indexOf(quote, next + 1);
+                next = css12.indexOf(quote, next + 1);
                 if (next === -1) {
                   if (ignore || ignoreUnclosed) {
                     next = pos + 1;
@@ -2331,71 +2331,71 @@
                   }
                 }
                 escapePos = next;
-                while (css10.charCodeAt(escapePos - 1) === BACKSLASH) {
+                while (css12.charCodeAt(escapePos - 1) === BACKSLASH) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
               } while (escaped);
-              currentToken = ["string", css10.slice(pos, next + 1), pos, next];
+              currentToken = ["string", css12.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case AT: {
               RE_AT_END.lastIndex = pos + 1;
-              RE_AT_END.test(css10);
+              RE_AT_END.test(css12);
               if (RE_AT_END.lastIndex === 0) {
-                next = css10.length - 1;
+                next = css12.length - 1;
               } else {
                 next = RE_AT_END.lastIndex - 2;
               }
-              currentToken = ["at-word", css10.slice(pos, next + 1), pos, next];
+              currentToken = ["at-word", css12.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             case BACKSLASH: {
               next = pos;
               escape = true;
-              while (css10.charCodeAt(next + 1) === BACKSLASH) {
+              while (css12.charCodeAt(next + 1) === BACKSLASH) {
                 next += 1;
                 escape = !escape;
               }
-              code = css10.charCodeAt(next + 1);
+              code = css12.charCodeAt(next + 1);
               if (escape && code !== SLASH && code !== SPACE && code !== NEWLINE && code !== TAB && code !== CR && code !== FEED) {
                 next += 1;
-                if (RE_HEX_ESCAPE.test(css10.charAt(next))) {
-                  while (RE_HEX_ESCAPE.test(css10.charAt(next + 1))) {
+                if (RE_HEX_ESCAPE.test(css12.charAt(next))) {
+                  while (RE_HEX_ESCAPE.test(css12.charAt(next + 1))) {
                     next += 1;
                   }
-                  if (css10.charCodeAt(next + 1) === SPACE) {
+                  if (css12.charCodeAt(next + 1) === SPACE) {
                     next += 1;
                   }
                 }
               }
-              currentToken = ["word", css10.slice(pos, next + 1), pos, next];
+              currentToken = ["word", css12.slice(pos, next + 1), pos, next];
               pos = next;
               break;
             }
             default: {
-              if (code === SLASH && css10.charCodeAt(pos + 1) === ASTERISK) {
-                next = css10.indexOf("*/", pos + 2) + 1;
+              if (code === SLASH && css12.charCodeAt(pos + 1) === ASTERISK) {
+                next = css12.indexOf("*/", pos + 2) + 1;
                 if (next === 0) {
                   if (ignore || ignoreUnclosed) {
-                    next = css10.length;
+                    next = css12.length;
                   } else {
                     unclosed("comment");
                   }
                 }
-                currentToken = ["comment", css10.slice(pos, next + 1), pos, next];
+                currentToken = ["comment", css12.slice(pos, next + 1), pos, next];
                 pos = next;
               } else {
                 RE_WORD_END.lastIndex = pos + 1;
-                RE_WORD_END.test(css10);
+                RE_WORD_END.test(css12);
                 if (RE_WORD_END.lastIndex === 0) {
-                  next = css10.length - 1;
+                  next = css12.length - 1;
                 } else {
                   next = RE_WORD_END.lastIndex - 2;
                 }
-                currentToken = ["word", css10.slice(pos, next + 1), pos, next];
+                currentToken = ["word", css12.slice(pos, next + 1), pos, next];
                 buffer.push(currentToken);
                 pos = next;
               }
@@ -2957,8 +2957,8 @@
       var Container2 = require_container();
       var Input2 = require_input();
       var Parser = require_parser();
-      function parse3(css10, opts) {
-        let input = new Input2(css10, opts);
+      function parse3(css12, opts) {
+        let input = new Input2(css12, opts);
         let parser2 = new Parser(input);
         try {
           parser2.parse();
@@ -3171,18 +3171,18 @@
       }
       var postcss2 = {};
       var LazyResult = class _LazyResult {
-        constructor(processor, css10, opts) {
+        constructor(processor, css12, opts) {
           this.stringified = false;
           this.processed = false;
           let root2;
-          if (typeof css10 === "object" && css10 !== null && (css10.type === "root" || css10.type === "document")) {
-            root2 = cleanMarks(css10);
-          } else if (css10 instanceof _LazyResult || css10 instanceof Result2) {
-            root2 = cleanMarks(css10.root);
-            if (css10.map) {
+          if (typeof css12 === "object" && css12 !== null && (css12.type === "root" || css12.type === "document")) {
+            root2 = cleanMarks(css12);
+          } else if (css12 instanceof _LazyResult || css12 instanceof Result2) {
+            root2 = cleanMarks(css12.root);
+            if (css12.map) {
               if (typeof opts.map === "undefined") opts.map = {};
               if (!opts.map.inline) opts.map.inline = false;
-              opts.map.prev = css10.map;
+              opts.map.prev = css12.map;
             }
           } else {
             let parser2 = parse3;
@@ -3190,7 +3190,7 @@
             if (opts.parser) parser2 = opts.parser;
             if (parser2.parse) parser2 = parser2.parse;
             try {
-              root2 = parser2(css10, opts);
+              root2 = parser2(css12, opts);
             } catch (error) {
               this.processed = true;
               this.error = error;
@@ -3558,24 +3558,24 @@
       var stringify2 = require_stringify();
       var warnOnce = require_warn_once();
       var NoWorkResult = class {
-        constructor(processor, css10, opts) {
-          css10 = css10.toString();
+        constructor(processor, css12, opts) {
+          css12 = css12.toString();
           this.stringified = false;
           this._processor = processor;
-          this._css = css10;
+          this._css = css12;
           this._opts = opts;
           this._map = void 0;
           let root2;
           let str = stringify2;
           this.result = new Result2(this._processor, root2, this._opts);
-          this.result.css = css10;
+          this.result.css = css12;
           let self2 = this;
           Object.defineProperty(this.result, "root", {
             get() {
               return self2.root;
             }
           });
-          let map = new MapGenerator(str, root2, this._opts, css10);
+          let map = new MapGenerator(str, root2, this._opts, css12);
           if (map.isMap()) {
             let [generatedCSS, generatedMap] = map.generate();
             if (generatedCSS) {
@@ -3703,11 +3703,11 @@
           }
           return normalized;
         }
-        process(css10, opts = {}) {
+        process(css12, opts = {}) {
           if (!this.plugins.length && !opts.parser && !opts.stringifier && !opts.syntax) {
-            return new NoWorkResult(this, css10, opts);
+            return new NoWorkResult(this, css12, opts);
           } else {
-            return new LazyResult(this, css10, opts);
+            return new LazyResult(this, css12, opts);
           }
         }
         use(plugin2) {
@@ -3776,8 +3776,8 @@
             return cache;
           }
         });
-        creator.process = function(css10, processOpts, pluginOpts) {
-          return postcss2([creator(pluginOpts)]).process(css10, processOpts);
+        creator.process = function(css12, processOpts, pluginOpts) {
+          return postcss2([creator(pluginOpts)]).process(css12, processOpts);
         };
         return creator;
       };
@@ -6109,31 +6109,31 @@
         hex[hexChars.charCodeAt(i9)] = true;
       }
       var i9;
-      function consumeWord(css10, start) {
+      function consumeWord(css12, start) {
         var next = start;
         var code;
         do {
-          code = css10.charCodeAt(next);
+          code = css12.charCodeAt(next);
           if (wordDelimiters[code]) {
             return next - 1;
           } else if (code === t7.backslash) {
-            next = consumeEscape(css10, next) + 1;
+            next = consumeEscape(css12, next) + 1;
           } else {
             next++;
           }
-        } while (next < css10.length);
+        } while (next < css12.length);
         return next - 1;
       }
-      function consumeEscape(css10, start) {
+      function consumeEscape(css12, start) {
         var next = start;
-        var code = css10.charCodeAt(next + 1);
+        var code = css12.charCodeAt(next + 1);
         if (unescapable[code]) {
         } else if (hex[code]) {
           var hexDigits = 0;
           do {
             next++;
             hexDigits++;
-            code = css10.charCodeAt(next + 1);
+            code = css12.charCodeAt(next + 1);
           } while (hex[code] && hexDigits < 6);
           if (hexDigits < 6 && code === t7.space) {
             next++;
@@ -6155,8 +6155,8 @@
       exports.FIELDS = FIELDS;
       function tokenize(input) {
         var tokens = [];
-        var css10 = input.css.valueOf();
-        var _css = css10, length = _css.length;
+        var css12 = input.css.valueOf();
+        var _css = css12, length = _css.length;
         var offset3 = -1;
         var line = 1;
         var start = 0;
@@ -6164,14 +6164,14 @@
         var code, content, endColumn, endLine, escaped, escapePos, last, lines, next, nextLine, nextOffset, quote, tokenType;
         function unclosed(what, fix) {
           if (input.safe) {
-            css10 += fix;
-            next = css10.length - 1;
+            css12 += fix;
+            next = css12.length - 1;
           } else {
             throw input.error("Unclosed " + what, line, start - offset3, start);
           }
         }
         while (start < length) {
-          code = css10.charCodeAt(start);
+          code = css12.charCodeAt(start);
           if (code === t7.newline) {
             offset3 = start;
             line += 1;
@@ -6185,7 +6185,7 @@
               next = start;
               do {
                 next += 1;
-                code = css10.charCodeAt(next);
+                code = css12.charCodeAt(next);
                 if (code === t7.newline) {
                   offset3 = next;
                   line += 1;
@@ -6203,7 +6203,7 @@
               next = start;
               do {
                 next += 1;
-                code = css10.charCodeAt(next);
+                code = css12.charCodeAt(next);
               } while (code === t7.plus || code === t7.greaterThan || code === t7.tilde || code === t7.pipe);
               tokenType = t7.combinator;
               endLine = line;
@@ -6236,12 +6236,12 @@
               next = start;
               do {
                 escaped = false;
-                next = css10.indexOf(quote, next + 1);
+                next = css12.indexOf(quote, next + 1);
                 if (next === -1) {
                   unclosed("quote", quote);
                 }
                 escapePos = next;
-                while (css10.charCodeAt(escapePos - 1) === t7.backslash) {
+                while (css12.charCodeAt(escapePos - 1) === t7.backslash) {
                   escapePos -= 1;
                   escaped = !escaped;
                 }
@@ -6252,12 +6252,12 @@
               end = next + 1;
               break;
             default:
-              if (code === t7.slash && css10.charCodeAt(start + 1) === t7.asterisk) {
-                next = css10.indexOf("*/", start + 2) + 1;
+              if (code === t7.slash && css12.charCodeAt(start + 1) === t7.asterisk) {
+                next = css12.indexOf("*/", start + 2) + 1;
                 if (next === 0) {
                   unclosed("comment", "*/");
                 }
-                content = css10.slice(start, next + 1);
+                content = css12.slice(start, next + 1);
                 lines = content.split("\n");
                 last = lines.length - 1;
                 if (last > 0) {
@@ -6278,7 +6278,7 @@
                 endColumn = start - offset3;
                 end = next + 1;
               } else {
-                next = consumeWord(css10, start);
+                next = consumeWord(css12, start);
                 tokenType = t7.word;
                 endLine = line;
                 endColumn = next - offset3;
@@ -16322,7 +16322,7 @@
     }
     async getListingsByFilters(filters) {
       let whereClause = "";
-      const conditions = [];
+      const conditions = ["isActive = true"];
       if (filters?.indexLetter) {
         conditions.push(
           `string::starts_with(string::lowercase(title), '${filters.indexLetter.toLocaleLowerCase()}')`
@@ -18257,14 +18257,9 @@
     zip: UpdateListingDtoSchema.shape.zip.default(""),
     muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
     phone: UpdateListingDtoSchema.shape.phone.default(""),
-    email: UpdateListingDtoSchema.shape.email.default(""),
-    // TODO! Tags
-    tags: UpdateListingDtoSchema.shape.tags,
-    // Sub-schemas
-    links: UpdateListingDtoSchema.shape.links
+    email: UpdateListingDtoSchema.shape.email.default("")
   }).omit({
-    id: true,
-    owner: true
+    id: true
   });
   var CreateListingDto = class {
     schema = CreateListingDtoSchema;
@@ -19401,17 +19396,175 @@
     })();
   };
 
-  // src/solid-js/ui/components/ListingForm.tsx
-  var _tmpl$12 = /* @__PURE__ */ template(`<sl-card><form>find<fieldset><legend>Knagger (<!> av <!>)</legend><sl-button>Legg til</sl-button></fieldset><fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny</sl-button></fieldset><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
-  var _tmpl$25 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
-  var _tmpl$34 = /* @__PURE__ */ template(`<sl-input>`, true, false);
-  var _tmpl$43 = /* @__PURE__ */ template(`<div><sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
-  var _tmpl$53 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
+  // src/solid-js/ui/components/FormTags.tsx
+  var _tmpl$12 = /* @__PURE__ */ template(`<fieldset><legend>Knagger (<!> av <!>)</legend><div></div><div><sl-select></sl-select><sl-button>Legg til`, true, false);
+  var _tmpl$25 = /* @__PURE__ */ template(`<sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
+  var _tmpl$34 = /* @__PURE__ */ template(`<sl-option>`, true, false);
   var css7 = addCss({
+    itemRow: (theme2) => ({
+      display: "flex",
+      alignItems: "end",
+      marginBottom: theme2.gapMd,
+      ">:first-child": {
+        flex: "1"
+      },
+      ">:last-child": {
+        flexShrink: "0"
+      }
+    })
+  });
+  var FormTags = (props) => {
+    const defaultFormElementSize = "small";
+    const [selectedTag, setSelectedTag] = createSignal("");
+    return (() => {
+      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.nextSibling;
+      insert(_el$2, () => props.selectedTagIds?.length, _el$6);
+      insert(_el$2, MAX_TAGS, _el$7);
+      insert(_el$8, createComponent(For, {
+        get each() {
+          return props.selectedTagIds;
+        },
+        children: (tagId) => {
+          const tag = props.tags?.find((tag2) => tag2.id === tagId);
+          return (() => {
+            var _el$12 = _tmpl$25(), _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild;
+            _el$12._$owner = getOwner();
+            addEventListener(_el$13, "click", () => props.removeTag(tagId));
+            _el$13.size = "small";
+            _el$13._$owner = getOwner();
+            _el$14.name = "trash";
+            _el$14._$owner = getOwner();
+            insert(_el$13, () => tag.name, null);
+            return _el$12;
+          })();
+        }
+      }));
+      _el$10.size = "small";
+      _el$10.placeholder = "Velg knagg";
+      _el$10._$owner = getOwner();
+      insert(_el$10, createComponent(For, {
+        get each() {
+          return props.tags;
+        },
+        children: (tag) => (() => {
+          var _el$15 = _tmpl$34();
+          addEventListener(_el$15, "click", () => setSelectedTag(tag.id));
+          _el$15._$owner = getOwner();
+          insert(_el$15, () => tag.name);
+          createRenderEffect(() => _el$15.value = tag.id);
+          return _el$15;
+        })()
+      }));
+      addEventListener(_el$11, "click", () => {
+        props.addTag(selectedTag());
+      });
+      _el$11.size = "small";
+      _el$11.type = "button";
+      _el$11.variant = "primary";
+      _el$11._$owner = getOwner();
+      createRenderEffect((_p$) => {
+        var _v$ = css7.itemRow, _v$2 = css7.itemRow, _v$3 = props.selectedTagIds?.length === MAX_TAGS, _v$4 = props.selectedTagIds?.length === MAX_TAGS;
+        _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
+        _v$2 !== _p$.t && className(_el$9, _p$.t = _v$2);
+        _v$3 !== _p$.a && (_el$10.disabled = _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$11.disabled = _p$.o = _v$4);
+        return _p$;
+      }, {
+        e: void 0,
+        t: void 0,
+        a: void 0,
+        o: void 0
+      });
+      return _el$;
+    })();
+  };
+  var FormTags_default = FormTags;
+
+  // src/solid-js/ui/components/FormLinks.tsx
+  var _tmpl$13 = /* @__PURE__ */ template(`<fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny`, true, false);
+  var _tmpl$26 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
+  var css8 = addCss({
+    itemRow: (theme2) => ({
+      display: "flex",
+      alignItems: "end",
+      marginBottom: theme2.gapMd,
+      ">:first-child": {
+        flex: "1"
+      },
+      ">:last-child": {
+        flexShrink: "0"
+      }
+    })
+  });
+  var FormLinks = (props) => {
+    const defaultFormElementSize = "small";
+    return (() => {
+      var _el$ = _tmpl$13(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling;
+      insert(_el$2, () => props.links?.length, _el$6);
+      insert(_el$2, MAX_LINKS, _el$7);
+      insert(_el$, createComponent(For, {
+        get each() {
+          return props.links;
+        },
+        children: (link, idx) => createComponent(FormField, {
+          get key() {
+            return toDotPath("links", idx(), "href");
+          },
+          get formState() {
+            return props.formState;
+          },
+          hideError: true,
+          children: (key) => (() => {
+            var _el$9 = _tmpl$26(), _el$10 = _el$9.firstChild, _el$11 = _el$10.nextSibling;
+            addEventListener(_el$10, "blur", () => props.formState.validateField(key));
+            addEventListener(_el$10, "input", (e13) => props.updateLink(idx(), e13.target.value));
+            _el$10.size = "small";
+            _el$10.name = key;
+            _el$10.type = "url";
+            _el$10.required = true;
+            _el$10._$owner = getOwner();
+            addEventListener(_el$11, "click", () => props.removeLink(idx()));
+            _el$11.name = "trash";
+            _el$11._$owner = getOwner();
+            createRenderEffect((_p$) => {
+              var _v$ = css8.itemRow, _v$2 = !!props.formState.hasErrors(key), _v$3 = !!props.formState.isValid(key), _v$4 = `Lenke ${idx() + 1}`, _v$5 = link.href;
+              _v$ !== _p$.e && className(_el$9, _p$.e = _v$);
+              _v$2 !== _p$.t && _el$10.classList.toggle("user-error", _p$.t = _v$2);
+              _v$3 !== _p$.a && _el$10.classList.toggle("user-valid", _p$.a = _v$3);
+              _v$4 !== _p$.o && (_el$10.label = _p$.o = _v$4);
+              _v$5 !== _p$.i && (_el$10.value = _p$.i = _v$5);
+              return _p$;
+            }, {
+              e: void 0,
+              t: void 0,
+              a: void 0,
+              o: void 0,
+              i: void 0
+            });
+            return _el$9;
+          })()
+        })
+      }), _el$8);
+      addEventListener(_el$8, "click", props.addLink);
+      _el$8.size = "small";
+      _el$8.type = "button";
+      _el$8.variant = "primary";
+      _el$8._$owner = getOwner();
+      createRenderEffect(() => _el$8.disabled = props.links?.length === MAX_LINKS);
+      return _el$;
+    })();
+  };
+  var FormLinks_default = FormLinks;
+
+  // src/solid-js/ui/components/ListingForm.tsx
+  var _tmpl$14 = /* @__PURE__ */ template(`<sl-card><form><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
+  var _tmpl$27 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
+  var _tmpl$35 = /* @__PURE__ */ template(`<sl-input>`, true, false);
+  var css9 = addCss({
     form: (theme2) => ({
       display: "flex",
       gap: theme2.gapMd,
-      alignItems: "baseline",
+      alignItems: "stretch",
       flexWrap: "wrap",
       "> *": {
         minWidth: "225px",
@@ -19471,8 +19624,11 @@
         setValue(toDotPath("tags", values.tags.length), tagId);
       },
       remove(tagId) {
-        setValue("tags", (tags2) => tags2.filter((tag) => tag.id != tagId));
-      }
+        setValue("tags", (tags2) => tags2.filter((tagId2) => {
+          tagId2 != tagId;
+        }));
+      },
+      directory: () => directory()?.resources.tags()
     };
     function handleSubmit() {
       formState.validateAll();
@@ -19488,47 +19644,47 @@
       }
     }
     return (() => {
-      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$9 = _el$6.nextSibling, _el$7 = _el$9.nextSibling, _el$10 = _el$7.nextSibling, _el$8 = _el$10.nextSibling, _el$11 = _el$5.nextSibling, _el$12 = _el$4.nextSibling, _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild, _el$17 = _el$14.nextSibling, _el$15 = _el$17.nextSibling, _el$18 = _el$15.nextSibling, _el$16 = _el$18.nextSibling, _el$19 = _el$13.nextSibling, _el$20 = _el$12.nextSibling, _el$21 = _el$20.firstChild, _el$22 = _el$21.firstChild, _el$23 = _el$22.nextSibling;
+      var _el$ = _tmpl$14(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$5.nextSibling;
       _el$._$owner = getOwner();
       insert(_el$2, createComponent(FormField, {
         key: "isActive",
         formState,
         "class": "break-flow",
         children: (key) => (() => {
-          var _el$24 = _tmpl$25();
-          addEventListener(_el$24, "input", () => setValue(key, !values[key]));
-          _el$24.size = "small";
-          _el$24._$owner = getOwner();
-          createRenderEffect(() => _el$24.checked = values[key]);
-          return _el$24;
+          var _el$7 = _tmpl$27();
+          addEventListener(_el$7, "input", () => setValue(key, !values[key]));
+          _el$7.size = "small";
+          _el$7._$owner = getOwner();
+          createRenderEffect(() => _el$7.checked = values[key]);
+          return _el$7;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "title",
         formState,
         children: (key) => (() => {
-          var _el$25 = _tmpl$34();
-          addEventListener(_el$25, "blur", () => formState.validateField(key));
-          addEventListener(_el$25, "input", ({
+          var _el$8 = _tmpl$35();
+          addEventListener(_el$8, "blur", () => formState.validateField(key));
+          addEventListener(_el$8, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$25.label = "Virksomhetens navn";
-          _el$25.size = "small";
-          _el$25.name = key;
-          _el$25.required = true;
-          _el$25._$owner = getOwner();
+          _el$8.label = "Virksomhetens navn";
+          _el$8.size = "small";
+          _el$8.name = key;
+          _el$8.required = true;
+          _el$8._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$5 = !!formState.hasErrors(key), _v$6 = !!formState.isValid(key), _v$7 = values[key];
-            _v$5 !== _p$.e && _el$25.classList.toggle("user-error", _p$.e = _v$5);
-            _v$6 !== _p$.t && _el$25.classList.toggle("user-valid", _p$.t = _v$6);
-            _v$7 !== _p$.a && (_el$25.value = _p$.a = _v$7);
+            var _v$3 = !!formState.hasErrors(key), _v$4 = !!formState.isValid(key), _v$5 = values[key];
+            _v$3 !== _p$.e && _el$8.classList.toggle("user-error", _p$.e = _v$3);
+            _v$4 !== _p$.t && _el$8.classList.toggle("user-valid", _p$.t = _v$4);
+            _v$5 !== _p$.a && (_el$8.value = _p$.a = _v$5);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$25;
+          return _el$8;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
@@ -19536,249 +19692,200 @@
         formState,
         "class": "break-flow",
         children: (key) => (() => {
-          var _el$26 = _tmpl$34();
-          addEventListener(_el$26, "blur", () => formState.validateField(key));
-          addEventListener(_el$26, "input", ({
+          var _el$9 = _tmpl$35();
+          addEventListener(_el$9, "blur", () => formState.validateField(key));
+          addEventListener(_el$9, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$26.label = "Beskrivelse av tjeneste eller produkt";
-          _el$26.size = "small";
-          _el$26.name = key;
-          _el$26.required = true;
-          _el$26._$owner = getOwner();
+          _el$9.label = "Beskrivelse av tjeneste eller produkt";
+          _el$9.size = "small";
+          _el$9.name = key;
+          _el$9.required = true;
+          _el$9._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$8 = !!formState.hasErrors(key), _v$9 = !!formState.isValid(key), _v$10 = values[key];
-            _v$8 !== _p$.e && _el$26.classList.toggle("user-error", _p$.e = _v$8);
-            _v$9 !== _p$.t && _el$26.classList.toggle("user-valid", _p$.t = _v$9);
-            _v$10 !== _p$.a && (_el$26.value = _p$.a = _v$10);
+            var _v$6 = !!formState.hasErrors(key), _v$7 = !!formState.isValid(key), _v$8 = values[key];
+            _v$6 !== _p$.e && _el$9.classList.toggle("user-error", _p$.e = _v$6);
+            _v$7 !== _p$.t && _el$9.classList.toggle("user-valid", _p$.t = _v$7);
+            _v$8 !== _p$.a && (_el$9.value = _p$.a = _v$8);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$26;
+          return _el$9;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "address",
         formState,
         children: (key) => (() => {
-          var _el$27 = _tmpl$34();
-          addEventListener(_el$27, "blur", () => formState.validateField(key));
-          addEventListener(_el$27, "input", ({
+          var _el$10 = _tmpl$35();
+          addEventListener(_el$10, "blur", () => formState.validateField(key));
+          addEventListener(_el$10, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$27.label = "Gateadresse";
-          _el$27.size = "small";
-          _el$27.name = key;
-          _el$27.required = true;
-          _el$27._$owner = getOwner();
+          _el$10.label = "Gateadresse";
+          _el$10.size = "small";
+          _el$10.name = key;
+          _el$10.required = true;
+          _el$10._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$11 = !!formState.hasErrors(key), _v$12 = !!formState.isValid(key), _v$13 = values[key];
-            _v$11 !== _p$.e && _el$27.classList.toggle("user-error", _p$.e = _v$11);
-            _v$12 !== _p$.t && _el$27.classList.toggle("user-valid", _p$.t = _v$12);
-            _v$13 !== _p$.a && (_el$27.value = _p$.a = _v$13);
+            var _v$9 = !!formState.hasErrors(key), _v$10 = !!formState.isValid(key), _v$11 = values[key];
+            _v$9 !== _p$.e && _el$10.classList.toggle("user-error", _p$.e = _v$9);
+            _v$10 !== _p$.t && _el$10.classList.toggle("user-valid", _p$.t = _v$10);
+            _v$11 !== _p$.a && (_el$10.value = _p$.a = _v$11);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$27;
+          return _el$10;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "zip",
         formState,
         children: (key) => (() => {
-          var _el$28 = _tmpl$34();
-          addEventListener(_el$28, "blur", () => formState.validateField(key));
-          addEventListener(_el$28, "input", ({
+          var _el$11 = _tmpl$35();
+          addEventListener(_el$11, "blur", () => formState.validateField(key));
+          addEventListener(_el$11, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$28.label = "Postnummer";
-          _el$28.size = "small";
-          _el$28.name = key;
-          _el$28.required = true;
-          _el$28._$owner = getOwner();
+          _el$11.label = "Postnummer";
+          _el$11.size = "small";
+          _el$11.name = key;
+          _el$11.required = true;
+          _el$11._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$14 = !!formState.hasErrors(key), _v$15 = !!formState.isValid(key), _v$16 = values[key];
-            _v$14 !== _p$.e && _el$28.classList.toggle("user-error", _p$.e = _v$14);
-            _v$15 !== _p$.t && _el$28.classList.toggle("user-valid", _p$.t = _v$15);
-            _v$16 !== _p$.a && (_el$28.value = _p$.a = _v$16);
+            var _v$12 = !!formState.hasErrors(key), _v$13 = !!formState.isValid(key), _v$14 = values[key];
+            _v$12 !== _p$.e && _el$11.classList.toggle("user-error", _p$.e = _v$12);
+            _v$13 !== _p$.t && _el$11.classList.toggle("user-valid", _p$.t = _v$13);
+            _v$14 !== _p$.a && (_el$11.value = _p$.a = _v$14);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$28;
+          return _el$11;
         })()
       }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "phone",
         formState,
         children: (key) => (() => {
-          var _el$29 = _tmpl$34();
-          addEventListener(_el$29, "blur", () => formState.validateField(key));
-          addEventListener(_el$29, "input", ({
+          var _el$12 = _tmpl$35();
+          addEventListener(_el$12, "blur", () => formState.validateField(key));
+          addEventListener(_el$12, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$29.label = "Telefonnummer";
-          _el$29.size = "small";
-          _el$29.name = key;
-          _el$29.required = true;
-          _el$29._$owner = getOwner();
+          _el$12.label = "Telefonnummer";
+          _el$12.size = "small";
+          _el$12.name = key;
+          _el$12.required = true;
+          _el$12._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$17 = !!formState.hasErrors(key), _v$18 = !!formState.isValid(key), _v$19 = values[key];
-            _v$17 !== _p$.e && _el$29.classList.toggle("user-error", _p$.e = _v$17);
-            _v$18 !== _p$.t && _el$29.classList.toggle("user-valid", _p$.t = _v$18);
-            _v$19 !== _p$.a && (_el$29.value = _p$.a = _v$19);
+            var _v$15 = !!formState.hasErrors(key), _v$16 = !!formState.isValid(key), _v$17 = values[key];
+            _v$15 !== _p$.e && _el$12.classList.toggle("user-error", _p$.e = _v$15);
+            _v$16 !== _p$.t && _el$12.classList.toggle("user-valid", _p$.t = _v$16);
+            _v$17 !== _p$.a && (_el$12.value = _p$.a = _v$17);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$29;
+          return _el$12;
         })()
-      }), _el$4);
+      }), _el$3);
       insert(_el$2, createComponent(FormField, {
         key: "email",
         formState,
         children: (key) => (() => {
-          var _el$30 = _tmpl$34();
-          addEventListener(_el$30, "blur", () => formState.validateField(key));
-          addEventListener(_el$30, "input", ({
+          var _el$13 = _tmpl$35();
+          addEventListener(_el$13, "blur", () => formState.validateField(key));
+          addEventListener(_el$13, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$30.label = "Epostadresse";
-          _el$30.size = "small";
-          _el$30.name = key;
-          _el$30.required = true;
-          _el$30._$owner = getOwner();
+          _el$13.label = "Epostadresse";
+          _el$13.size = "small";
+          _el$13.name = key;
+          _el$13.required = true;
+          _el$13._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$20 = !!formState.hasErrors(key), _v$21 = !!formState.isValid(key), _v$22 = values[key];
-            _v$20 !== _p$.e && _el$30.classList.toggle("user-error", _p$.e = _v$20);
-            _v$21 !== _p$.t && _el$30.classList.toggle("user-valid", _p$.t = _v$21);
-            _v$22 !== _p$.a && (_el$30.value = _p$.a = _v$22);
+            var _v$18 = !!formState.hasErrors(key), _v$19 = !!formState.isValid(key), _v$20 = values[key];
+            _v$18 !== _p$.e && _el$13.classList.toggle("user-error", _p$.e = _v$18);
+            _v$19 !== _p$.t && _el$13.classList.toggle("user-valid", _p$.t = _v$19);
+            _v$20 !== _p$.a && (_el$13.value = _p$.a = _v$20);
             return _p$;
           }, {
             e: void 0,
             t: void 0,
             a: void 0
           });
-          return _el$30;
+          return _el$13;
         })()
-      }), _el$4);
-      insert(_el$5, () => values.tags?.length, _el$9);
-      insert(_el$5, MAX_TAGS, _el$10);
-      insert(_el$4, createComponent(For, {
-        get each() {
-          return values.tags;
+      }), _el$3);
+      insert(_el$2, createComponent(FormTags_default, {
+        get tags() {
+          return tags.directory();
         },
-        children: (tagId) => {
-          const tag = directory()?.resources.tags()?.find((tag2) => tag2.id === tagId);
-          return (() => {
-            var _el$31 = _tmpl$43(), _el$32 = _el$31.firstChild, _el$33 = _el$32.firstChild, _el$34 = _el$33.firstChild;
-            _el$32._$owner = getOwner();
-            addEventListener(_el$33, "click", () => tags.remove(tagId));
-            _el$33.size = "small";
-            _el$33._$owner = getOwner();
-            _el$34.name = "trash";
-            _el$34._$owner = getOwner();
-            insert(_el$33, () => tag.name, null);
-            return _el$31;
-          })();
+        get addTag() {
+          return tags.add;
+        },
+        get removeTag() {
+          return tags.remove;
+        },
+        get selectedTagIds() {
+          return values.tags;
         }
-      }), _el$11);
-      addEventListener(_el$11, "click", () => tags.add(selectedTag()));
-      _el$11.size = "small";
-      _el$11.type = "button";
-      _el$11.variant = "primary";
-      _el$11._$owner = getOwner();
-      insert(_el$13, () => values.links?.length, _el$17);
-      insert(_el$13, MAX_LINKS, _el$18);
-      insert(_el$12, createComponent(For, {
-        get each() {
+      }), _el$3);
+      insert(_el$2, createComponent(FormLinks_default, {
+        get addLink() {
+          return links.add;
+        },
+        get updateLink() {
+          return links.update;
+        },
+        get removeLink() {
+          return links.remove;
+        },
+        get links() {
           return values.links;
         },
-        children: (link, idx) => createComponent(FormField, {
-          get key() {
-            return toDotPath("links", idx(), "href");
-          },
-          formState,
-          hideError: true,
-          children: (key) => (() => {
-            var _el$35 = _tmpl$53(), _el$36 = _el$35.firstChild, _el$37 = _el$36.nextSibling;
-            addEventListener(_el$36, "blur", () => formState.validateField(key));
-            addEventListener(_el$36, "input", (e13) => links.update(idx(), e13.target.value));
-            _el$36.size = "small";
-            _el$36.name = key;
-            _el$36.type = "url";
-            _el$36.required = true;
-            _el$36._$owner = getOwner();
-            addEventListener(_el$37, "click", () => links.remove(idx()));
-            _el$37.name = "trash";
-            _el$37._$owner = getOwner();
-            createRenderEffect((_p$) => {
-              var _v$23 = css7.itemRow, _v$24 = !!formState.hasErrors(key), _v$25 = !!formState.isValid(key), _v$26 = `Lenke ${idx() + 1}`, _v$27 = link.href;
-              _v$23 !== _p$.e && className(_el$35, _p$.e = _v$23);
-              _v$24 !== _p$.t && _el$36.classList.toggle("user-error", _p$.t = _v$24);
-              _v$25 !== _p$.a && _el$36.classList.toggle("user-valid", _p$.a = _v$25);
-              _v$26 !== _p$.o && (_el$36.label = _p$.o = _v$26);
-              _v$27 !== _p$.i && (_el$36.value = _p$.i = _v$27);
-              return _p$;
-            }, {
-              e: void 0,
-              t: void 0,
-              a: void 0,
-              o: void 0,
-              i: void 0
-            });
-            return _el$35;
-          })()
-        })
-      }), _el$19);
-      addEventListener(_el$19, "click", links.add);
-      _el$19.size = "small";
-      _el$19.type = "button";
-      _el$19.variant = "primary";
-      _el$19._$owner = getOwner();
-      _el$21._$owner = getOwner();
-      addEventListener(_el$22, "click", handleSubmit);
-      _el$22.size = "medium";
-      _el$22.type = "button";
-      _el$22.variant = "primary";
-      _el$22._$owner = getOwner();
-      addEventListener(_el$23, "click", props.onCancel);
-      _el$23.size = "medium";
-      _el$23.type = "button";
-      _el$23.variant = "neutral";
-      _el$23._$owner = getOwner();
+        formState
+      }), _el$3);
+      _el$4._$owner = getOwner();
+      addEventListener(_el$5, "click", handleSubmit);
+      _el$5.size = "medium";
+      _el$5.type = "button";
+      _el$5.variant = "primary";
+      _el$5._$owner = getOwner();
+      addEventListener(_el$6, "click", props.onCancel);
+      _el$6.size = "medium";
+      _el$6.type = "button";
+      _el$6.variant = "neutral";
+      _el$6._$owner = getOwner();
       createRenderEffect((_p$) => {
-        var _v$ = join(css7.form, "validity-styles"), _v$2 = values.links?.length === MAX_LINKS, _v$3 = values.links?.length === MAX_LINKS, _v$4 = join(css7.controls, "break-flow");
+        var _v$ = join(css9.form, "validity-styles"), _v$2 = join(css9.controls, "break-flow");
         _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$11.disabled = _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$19.disabled = _p$.a = _v$3);
-        _v$4 !== _p$.o && className(_el$20, _p$.o = _v$4);
+        _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
         return _p$;
       }, {
         e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0
+        t: void 0
       });
       return _el$;
     })();
   };
 
   // src/solid-js/ui/components/MyListings.tsx
-  var _tmpl$13 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Your changes have been saved`, true, false);
-  var _tmpl$26 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny`, true, false);
-  var _tmpl$35 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
-  var css8 = addCss({
+  var _tmpl$15 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Your changes have been saved`, true, false);
+  var _tmpl$28 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny`, true, false);
+  var _tmpl$36 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
+  var css10 = addCss({
     listings: (theme2) => ({
       display: "flex",
       flexWrap: "wrap",
@@ -19788,7 +19895,8 @@
   });
   var MyListings = (props) => {
     const {
-      listings
+      listings,
+      account
     } = useService();
     const [isDirty2, setIsDirty] = createSignal(false);
     const [activeListing, _setActiveListing] = createSignal(null);
@@ -19801,7 +19909,9 @@
     function setActiveListing(listing) {
       let listingDto = null;
       if (listing === null) {
-        listingDto = CreateListingDto.from({});
+        listingDto = CreateListingDto.from({
+          owner: account().resources.user().id
+        });
       } else {
         listingDto = UpdateListingDto.from(listing.data);
       }
@@ -19813,7 +19923,7 @@
       setIsDirty(false);
     }
     return (() => {
-      var _el$ = _tmpl$26(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild;
+      var _el$ = _tmpl$28(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild;
       insert(_el$2, () => myListings()?.length || 0, _el$6);
       insert(_el$2, MAX_LISTINGS, _el$7);
       insert(_el$8, createComponent(For, {
@@ -19821,7 +19931,7 @@
           return myListings();
         },
         children: (listing, idx) => (() => {
-          var _el$13 = _tmpl$35(), _el$14 = _el$13.firstChild;
+          var _el$13 = _tmpl$36(), _el$14 = _el$13.firstChild;
           addEventListener(_el$13, "click", () => setActiveListing(listing));
           _el$13.name = "pencil";
           _el$13._$owner = getOwner();
@@ -19865,7 +19975,7 @@
                 onSubmit: handleSubmit,
                 onCancel: () => clearActiveListing()
               }), (() => {
-                var _el$11 = _tmpl$13(), _el$12 = _el$11.firstChild;
+                var _el$11 = _tmpl$15(), _el$12 = _el$11.firstChild;
                 _el$11.variant = "success";
                 _el$11._$owner = getOwner();
                 _el$12.name = "check2-circle";
@@ -19878,7 +19988,7 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = css8.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2();
+        var _v$ = css10.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2();
         _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
         _v$2 !== _p$.t && (_el$9.variant = _p$.t = _v$2);
         _v$3 !== _p$.a && (_el$9.disabled = _p$.a = _v$3);
@@ -19893,12 +20003,12 @@
   };
 
   // src/solid-js/ui/pages/PageAccount.tsx
-  var _tmpl$14 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
-  var _tmpl$27 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$36 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
-  var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
-  var _tmpl$54 = /* @__PURE__ */ template(`<section>`);
-  var css9 = addCss({});
+  var _tmpl$16 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
+  var _tmpl$29 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
+  var _tmpl$37 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
+  var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
+  var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
+  var css11 = addCss({});
   var PageAccount = (props) => {
     const {
       account
@@ -19906,14 +20016,14 @@
     const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
     const isLoggedIn = createMemo(() => account()?.resources.user());
     return (() => {
-      var _el$ = _tmpl$54();
+      var _el$ = _tmpl$53();
       insert(_el$, createComponent(Show, {
         get when() {
           return !isLoggedIn();
         },
         get children() {
           return [(() => {
-            var _el$2 = _tmpl$14(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$7 = _el$5.nextSibling, _el$6 = _el$7.nextSibling;
+            var _el$2 = _tmpl$16(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$7 = _el$5.nextSibling, _el$6 = _el$7.nextSibling;
             _el$2.variant = "warning";
             _el$2._$owner = getOwner();
             _el$3.name = "exclamation-triangle";
@@ -19922,13 +20032,13 @@
             createRenderEffect(() => _el$2.open = Boolean(mustVerifyEmail()));
             return _el$2;
           })(), (() => {
-            var _el$8 = _tmpl$44();
+            var _el$8 = _tmpl$43();
             insert(_el$8, createComponent(Show, {
               get when() {
                 return !mustVerifyEmail();
               },
               get children() {
-                var _el$9 = _tmpl$27();
+                var _el$9 = _tmpl$29();
                 addEventListener(_el$9, "click", () => account()?.login());
                 _el$9._$owner = getOwner();
                 return _el$9;
@@ -19939,7 +20049,7 @@
                 return mustVerifyEmail();
               },
               get children() {
-                var _el$10 = _tmpl$36(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
+                var _el$10 = _tmpl$37(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
                 _el$10.label = "Alignment";
                 _el$10._$owner = getOwner();
                 addEventListener(_el$11, "click", () => account()?.login());
@@ -19967,8 +20077,8 @@
   };
 
   // src/solid-js/ui/App.tsx
-  var _tmpl$15 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
-  var _tmpl$28 = /* @__PURE__ */ template(`<style id=styler>`);
+  var _tmpl$17 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$210 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
     const PAGE_KEY = "pageKey";
     const pageKey = window.localStorage.getItem(PAGE_KEY) || "PAGE_LISTINGS" /* LISTINGS */;
@@ -19977,8 +20087,8 @@
       window.localStorage.setItem(PAGE_KEY, pageKey2);
       _setSelectedPage(pageKey2);
     };
-    return [_tmpl$15(), (() => {
-      var _el$2 = _tmpl$28();
+    return [_tmpl$17(), (() => {
+      var _el$2 = _tmpl$210();
       insert(_el$2, resolveStylesToString);
       return _el$2;
     })(), createComponent(Suspense, {
@@ -25901,8 +26011,8 @@
   }
   function isContainingBlock(elementOrCss) {
     const webkit = isWebKit();
-    const css10 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-    return css10.transform !== "none" || css10.perspective !== "none" || (css10.containerType ? css10.containerType !== "normal" : false) || !webkit && (css10.backdropFilter ? css10.backdropFilter !== "none" : false) || !webkit && (css10.filter ? css10.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css10.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css10.contain || "").includes(value));
+    const css12 = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
+    return css12.transform !== "none" || css12.perspective !== "none" || (css12.containerType ? css12.containerType !== "normal" : false) || !webkit && (css12.backdropFilter ? css12.backdropFilter !== "none" : false) || !webkit && (css12.filter ? css12.filter !== "none" : false) || ["transform", "perspective", "filter"].some((value) => (css12.willChange || "").includes(value)) || ["paint", "layout", "strict", "content"].some((value) => (css12.contain || "").includes(value));
   }
   function getContainingBlock(element) {
     let currentNode = getParentNode(element);
@@ -25984,9 +26094,9 @@
 
   // node_modules/.pnpm/@floating-ui+dom@1.6.12/node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
   function getCssDimensions(element) {
-    const css10 = getComputedStyle2(element);
-    let width = parseFloat(css10.width) || 0;
-    let height = parseFloat(css10.height) || 0;
+    const css12 = getComputedStyle2(element);
+    let width = parseFloat(css12.width) || 0;
+    let height = parseFloat(css12.height) || 0;
     const hasOffset = isHTMLElement(element);
     const offsetWidth = hasOffset ? element.offsetWidth : width;
     const offsetHeight = hasOffset ? element.offsetHeight : height;
@@ -26080,9 +26190,9 @@
       while (currentIFrame && offsetParent && offsetWin !== currentWin) {
         const iframeScale = getScale(currentIFrame);
         const iframeRect = currentIFrame.getBoundingClientRect();
-        const css10 = getComputedStyle2(currentIFrame);
-        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css10.paddingLeft)) * iframeScale.x;
-        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css10.paddingTop)) * iframeScale.y;
+        const css12 = getComputedStyle2(currentIFrame);
+        const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css12.paddingLeft)) * iframeScale.x;
+        const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css12.paddingTop)) * iframeScale.y;
         x3 *= iframeScale.x;
         y4 *= iframeScale.y;
         width *= iframeScale.x;

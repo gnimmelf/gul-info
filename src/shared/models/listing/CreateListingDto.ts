@@ -12,13 +12,8 @@ export const CreateListingDtoSchema = UpdateListingDtoSchema.extend({
   muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(''),
   phone: UpdateListingDtoSchema.shape.phone.default(''),
   email: UpdateListingDtoSchema.shape.email.default(''),
-  // TODO! Tags
-  tags: UpdateListingDtoSchema.shape.tags,
-  // Sub-schemas
-  links: UpdateListingDtoSchema.shape.links,
 }).omit({
   id: true,
-  owner: true,
 });
 
 export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;

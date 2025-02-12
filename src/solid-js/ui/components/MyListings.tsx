@@ -21,7 +21,7 @@ const css = addCss({
 });
 
 export const MyListings: Component<{}> = (props) => {
-  const { listings } = useService();
+  const { listings, account } = useService();
 
   const [isDirty, setIsDirty] = createSignal(false);
   const [activeListing, _setActiveListing] = createSignal<
@@ -39,7 +39,9 @@ export const MyListings: Component<{}> = (props) => {
   function setActiveListing(listing: Listing | null) {
     let listingDto = null;
     if (listing === null) {
-      listingDto = CreateListingDto.from({});
+      listingDto = CreateListingDto.from({
+        owner: account()!.resources.user()!.id
+      });
     } else {
       listingDto = UpdateListingDto.from(listing!.data);
     }

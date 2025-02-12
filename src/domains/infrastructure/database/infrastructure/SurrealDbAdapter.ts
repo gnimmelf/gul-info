@@ -103,7 +103,7 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getListingsByFilters(filters?: FilterSchemaType) {
     let whereClause = '';
-    const conditions: string[] = [];
+    const conditions: string[] = ['isActive = true'];
 
     if (filters?.indexLetter) {
       conditions.push(

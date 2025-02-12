@@ -3,7 +3,7 @@ DEFINE TABLE listings SCHEMAFULL
 PERMISSIONS
     FOR select
     	WHERE isActive = true || owner = $auth.id
-    FOR select
+    FOR update
         WHERE $after.owner = $auth.id;
 
 -- Define fields for the listings table

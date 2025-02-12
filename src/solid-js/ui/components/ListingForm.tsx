@@ -1,8 +1,7 @@
-import { Setter, Component, createEffect, For } from 'solid-js';
+import { Setter, Component, createEffect, createSignal } from 'solid-js';
 import { unwrap } from 'solid-js/store';
 
 import { toDotPath } from '~/shared/lib/utils';
-import { MAX_LINKS, MAX_TAGS } from '~/shared/constants';
 
 import {
   CreateListingDto,
@@ -18,12 +17,17 @@ import { FormState } from '~/solid-js/lib/FormState';
 import { join, addCss, Theme } from '~/shared/ui/theme';
 import { FormField } from './FormField';
 import { useService } from '../providers/ServiceProvider';
+import FormTags from './FormTags';
+import FormLinks from './FormLinks';
+
+export type FormStateType = CreateListingDtoSchemaType &
+  UpdateListingDtoSchemaType;
 
 const css = addCss({
   form: (theme: Theme) => ({
     display: 'flex',
     gap: theme.gapMd,
-    alignItems: 'baseline',
+    alignItems: 'stretch',
     flexWrap: 'wrap',
     '> *': {
       minWidth: '225px',
@@ -63,11 +67,9 @@ export const ListingForm: Component<{
 
   const defaultFormElementSize = 'small';
 
-  const formState = new FormState<
-    CreateListingDtoSchemaType & UpdateListingDtoSchemaType
-  >();
+  const formState = new FormState<FormStateType>();
 
-  // Get the values, only known way to keep type definitions
+  // Get the value setter and getter
   const [values, setValue] = formState.getStore();
 
   createEffect(() => {
@@ -100,8 +102,9 @@ export const ListingForm: Component<{
       setValue(toDotPath('tags', values.tags.length), tagId);
     },
     remove(tagId: string) {
-      setValue('tags', (tags) => tags.filter((tag) => tag.id != tagId));
+      setValue('tags', (tags) => tags.filter((tagId2) => {tagId2 != tagId}));
     },
+    directory: () => directory()?.resources.tags(),
   };
 
   function handleSubmit() {
@@ -134,7 +137,6 @@ export const ListingForm: Component<{
               </sl-checkbox>
             )}
           </FormField>
-
           <FormField key="title" formState={formState}>
             {(key) => (
               <sl-input
@@ -155,7 +157,6 @@ export const ListingForm: Component<{
               />
             )}
           </FormField>
-
           <FormField key="description" formState={formState} class="break-flow">
             {(key) => (
               <sl-input
@@ -176,7 +177,6 @@ export const ListingForm: Component<{
               />
             )}
           </FormField>
-
           <FormField key="address" formState={formState}>
             {(key) => (
               <sl-input
@@ -197,7 +197,6 @@ export const ListingForm: Component<{
               />
             )}
           </FormField>
-
           <FormField key="zip" formState={formState}>
             {(key) => (
               <sl-input
@@ -217,7 +216,7 @@ export const ListingForm: Component<{
                 on:blur={() => formState.validateField(key)}
               />
             )}
-          </FormField>find
+          </FormField>
 
           <FormField key="phone" formState={formState}>
             {(key) => (
@@ -239,7 +238,6 @@ export const ListingForm: Component<{
               />
             )}
           </FormField>
-
           <FormField key="email" formState={formState}>
             {(key) => (
               <sl-input
@@ -261,92 +259,20 @@ export const ListingForm: Component<{
             )}
           </FormField>
 
-          <fieldset>
-            <legend>
-              Knagger ({values.tags?.length} av {MAX_TAGS})
-            </legend>
-            <For each={values.tags}>
-              {(tagId) => {
-                const tag = directory()?.resources.tags()?.find(tag => tag.id === tagId)!;
-                return (
-                <div>
-                  <sl-button-group>
-                    <sl-button
-                      prop:size="small"
-                      on:click={() => tags.remove(tagId)}
-                    >
-                      <sl-icon slot="suffix" prop:name="trash"></sl-icon>
-                      {tag.name}
-                    </sl-button>
-                  </sl-button-group>
-                </div>
-              )}}
-            </For>
+          <FormTags
+            tags={tags.directory()}
+            addTag={tags.add}
+            removeTag={tags.remove}
+            selectedTagIds={values.tags}
+          />
 
-            <sl-button
-              prop:size={defaultFormElementSize}
-              prop:disabled={values.links?.length === MAX_LINKS}
-              prop:type="button"
-              prop:variant="primary"
-              on:click={() => tags.add(selectedTag())}
-            >
-              Legg til
-            </sl-button>
-          </fieldset>
-
-          <fieldset>
-            <legend>
-              Lenker ({values.links?.length} av {MAX_LINKS})
-            </legend>
-            <For each={values.links}>
-              {(link, idx) => (
-                <FormField
-                  key={toDotPath('links', idx(), 'href')}
-                  formState={formState}
-                  hideError={true}
-                >
-                  {(key) => (
-                    <div class={css.itemRow}>
-                      <sl-input
-                        prop:size={defaultFormElementSize}
-                        classList={{
-                          'user-error': formState.hasErrors(key),
-                          'user-valid': formState.isValid(key),
-                        }}
-                        prop:label={`Lenke ${idx() + 1}`}
-                        prop:name={key}
-                        prop:type="url"
-                        prop:required={true}
-                        prop:value={link.href}
-                        on:input={(e) =>
-                          links.update(
-                            idx(),
-                            (e.target as HTMLInputElement).value,
-                          )
-                        }
-                        on:blur={() => formState.validateField(key)}
-                      />
-                      <sl-icon-button
-                        color="red"
-                        prop:name="trash"
-                        on:click={() => links.remove(idx())}
-                      />
-                    </div>
-                  )}
-                </FormField>
-              )}
-            </For>
-
-            <sl-button
-              prop:size={defaultFormElementSize}
-              prop:disabled={values.links?.length === MAX_LINKS}
-              prop:type="button"
-              prop:variant="primary"
-              on:click={links.add}
-            >
-              Legg til ny
-            </sl-button>
-          </fieldset>
+          <FormLinks
+            addLink={links.add}
+            updateLink={links.update}
+            removeLink={links.remove}
+            links={values.links}
+            formState={formState}
+          />
 
           <div class={join(css.controls, 'break-flow')}>
             <sl-button-group>
