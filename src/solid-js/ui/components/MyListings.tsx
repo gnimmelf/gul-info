@@ -40,7 +40,7 @@ export const MyListings: Component<{}> = (props) => {
     let listingDto = null;
     if (listing === null) {
       listingDto = CreateListingDto.from({
-        owner: account()!.resources.user()!.id
+        owner: account()!.resources.user()!.id,
       });
     } else {
       listingDto = UpdateListingDto.from(listing!.data);
@@ -50,7 +50,7 @@ export const MyListings: Component<{}> = (props) => {
   }
 
   function handleDelete(listingId: string) {
-    listings()?.deleteListing(listingId)
+    listings()?.deleteListing(listingId);
   }
 
   function handleSubmit(listingDto: CreateListingDto | UpdateListingDto) {

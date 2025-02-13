@@ -4,7 +4,7 @@ import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 export const TagViewSchema = z.object({
   id: z.any(),
   name: z.string(),
-  usageCount: z.number(),
+  usageCount: z.number().optional(),
 });
 
 export type TagViewModelSchemaType = z.infer<typeof TagViewSchema>;
@@ -26,6 +26,6 @@ export class TagViewModel {
   }
 
   get id() {
-    return String(this.data.id)
+    return String(this.data.id);
   }
 }

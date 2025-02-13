@@ -16297,7 +16297,7 @@
       });
       return stringifyIds(res);
     }
-    async getIndexLetters() {
+    async getIndexLetterUsages() {
       const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
       const res = pop(
         await this.client.query(query),
@@ -16306,6 +16306,13 @@
       return stringifyIds(res);
     }
     async getTags() {
+      const query = `SELECT * FROM tags;`;
+      const res = pop(await this.client.query(query), {
+        popCount: 1
+      });
+      return stringifyIds(res);
+    }
+    async getTagUsages() {
       const query = `
       SELECT *, count(
         SELECT id
@@ -16360,6 +16367,7 @@
         "listings",
         payload
       );
+      console.log("created", { payload, listing });
       return stringifyIds(listing);
     }
     async deleteListing(listingId) {
@@ -16454,15 +16462,36 @@
     return configs;
   };
 
+  // src/solid-js/lib/ResourceRegistry.ts
+  var ResourceRegistry = class {
+    actions;
+    constructor() {
+      this.actions = /* @__PURE__ */ new Map();
+    }
+    add(key, resourceReturn) {
+      const [resource, resourceActions] = resourceReturn;
+      this.actions.set(key, resourceActions);
+      return resource;
+    }
+    get(key) {
+      const actions = this.actions.get(key);
+      if (!actions)
+        throw new Error(`Could not find resource by key '${key}'!`);
+      return actions;
+    }
+  };
+
   // src/solid-js/ui/providers/SystemProvider.tsx
   var SystemContext = createContext();
   var CoreProvider = (props) => {
     const initialize = async () => {
       const configs = await createConfigsServiceAdaper("https://intergate.io/configs/gul-info-hurdal");
       const db = await createDatabaseAdapter(configs.surreal);
+      const resources = new ResourceRegistry();
       return {
         configs,
-        db
+        db,
+        resources
       };
     };
     const [system] = createResource(initialize);
@@ -17550,7 +17579,7 @@
   var TagViewSchema = z.object({
     id: z.any(),
     name: z.string(),
-    usageCount: z.number()
+    usageCount: z.number().optional()
   });
   var TagViewModel = class {
     data;
@@ -17588,20 +17617,77 @@
     ExposeDataAsSchemaProps(IndexLetterViewSchema)
   ], IndexLetterViewModel);
 
+  // src/shared/models/listing/Listing.ts
+  var LinkShema = z.object({
+    href: z.string().url()
+  });
+  var ListingSchema = z.object({
+    id: z.any(),
+    owner: z.any(),
+    isActive: z.boolean(),
+    title: z.string(),
+    description: z.string(),
+    address: z.string(),
+    zip: z.string(),
+    muncipiality: z.string(),
+    phone: z.string(),
+    email: z.string(),
+    links: z.array(LinkShema),
+    tags: z.array(z.any())
+  }).required();
+  var Listing = class {
+    schema = ListingSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(ListingSchema, data);
+      return new Listing(parsedData);
+    }
+  };
+  Listing = __decorateClass([
+    ExposeDataAsSchemaProps(ListingSchema)
+  ], Listing);
+
+  // src/shared/models/listing/ListingViewModel.ts
+  var ListingViewSchema = ListingSchema.extend({});
+  var ListingViewModel = class {
+    schema = ListingViewSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(ListingViewSchema, data);
+      return new ListingViewModel(parsedData);
+    }
+  };
+  ListingViewModel = __decorateClass([
+    ExposeDataAsSchemaProps(ListingViewSchema)
+  ], ListingViewModel);
+
   // src/domains/ui/directory/DirectoryService.ts
   var DirectoryService = class {
     db;
     constructor(db) {
       this.db = db;
     }
-    async loadIndexLetters() {
-      const data = await this.db.getIndexLetters();
+    async loadIndexLetterUsages() {
+      const data = await this.db.getIndexLetterUsages();
       const res = data.sort((a5, b4) => a5.letter < b4.letter ? -1 : 1).map((data2) => IndexLetterViewModel.from(data2));
       return res;
     }
-    async loadTags() {
-      const data = await this.db.getTags();
+    async loadTagUsages() {
+      const data = await this.db.getTagUsages();
       const res = data.filter(({ usageCount }) => usageCount).sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data2) => TagViewModel.from(data2));
+      return res;
+    }
+    async loadListingsByFilters(filters) {
+      await timeout();
+      const data = await this.db.getListingsByFilters(filters);
+      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => ListingViewModel.from(data2));
       return res;
     }
   };
@@ -18026,23 +18112,41 @@
   }
 
   // src/solid-js/serviceAdapters/createDirectoryServiceAdaper.ts
-  var createDirectoryServiceAdapter = async (db) => {
+  var createDirectoryServiceAdapter = async (db, resources) => {
     const filters = createMutable(
       Filters.from({
         tagsMatchType: "ANY" /* ANY */
       })
     );
     const directoryService = new DirectoryService(db);
-    const [tags] = createResource(() => directoryService.loadTags());
+    const [onFilterListings, setFilterListings] = createSignal(null, {
+      equals: false
+    });
+    const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
+      // `createResource`-source signal has own memoization, shallow comparison, which is not
+      // exposed, so re-wrap the data in a new object to bypass that:
+      () => ({ filters: onFilterListings() }),
+      async ({ filters: filters2 }) => {
+        console.log("onFilterListings", { filters: filters2 });
+        const listings = await directoryService.loadListingsByFilters(filters2);
+        return listings;
+      }
+    );
+    const tags = resources.add(
+      "loadTags",
+      createResource(() => directoryService.loadTagUsages())
+    );
     const [indexLetters] = createResource(
-      () => directoryService.loadIndexLetters()
+      () => directoryService.loadIndexLetterUsages()
     );
     const adapter = checkAdapterReturnType({
       resources: {
         tags,
-        indexLetters
+        indexLetters,
+        filteredListings
       },
-      filters
+      filters,
+      filterListings: setFilterListings
     });
     return adapter;
   };
@@ -18124,67 +18228,16 @@
     return adapter;
   };
 
-  // src/shared/models/listing/Listing.ts
-  var LinkShema = z.object({
-    href: z.string().url()
-  });
-  var ListingSchema = z.object({
-    id: z.any(),
-    owner: z.any(),
-    isActive: z.boolean(),
-    title: z.string(),
-    description: z.string(),
-    address: z.string(),
-    zip: z.string(),
-    muncipiality: z.string(),
-    phone: z.string(),
-    email: z.string(),
-    links: z.array(LinkShema),
-    tags: z.array(z.any())
-  }).required();
-  var Listing = class {
-    schema = ListingSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(ListingSchema, data);
-      return new Listing(parsedData);
-    }
-  };
-  Listing = __decorateClass([
-    ExposeDataAsSchemaProps(ListingSchema)
-  ], Listing);
-
-  // src/shared/models/listing/ListingViewModel.ts
-  var ListingViewSchema = ListingSchema.extend({});
-  var ListingViewModel = class {
-    schema = ListingViewSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(ListingViewSchema, data);
-      return new ListingViewModel(parsedData);
-    }
-  };
-  ListingViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(ListingViewSchema)
-  ], ListingViewModel);
-
   // src/domains/ui/listings/ListingsService.ts
   var ListingsService = class {
     db;
     constructor(db) {
       this.db = db;
     }
-    async loadListingsByFilters(filters) {
+    async loadTags() {
       await timeout();
-      const data = await this.db.getListingsByFilters(filters);
-      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => ListingViewModel.from(data2));
+      const data = await this.db.getTags();
+      const res = data.sort((a5, b4) => a5.name < b4.name ? -1 : 1).map((data2) => TagViewModel.from(data2));
       return res;
     }
     async loadListingsByEmail(email2) {
@@ -18282,54 +18335,46 @@
   ], CreateListingDto);
 
   // src/solid-js/serviceAdapters/createListingsServiceAdaper.ts
-  var createListingsServiceAdaper = (db, user) => {
+  var createListingsServiceAdaper = (db, user, resources) => {
     const listingService = new ListingsService(db);
     const [onSaveListing, setSaveListing] = createSignal();
     const [onDeleteListing, setDeleteListing] = createSignal();
-    const [onFilterListings, setFilterListings] = createSignal(null, {
-      equals: false
+    const [tags] = createResource(async () => {
+      const tags2 = await listingService.loadTags();
+      return tags2;
     });
-    const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
-      // `createResource`-source signal has own memoization, shallow comparison, which is not
-      // exposed, so re-wrap the data in a new object to bypass that:
-      () => ({ filters: onFilterListings() }),
-      async ({ filters }) => {
-        console.log("onFilterListings", { filters });
-        const listings = await listingService.loadListingsByFilters(filters);
-        return listings;
-      }
-    );
-    const [myListings, { mutate: mutateMyListings }] = createResource(
+    const myListings = resources.add("loadListingByEmail", createResource(
       user,
       async ({ email: email2 }) => {
         const listings = await listingService.loadListingsByEmail(email2);
         return listings;
       }
-    );
+    ));
     const [saveListing] = createResource(onSaveListing, async (listingDto) => {
       let res;
       if (listingDto instanceof CreateListingDto) {
-        res = listingService.createListing(listingDto);
+        res = await listingService.createListing(listingDto);
       } else if (listingDto instanceof UpdateListingDto) {
-        res = listingService.updateListing(listingDto);
+        res = await listingService.updateListing(listingDto);
       }
+      resources.get("loadListingByEmail").refetch();
       return res;
     });
     const [deleteListing] = createResource(onDeleteListing, async (listingId) => {
       const res = listingService.deleteListing(listingId);
       setDeleteListing();
+      resources.get("loadListingByEmail").refetch();
       return res;
     });
     const adapter = checkAdapterReturnType({
       resources: {
-        filteredListings,
+        tags,
         myListings,
         saveListing,
         deleteListing
       },
       saveListing: setSaveListing,
-      deleteListing: setDeleteListing,
-      filterListings: setFilterListings
+      deleteListing: setDeleteListing
     });
     return adapter;
   };
@@ -18339,7 +18384,8 @@
   var ServiceProvider = (props) => {
     const {
       db,
-      configs
+      configs,
+      resources
     } = useSystem();
     const [user, setUser] = createSignal(void 0);
     const [account] = createResource(async () => {
@@ -18347,8 +18393,8 @@
       return createAccountServiceAdaper(db, auth);
     });
     createEffect(() => setUser(account()?.resources.user()));
-    const [listings] = createResource(() => createListingsServiceAdaper(db, user));
-    const [directory] = createResource(() => createDirectoryServiceAdapter(db));
+    const [listings] = createResource(() => createListingsServiceAdaper(db, user, resources));
+    const [directory] = createResource(() => createDirectoryServiceAdapter(db, resources));
     const services = {
       account,
       listings,
@@ -18762,13 +18808,12 @@
   });
   var ListingsFilters = (props) => {
     const {
-      directory,
-      listings
+      directory
     } = useService();
     const filters = () => directory()?.filters;
     const tags = () => directory()?.resources.tags();
     const indexLetters = () => directory()?.resources.indexLetters();
-    const isLoading = () => listings()?.resources.filteredListings.loading;
+    const isLoading = () => directory()?.resources.filteredListings.loading;
     const isTagMatchTypeAll = () => filters()?.data.tagsMatchType === "ALL" /* ALL */;
     const toggleTagMatchType = () => {
       const next = isTagMatchTypeAll() ? "ANY" /* ANY */ : "ALL" /* ALL */;
@@ -18877,17 +18922,16 @@
   });
   var PageListings = () => {
     const {
-      directory,
-      listings
+      directory
     } = useService();
     const [hitCount, setHitCount] = createSignal(0);
     const filters = () => directory()?.filters;
-    const filteredListings = () => listings()?.resources.filteredListings();
+    const filteredListings = () => directory()?.resources.filteredListings();
     createEffect(() => setHitCount(filteredListings()?.length || 0));
     createEffect(() => {
-      if (directory() && listings()) {
+      if (directory()) {
         trackStore(filters());
-        listings().filterListings(filters().data);
+        directory().filterListings(filters().data);
       }
     });
     return (() => {
@@ -19408,7 +19452,7 @@
     })();
   };
 
-  // src/solid-js/ui/components/FormTags.tsx
+  // src/solid-js/ui/components/ListingFormTags.tsx
   var _tmpl$12 = /* @__PURE__ */ template(`<fieldset><legend>Knagger (<!> av <!>)</legend><div></div><div><sl-select></sl-select><sl-button>Legg til`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
   var _tmpl$34 = /* @__PURE__ */ template(`<sl-option>`, true, false);
@@ -19425,7 +19469,7 @@
       }
     })
   });
-  var FormTags = (props) => {
+  var ListingFormTags = (props) => {
     const defaultFormElementSize = "small";
     const [selectedTag, setSelectedTag] = createSignal("");
     return (() => {
@@ -19490,9 +19534,9 @@
       return _el$;
     })();
   };
-  var FormTags_default = FormTags;
+  var ListingFormTags_default = ListingFormTags;
 
-  // src/solid-js/ui/components/FormLinks.tsx
+  // src/solid-js/ui/components/ListingFormLinks.tsx
   var _tmpl$13 = /* @__PURE__ */ template(`<fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny`, true, false);
   var _tmpl$26 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
   var css8 = addCss({
@@ -19508,7 +19552,7 @@
       }
     })
   });
-  var FormLinks = (props) => {
+  var ListingFormLinks = (props) => {
     const defaultFormElementSize = "small";
     return (() => {
       var _el$ = _tmpl$13(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling;
@@ -19566,7 +19610,7 @@
       return _el$;
     })();
   };
-  var FormLinks_default = FormLinks;
+  var ListingFormLinks_default = ListingFormLinks;
 
   // src/solid-js/ui/components/ListingForm.tsx
   var _tmpl$14 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=suffix></sl-icon>Slett`, true, false);
@@ -19605,7 +19649,7 @@
   });
   var ListingForm = (props) => {
     const {
-      directory
+      listings
     } = useService();
     const defaultFormElementSize = "small";
     const formState = new FormState();
@@ -19641,11 +19685,10 @@
           tagId2 != tagId;
         }));
       },
-      directory: () => directory()?.resources.tags()
+      tags: () => listings()?.resources.tags()
     };
     function handleSubmit() {
       formState.validateAll();
-      console.log("values", unwrap(values));
       if (formState.hasErrors()) {
         console.log("errors", unwrap(formState.errors));
         return;
@@ -19856,9 +19899,9 @@
           return _el$16;
         })()
       }), _el$6);
-      insert(_el$2, createComponent(FormTags_default, {
+      insert(_el$2, createComponent(ListingFormTags_default, {
         get tags() {
-          return tags.directory();
+          return tags.tags();
         },
         get addTag() {
           return tags.add;
@@ -19870,7 +19913,7 @@
           return values.tags;
         }
       }), _el$6);
-      insert(_el$2, createComponent(FormLinks_default, {
+      insert(_el$2, createComponent(ListingFormLinks_default, {
         get addLink() {
           return links.add;
         },

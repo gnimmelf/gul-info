@@ -56,19 +56,19 @@ const css = addCss({
  * Component
  */
 export const PageListings: Component = () => {
-  const { directory, listings } = useService();
+  const { directory } = useService();
 
   const [hitCount, setHitCount] = createSignal(0);
 
   const filters = () => directory()?.filters;
-  const filteredListings = () => listings()?.resources.filteredListings();
+  const filteredListings = () => directory()?.resources.filteredListings();
 
   createEffect(() => setHitCount(filteredListings()?.length || 0));
 
   createEffect(() => {
-    if (directory() && listings()) {
+    if (directory()) {
       trackStore(filters()!);
-      listings()!.filterListings(filters()!.data);
+      directory()!.filterListings(filters()!.data);
     }
   });
 

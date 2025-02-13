@@ -8,8 +8,9 @@ import { CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListin
 import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
 
 export interface IDatabase {
-  getIndexLetters: () => Promise<IndexLetterViewSchemaType[]>;
+  getIndexLetterUsages: () => Promise<IndexLetterViewSchemaType[]>;
   getTags: () => Promise<TagViewModelSchemaType[]>;
+  getTagUsages: () => Promise<TagViewModelSchemaType[]>;
   authenticate: (token: string, isVerified: boolean) => Promise<boolean>;
   getUserData: () => Promise<UserViewSchemaType>;
   getListingsByFilters: (

@@ -25,16 +25,19 @@ if $USE_TLS; then
 fi
 
 # Start SurrealDB command
-COMMAND="surreal start surrealkv://.dev-data \
+COMMAND="
+surreal start surrealkv://.dev-data \
   --strict \
   --deny-all \
   --allow-scripting \
   --allow-guests \
-  --allow-net intergate.eu.auth0.com \
   --allow-funcs \
-  --user r00t --pass r00t \
+  --allow-net intergate.eu.auth0.com \
+  --user r00t \
+  --pass r00t \
   --bind 127.0.0.1:7999 \
-  --log debug"
+  --log debug \
+"
 
 # Append TLS arguments if useTls is true
 if $USE_TLS; then

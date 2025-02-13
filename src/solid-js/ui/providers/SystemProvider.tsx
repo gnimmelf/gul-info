@@ -1,18 +1,15 @@
 import {
   Component,
   createContext,
-  createEffect,
-  createMemo,
   createResource,
-  createSignal,
   JSXElement,
-  Resource,
   Show,
   useContext,
 } from 'solid-js';
 
 import { createDatabaseAdapter } from '~/domains/infrastructure/database/createDatabaseAdapter';
 import { createConfigsServiceAdaper } from '~/domains/infrastructure/configs/createConfigsServiceAdaper';
+import { ResourceRegistry } from '~/solid-js/lib/ResourceRegistry';
 
 type TConfigsAdapter = Awaited<ReturnType<typeof createConfigsServiceAdaper>>;
 type TDbAdapter = Awaited<ReturnType<typeof createDatabaseAdapter>>;
@@ -20,6 +17,7 @@ type TDbAdapter = Awaited<ReturnType<typeof createDatabaseAdapter>>;
 interface TSystemContext {
   configs: TConfigsAdapter;
   db: TDbAdapter;
+  resources: ResourceRegistry;
 }
 
 // Create the context
@@ -36,9 +34,12 @@ export const CoreProvider: Component<{
 
     const db = await createDatabaseAdapter(configs.surreal);
 
+    const resources = new ResourceRegistry();
+
     return {
       configs,
       db,
+      resources,
     };
   };
 

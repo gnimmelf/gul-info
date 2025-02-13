@@ -38,7 +38,7 @@ const ServiceContext = createContext<IServiceContext>();
 export const ServiceProvider: Component<{
   children: JSXElement;
 }> = (props) => {
-  const { db, configs } = useSystem();
+  const { db, configs, resources } = useSystem();
 
   const [user, setUser] = createSignal<UserViewModel | undefined>(undefined);
 
@@ -50,10 +50,12 @@ export const ServiceProvider: Component<{
   createEffect(() => setUser(account()?.resources.user()));
 
   const [listings] = createResource(() =>
-    createListingsServiceAdaper(db, user),
+    createListingsServiceAdaper(db, user, resources),
   );
 
-  const [directory] = createResource(() => createDirectoryServiceAdapter(db));
+  const [directory] = createResource(() =>
+    createDirectoryServiceAdapter(db, resources),
+  );
 
   const services = {
     account,

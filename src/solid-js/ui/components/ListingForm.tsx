@@ -17,8 +17,8 @@ import { FormState } from '~/solid-js/lib/FormState';
 import { join, addCss, Theme } from '~/shared/ui/theme';
 import { FormField } from './FormField';
 import { useService } from '../providers/ServiceProvider';
-import FormTags from './FormTags';
-import FormLinks from './FormLinks';
+import ListingFormTags from './ListingFormTags';
+import ListingFormLinks from './ListingFormLinks';
 
 export type FormStateType = CreateListingDtoSchemaType &
   UpdateListingDtoSchemaType;
@@ -64,7 +64,7 @@ export const ListingForm: Component<{
   onCancel: () => void;
   onDelete: (listingId: string) => void;
 }> = (props) => {
-  const { directory } = useService();
+  const { listings } = useService();
 
   const defaultFormElementSize = 'small';
 
@@ -109,12 +109,11 @@ export const ListingForm: Component<{
         }),
       );
     },
-    directory: () => directory()?.resources.tags(),
+    tags: () => listings()?.resources.tags(),
   };
 
   function handleSubmit() {
     formState.validateAll();
-    console.log('values', unwrap(values));
     if (formState.hasErrors()) {
       console.log('errors', unwrap(formState.errors));
       return;
@@ -131,7 +130,7 @@ export const ListingForm: Component<{
     <>
       <sl-card>
         <form class={join(css.form, 'validity-styles')}>
-          <div class={join("break-flow", css.itemRow)}>
+          <div class={join('break-flow', css.itemRow)}>
             <FormField key="isActive" formState={formState}>
               {(key) => (
                 <sl-checkbox
@@ -149,7 +148,9 @@ export const ListingForm: Component<{
                 prop:size="medium"
                 prop:type="button"
                 prop:variant="danger"
-                on:click={() => props.onDelete((props.listingDto as UpdateListingDto).id)}
+                on:click={() =>
+                  props.onDelete((props.listingDto as UpdateListingDto).id)
+                }
               >
                 <sl-icon slot="suffix" prop:name="trash"></sl-icon>
                 Slett
@@ -279,14 +280,14 @@ export const ListingForm: Component<{
             )}
           </FormField>
 
-          <FormTags
-            tags={tags.directory()}
+          <ListingFormTags
+            tags={tags.tags()}
             addTag={tags.add}
             removeTag={tags.remove}
             selectedTagIds={values.tags}
           />
 
-          <FormLinks
+          <ListingFormLinks
             addLink={links.add}
             updateLink={links.update}
             removeLink={links.remove}

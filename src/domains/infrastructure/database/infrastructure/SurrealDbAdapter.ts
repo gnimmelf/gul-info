@@ -77,7 +77,7 @@ export class SurrealDbAdapter implements IDatabase {
     return stringifyIds(res);
   }
 
-  async getIndexLetters() {
+  async getIndexLetterUsages() {
     const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
     const res = pop<IndexLetterViewSchemaType[]>(
       await this.client.query(query),
@@ -86,7 +86,16 @@ export class SurrealDbAdapter implements IDatabase {
     return stringifyIds(res);
   }
 
+
   async getTags() {
+    const query = `SELECT * FROM tags;`;
+    const res = pop<TagViewModelSchemaType[]>(await this.client.query(query), {
+      popCount: 1,
+    });
+    return stringifyIds(res);
+  }
+
+  async getTagUsages() {
     const query = `
       SELECT *, count(
         SELECT id
@@ -142,13 +151,14 @@ export class SurrealDbAdapter implements IDatabase {
     const payload = {
       ...rest,
       owner: new StringRecordId(owner),
-      tags: tags.map(tagId => new StringRecordId(tagId)),
-    }
+      tags: tags.map((tagId) => new StringRecordId(tagId)),
+    };
 
     const listing = await this.client.create<CreateListingDtoSchemaType>(
       'listings',
       payload,
     );
+    console.log('created', {payload, listing})
     return stringifyIds(listing);
   }
 
@@ -161,17 +171,15 @@ export class SurrealDbAdapter implements IDatabase {
     const payload = {
       ...rest,
       owner: new StringRecordId(owner),
-      tags: tags.map(tagId => new StringRecordId(tagId)),
-    }
+      tags: tags.map((tagId) => new StringRecordId(tagId)),
+    };
 
     const listing = await this.client.merge<UpdateListingDtoSchemaType>(
       new StringRecordId(id),
-      payload
+      payload,
     );
     return stringifyIds(listing);
   }
-
-
 }
 
 /**
@@ -212,6 +220,6 @@ const pop = <T>(data: NestedArray<any>, options?: PopOptions): T => {
  */
 const stringifyIds = (obj: any) => {
   const parsed = JSON.parse(JSON.stringify(obj));
-  console.log({ obj, parsed })
+  console.log({ obj, parsed });
   return parsed;
-}
+};

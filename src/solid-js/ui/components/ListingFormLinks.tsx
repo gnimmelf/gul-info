@@ -24,7 +24,7 @@ const css = addCss({
 /**
  * Component
  */
-export const FormLinks: Component<{
+export const ListingFormLinks: Component<{
   addLink: () => void;
   updateLink: (idx: number, value: string) => void;
   removeLink: (idx: number) => void;
@@ -34,7 +34,7 @@ export const FormLinks: Component<{
   const defaultFormElementSize = 'small';
 
   return (
-    <fieldset>
+    <fieldset >
       <legend>
         Lenker ({props.links?.length} av {MAX_LINKS})
       </legend>
@@ -90,4 +90,4 @@ export const FormLinks: Component<{
   );
 };
 
-export default FormLinks;
+export default ListingFormLinks;

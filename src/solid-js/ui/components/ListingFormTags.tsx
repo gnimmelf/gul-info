@@ -21,7 +21,7 @@ const css = addCss({
 /**
  * Component
  */
-export const FormTags: Component<{
+export const ListingFormTags: Component<{
   tags?: TagViewModel[];
   selectedTagIds?: string[];
   addTag: (tagId: string) => void;
@@ -89,4 +89,4 @@ export const FormTags: Component<{
   );
 };
 
-export default FormTags;
+export default ListingFormTags;

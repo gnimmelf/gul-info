@@ -4,7 +4,7 @@ import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 import { parseWithDefaults } from '~/shared/zod/helpers';
 import { ListingSchema } from './Listing';
 
-export const ListingViewSchema = ListingSchema.extend({})
+export const ListingViewSchema = ListingSchema.extend({});
 
 export type ListingViewSchemaType = z.infer<typeof ListingViewSchema>;
 

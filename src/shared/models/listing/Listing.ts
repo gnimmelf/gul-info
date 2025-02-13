@@ -7,20 +7,22 @@ export const LinkShema = z.object({
   href: z.string().url(),
 });
 
-export const ListingSchema = z.object({
-  id: z.any(),
-  owner: z.any(),
-  isActive: z.boolean(),
-  title: z.string(),
-  description: z.string(),
-  address: z.string(),
-  zip: z.string(),
-  muncipiality: z.string(),
-  phone: z.string(),
-  email: z.string(),
-  links: z.array(LinkShema),
-  tags: z.array(z.any()),
-}).required();
+export const ListingSchema = z
+  .object({
+    id: z.any(),
+    owner: z.any(),
+    isActive: z.boolean(),
+    title: z.string(),
+    description: z.string(),
+    address: z.string(),
+    zip: z.string(),
+    muncipiality: z.string(),
+    phone: z.string(),
+    email: z.string(),
+    links: z.array(LinkShema),
+    tags: z.array(z.any()),
+  })
+  .required();
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;
 

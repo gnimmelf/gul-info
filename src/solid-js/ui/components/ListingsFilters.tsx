@@ -22,12 +22,12 @@ const css = addCss({
 export const ListingsFilters: Component<{
   children?: JSXElement;
 }> = (props) => {
-  const { directory, listings } = useService();
+  const { directory } = useService();
 
   const filters = () => directory()?.filters;
   const tags = () => directory()?.resources!.tags();
   const indexLetters = () => directory()?.resources.indexLetters();
-  const isLoading = () => listings()?.resources.filteredListings.loading;
+  const isLoading = () => directory()?.resources.filteredListings.loading;
 
   const isTagMatchTypeAll = () =>
     filters()?.data.tagsMatchType === TagsMatchType.ALL;
