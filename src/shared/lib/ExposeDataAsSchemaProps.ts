@@ -15,13 +15,27 @@ export function ExposeDataAsSchemaProps<S extends z.ZodObject<any>>(schema: S) {
         super(...args);
 
         schemaKeys.forEach((key) => {
-          Object.defineProperty(this, key, {
-            get() {
-              return this.data[key];
-            },
-          });
+          if (!hasGetter(this, key)) {
+            Object.defineProperty(this, key, {
+              get() {
+                return this.hasOwnProp || this.data[key];
+              },
+            });
+          }
         });
       }
     };
   };
+}
+
+function hasGetter(obj: any, key: string) {
+  let currentObj = obj;
+  while (currentObj !== null) {
+    const descriptor = Object.getOwnPropertyDescriptor(currentObj, key);
+    if (descriptor) {
+      return typeof descriptor.get === 'function';
+    }
+    currentObj = Object.getPrototypeOf(currentObj);
+  }
+  return false;
 }

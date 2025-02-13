@@ -1,4 +1,4 @@
-import { Accessor, createMemo, createResource, createSignal } from 'solid-js';
+import { Accessor, createResource, createSignal } from 'solid-js';
 
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
@@ -7,7 +7,6 @@ import { UserViewModel } from '~/shared/models/UserViewModel';
 import { FilterSchemaType } from '~/shared/models/Filters';
 import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
 import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
-import { deepCopy } from '~/shared/lib/utils';
 
 export const createListingsServiceAdaper = (
   db: IDatabase,
@@ -17,7 +16,9 @@ export const createListingsServiceAdaper = (
 
   const [onSaveListing, setSaveListing] = createSignal<
     CreateListingDto | UpdateListingDto | null
-  >(null);
+  >();
+
+  const [onDeleteListing, setDeleteListing] =createSignal<string>();
 
   const [onFilterListings, setFilterListings] =
     createSignal<FilterSchemaType | null>(null, {
@@ -44,10 +45,7 @@ export const createListingsServiceAdaper = (
   );
 
   const [saveListing] = createResource(onSaveListing, async (listingDto) => {
-    /**
-     * TODO! Implement refetching of invalid resources
-     * when listings is updated / created, what needs to be refreshed, and how?
-     */
+    // TODO! Implement refetching of stale resources
     let res;
     if (listingDto instanceof CreateListingDto) {
       res = listingService.createListing(listingDto);
@@ -57,13 +55,22 @@ export const createListingsServiceAdaper = (
     return res;
   });
 
+  const [deleteListing] = createResource(onDeleteListing, async (listingId) => {
+    // TODO! Implement refetching of stale resources
+    const res = listingService.deleteListing(listingId);
+    setDeleteListing();
+    return res;
+  });
+
   const adapter = checkAdapterReturnType({
     resources: {
       filteredListings,
       myListings,
       saveListing,
+      deleteListing
     },
     saveListing: setSaveListing,
+    deleteListing: setDeleteListing,
     filterListings: setFilterListings,
   });
 

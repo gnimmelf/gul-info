@@ -2,22 +2,9 @@ import { z } from 'zod';
 import { TagViewSchema } from '../TagViewModel';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 import { parseWithDefaults } from '~/shared/zod/helpers';
+import { ListingSchema } from './Listing';
 
-export const ListingViewSchema = z.object({
-  title: z.string(),
-  description: z.string(),
-  address: z.string(),
-  zip: z.string(),
-  muncipiality: z.string(),
-  phone: z.string(),
-  email: z.string().email(),
-  links: z.array(
-    z.object({
-      href: z.string(),
-    }),
-  ),
-  tags: z.array(TagViewSchema.omit({ usageCount: true })),
-});
+export const ListingViewSchema = ListingSchema.extend({})
 
 export type ListingViewSchemaType = z.infer<typeof ListingViewSchema>;
 

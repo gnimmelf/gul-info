@@ -13,6 +13,25 @@ DEFINE FUNCTION OVERWRITE fn::unique_tags() {
 	}
 } PERMISSIONS FULL;
 
+DEFINE FUNCTION OVERWRITE fn::createListingsRecord($data: object) {
+	LET $parsed = function($data) {
+		let tName, tId;
+		const { owner, tags, ...data} = arguments[0];
+
+		[tName, tId] = owner.split(":");
+		data.owner = new Record(tName, tId);
+
+		data.tags = tags.map(idStr => {
+			[tName, tId] = idStr.split(":");
+			return new Record(tName, parseInt(tId) || tId);
+		});
+
+		return data;
+	};
+	LET $res = (CREATE listings CONTENT $parsed RETURN AFTER);
+	RETURN $res;
+} PERMISSIONS WHERE $auth
+
 DEFINE FUNCTION OVERWRITE fn::updateListingsRecord($data: object) {
 	LET $parsed = function($data) {
 		let tName, tId;
@@ -35,24 +54,5 @@ DEFINE FUNCTION OVERWRITE fn::updateListingsRecord($data: object) {
 		};
 	};
 	LET $res = (UPDATE $parsed.id CONTENT $parsed.data RETURN AFTER);
-	RETURN $res;
-} PERMISSIONS WHERE $auth
-
-DEFINE FUNCTION OVERWRITE fn::createListingsRecord($data: object) {
-	LET $parsed = function($data) {
-		let tName, tId;
-		const { owner, tags, ...data} = arguments[0];
-
-		[tName, tId] = owner.split(":");
-		data.owner = new Record(tName, tId);
-
-		data.tags = tags.map(idStr => {
-			[tName, tId] = idStr.split(":");
-			return new Record(tName, parseInt(tId) || tId);
-		});
-
-		return data;
-	};
-	LET $res = (CREATE listings CONTENT $parsed RETURN AFTER);
 	RETURN $res;
 } PERMISSIONS WHERE $auth

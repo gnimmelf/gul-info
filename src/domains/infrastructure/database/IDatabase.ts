@@ -1,6 +1,6 @@
 import { ListingViewSchemaType } from '../../../shared/models/listing/ListingViewModel';
 import { IndexLetterViewSchemaType } from '../../../shared/models/IndexLetterViewModel';
-import { TagViewSchemaType } from '../../../shared/models/TagViewModel';
+import { TagViewModelSchemaType } from '../../../shared/models/TagViewModel';
 import { FilterSchemaType } from '../../../shared/models/Filters';
 import { UserViewSchemaType } from '../../../shared/models/UserViewModel';
 import { ListingSchemaType } from '~/shared/models/listing/Listing';
@@ -9,7 +9,7 @@ import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListin
 
 export interface IDatabase {
   getIndexLetters: () => Promise<IndexLetterViewSchemaType[]>;
-  getTags: () => Promise<TagViewSchemaType[]>;
+  getTags: () => Promise<TagViewModelSchemaType[]>;
   authenticate: (token: string, isVerified: boolean) => Promise<boolean>;
   getUserData: () => Promise<UserViewSchemaType>;
   getListingsByFilters: (
@@ -19,6 +19,7 @@ export interface IDatabase {
   createListing: (
     data: CreateListingDtoSchemaType,
   ) => Promise<ListingSchemaType>;
+  deleteListing: (listingId: string) => Promise<void>;
   updateListing: (
     data: UpdateListingDtoSchemaType,
   ) => Promise<ListingSchemaType>;

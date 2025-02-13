@@ -16287,7 +16287,7 @@
           console.error(err.message);
         }
       }
-      return res;
+      return stringifyIds(res);
     }
     async getUserData() {
       const query = `SELECT * FROM ${"users" /* USER */};`;
@@ -16295,7 +16295,7 @@
         popCount: 2,
         ensureArray: false
       });
-      return idObjToString(res);
+      return stringifyIds(res);
     }
     async getIndexLetters() {
       const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
@@ -16303,7 +16303,7 @@
         await this.client.query(query),
         { popCount: 1 }
       );
-      return res;
+      return stringifyIds(res);
     }
     async getTags() {
       const query = `
@@ -16314,11 +16314,10 @@
       ) as usageCount
       FROM tags;
     `;
-      console.log({ query });
       const res = pop(await this.client.query(query), {
         popCount: 1
       });
-      return res.map(idObjToString);
+      return stringifyIds(res);
     }
     async getListingsByFilters(filters) {
       let whereClause = "";
@@ -16342,32 +16341,42 @@
         whereClause = ` WHERE ${conditions.join(" AND ")}`;
       }
       const query = `SELECT *, tags.*.* FROM ${"listings" /* LISTINGS */}${whereClause};`;
-      console.log({ query });
       const res = pop(await this.client.query(query));
-      return res.map(idObjToString);
+      return stringifyIds(res);
     }
     async getListingsByEmail(email2) {
       const query = `SELECT * FROM ${"listings" /* LISTINGS */} WHERE owner.email = '${email2}';`;
-      console.log({ query });
       const res = pop(await this.client.query(query));
-      console.log({ res });
-      return res.map(idObjToString);
+      return stringifyIds(res);
     }
     async createListing(data) {
-      const query = `fn::createListingsRecord($data);`;
-      console.log({ query });
-      const res = pop(
-        await this.client.query(query, { data })
+      const { owner, tags, ...rest } = data;
+      const payload = {
+        ...rest,
+        owner: new StringRecordId(owner),
+        tags: tags.map((tagId) => new StringRecordId(tagId))
+      };
+      const listing = await this.client.create(
+        "listings",
+        payload
       );
-      return idObjToString(res);
+      return stringifyIds(listing);
+    }
+    async deleteListing(listingId) {
+      await this.client.delete(new StringRecordId(listingId));
     }
     async updateListing(data) {
-      const query = `fn::updateListingsRecord($data);`;
-      console.log({ query, data });
-      const res = pop(
-        await this.client.query(query, { data })
+      const { id: id4, owner, tags, ...rest } = data;
+      const payload = {
+        ...rest,
+        owner: new StringRecordId(owner),
+        tags: tags.map((tagId) => new StringRecordId(tagId))
+      };
+      const listing = await this.client.merge(
+        new StringRecordId(id4),
+        payload
       );
-      return idObjToString(res);
+      return stringifyIds(listing);
     }
   };
   var pop = (data, options) => {
@@ -16378,16 +16387,12 @@
       res = res[0];
       popCount--;
     }
-    console.log(
-      res,
-      ensureArray,
-      !Array.isArray(res),
-      ensureArray && !Array.isArray(res)
-    );
     return ensureArray && !Array.isArray(res) ? [res] : res;
   };
-  var idObjToString = (obj) => {
-    return obj.id !== void 0 ? { ...obj, id: `${obj.id.tb}:${obj.id.id}` } : obj;
+  var stringifyIds = (obj) => {
+    const parsed = JSON.parse(JSON.stringify(obj));
+    console.log({ obj, parsed });
+    return parsed;
   };
 
   // src/domains/infrastructure/database/createDatabaseAdapter.ts
@@ -17517,21 +17522,33 @@
         constructor(...args) {
           super(...args);
           schemaKeys.forEach((key) => {
-            Object.defineProperty(this, key, {
-              get() {
-                return this.data[key];
-              }
-            });
+            if (!hasGetter(this, key)) {
+              Object.defineProperty(this, key, {
+                get() {
+                  return this.hasOwnProp || this.data[key];
+                }
+              });
+            }
           });
         }
       };
     };
   }
+  function hasGetter(obj, key) {
+    let currentObj = obj;
+    while (currentObj !== null) {
+      const descriptor = Object.getOwnPropertyDescriptor(currentObj, key);
+      if (descriptor) {
+        return typeof descriptor.get === "function";
+      }
+      currentObj = Object.getPrototypeOf(currentObj);
+    }
+    return false;
+  }
 
   // src/shared/models/TagViewModel.ts
   var TagViewSchema = z.object({
     id: z.any(),
-    key: z.string(),
     name: z.string(),
     usageCount: z.number()
   });
@@ -17543,6 +17560,9 @@
     static from(data) {
       const parsedData = TagViewSchema.parse(data);
       return new TagViewModel(parsedData);
+    }
+    get id() {
+      return String(this.data.id);
     }
   };
   TagViewModel = __decorateClass([
@@ -18119,11 +18139,9 @@
     muncipiality: z.string(),
     phone: z.string(),
     email: z.string(),
-    // TODO! Tags
-    tags: z.array(z.any()),
-    // SubSchemas
-    links: z.array(LinkShema)
-  });
+    links: z.array(LinkShema),
+    tags: z.array(z.any())
+  }).required();
   var Listing = class {
     schema = ListingSchema;
     data;
@@ -18141,21 +18159,7 @@
   ], Listing);
 
   // src/shared/models/listing/ListingViewModel.ts
-  var ListingViewSchema = z.object({
-    title: z.string(),
-    description: z.string(),
-    address: z.string(),
-    zip: z.string(),
-    muncipiality: z.string(),
-    phone: z.string(),
-    email: z.string().email(),
-    links: z.array(
-      z.object({
-        href: z.string()
-      })
-    ),
-    tags: z.array(TagViewSchema.omit({ usageCount: true }))
-  });
+  var ListingViewSchema = ListingSchema.extend({});
   var ListingViewModel = class {
     schema = ListingViewSchema;
     data;
@@ -18199,6 +18203,11 @@
       const res = await this.db.updateListing(listing.data);
       return Listing.from({ ...listing.data, ...res });
     }
+    async deleteListing(listingId) {
+      await timeout(500);
+      const res = await this.db.deleteListing(listingId);
+      return res;
+    }
   };
 
   // src/shared/zod/schemas.ts
@@ -18217,9 +18226,6 @@
 
   // src/shared/models/listing/UpdateListingDto.ts
   var UpdateListingDtoSchema = ListingSchema.extend({
-    id: ListingSchema.shape.id,
-    owner: ListingSchema.shape.owner,
-    isActive: ListingSchema.shape.isActive,
     title: ListingSchema.shape.title.min(3).max(70),
     description: ListingSchema.shape.description.min(15).max(150),
     address,
@@ -18227,10 +18233,8 @@
     muncipiality: ListingSchema.shape.muncipiality,
     phone,
     email,
-    // TODO! Tags
-    tags: z.array(z.any()).min(1).default([]),
-    // Sub-schemas
-    links: z.array(LinkShema).default([])
+    tags: ListingSchema.shape.tags.min(1).default([]),
+    links: ListingSchema.shape.links.default([])
   });
   var UpdateListingDto = class {
     schema = UpdateListingDtoSchema;
@@ -18280,7 +18284,8 @@
   // src/solid-js/serviceAdapters/createListingsServiceAdaper.ts
   var createListingsServiceAdaper = (db, user) => {
     const listingService = new ListingsService(db);
-    const [onSaveListing, setSaveListing] = createSignal(null);
+    const [onSaveListing, setSaveListing] = createSignal();
+    const [onDeleteListing, setDeleteListing] = createSignal();
     const [onFilterListings, setFilterListings] = createSignal(null, {
       equals: false
     });
@@ -18310,13 +18315,20 @@
       }
       return res;
     });
+    const [deleteListing] = createResource(onDeleteListing, async (listingId) => {
+      const res = listingService.deleteListing(listingId);
+      setDeleteListing();
+      return res;
+    });
     const adapter = checkAdapterReturnType({
       resources: {
         filteredListings,
         myListings,
-        saveListing
+        saveListing,
+        deleteListing
       },
       saveListing: setSaveListing,
+      deleteListing: setDeleteListing,
       filterListings: setFilterListings
     });
     return adapter;
@@ -19557,9 +19569,10 @@
   var FormLinks_default = FormLinks;
 
   // src/solid-js/ui/components/ListingForm.tsx
-  var _tmpl$14 = /* @__PURE__ */ template(`<sl-card><form><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
-  var _tmpl$27 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
-  var _tmpl$35 = /* @__PURE__ */ template(`<sl-input>`, true, false);
+  var _tmpl$14 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=suffix></sl-icon>Slett`, true, false);
+  var _tmpl$27 = /* @__PURE__ */ template(`<sl-card><form><div></div><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
+  var _tmpl$35 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
+  var _tmpl$43 = /* @__PURE__ */ template(`<sl-input>`, true, false);
   var css9 = addCss({
     form: (theme2) => ({
       display: "flex",
@@ -19638,131 +19651,61 @@
         return;
       }
       if (props.listingDto instanceof CreateListingDto) {
-        props.onSubmit(CreateListingDto.from({}));
+        props.onSubmit(CreateListingDto.from(values));
       } else if (props.listingDto instanceof UpdateListingDto) {
         props.onSubmit(UpdateListingDto.from(values));
       }
     }
     return (() => {
-      var _el$ = _tmpl$14(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$5.nextSibling;
+      var _el$ = _tmpl$27(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$7 = _el$6.firstChild, _el$8 = _el$7.firstChild, _el$9 = _el$8.nextSibling;
       _el$._$owner = getOwner();
-      insert(_el$2, createComponent(FormField, {
+      insert(_el$3, createComponent(FormField, {
         key: "isActive",
         formState,
-        "class": "break-flow",
         children: (key) => (() => {
-          var _el$7 = _tmpl$27();
-          addEventListener(_el$7, "input", () => setValue(key, !values[key]));
-          _el$7.size = "small";
-          _el$7._$owner = getOwner();
-          createRenderEffect(() => _el$7.checked = values[key]);
-          return _el$7;
+          var _el$10 = _tmpl$35();
+          addEventListener(_el$10, "input", () => setValue(key, !values[key]));
+          _el$10.size = "small";
+          _el$10._$owner = getOwner();
+          createRenderEffect(() => _el$10.checked = values[key]);
+          return _el$10;
         })()
-      }), _el$3);
+      }), null);
+      insert(_el$3, createComponent(Show, {
+        get when() {
+          return props.listingDto instanceof UpdateListingDto;
+        },
+        get children() {
+          var _el$4 = _tmpl$14(), _el$5 = _el$4.firstChild;
+          addEventListener(_el$4, "click", () => props.onDelete(props.listingDto.id));
+          _el$4.size = "medium";
+          _el$4.type = "button";
+          _el$4.variant = "danger";
+          _el$4._$owner = getOwner();
+          _el$5.name = "trash";
+          _el$5._$owner = getOwner();
+          return _el$4;
+        }
+      }), null);
       insert(_el$2, createComponent(FormField, {
         key: "title",
         formState,
         children: (key) => (() => {
-          var _el$8 = _tmpl$35();
-          addEventListener(_el$8, "blur", () => formState.validateField(key));
-          addEventListener(_el$8, "input", ({
-            target
-          }) => setValue(key, target.value));
-          _el$8.label = "Virksomhetens navn";
-          _el$8.size = "small";
-          _el$8.name = key;
-          _el$8.required = true;
-          _el$8._$owner = getOwner();
-          createRenderEffect((_p$) => {
-            var _v$3 = !!formState.hasErrors(key), _v$4 = !!formState.isValid(key), _v$5 = values[key];
-            _v$3 !== _p$.e && _el$8.classList.toggle("user-error", _p$.e = _v$3);
-            _v$4 !== _p$.t && _el$8.classList.toggle("user-valid", _p$.t = _v$4);
-            _v$5 !== _p$.a && (_el$8.value = _p$.a = _v$5);
-            return _p$;
-          }, {
-            e: void 0,
-            t: void 0,
-            a: void 0
-          });
-          return _el$8;
-        })()
-      }), _el$3);
-      insert(_el$2, createComponent(FormField, {
-        key: "description",
-        formState,
-        "class": "break-flow",
-        children: (key) => (() => {
-          var _el$9 = _tmpl$35();
-          addEventListener(_el$9, "blur", () => formState.validateField(key));
-          addEventListener(_el$9, "input", ({
-            target
-          }) => setValue(key, target.value));
-          _el$9.label = "Beskrivelse av tjeneste eller produkt";
-          _el$9.size = "small";
-          _el$9.name = key;
-          _el$9.required = true;
-          _el$9._$owner = getOwner();
-          createRenderEffect((_p$) => {
-            var _v$6 = !!formState.hasErrors(key), _v$7 = !!formState.isValid(key), _v$8 = values[key];
-            _v$6 !== _p$.e && _el$9.classList.toggle("user-error", _p$.e = _v$6);
-            _v$7 !== _p$.t && _el$9.classList.toggle("user-valid", _p$.t = _v$7);
-            _v$8 !== _p$.a && (_el$9.value = _p$.a = _v$8);
-            return _p$;
-          }, {
-            e: void 0,
-            t: void 0,
-            a: void 0
-          });
-          return _el$9;
-        })()
-      }), _el$3);
-      insert(_el$2, createComponent(FormField, {
-        key: "address",
-        formState,
-        children: (key) => (() => {
-          var _el$10 = _tmpl$35();
-          addEventListener(_el$10, "blur", () => formState.validateField(key));
-          addEventListener(_el$10, "input", ({
-            target
-          }) => setValue(key, target.value));
-          _el$10.label = "Gateadresse";
-          _el$10.size = "small";
-          _el$10.name = key;
-          _el$10.required = true;
-          _el$10._$owner = getOwner();
-          createRenderEffect((_p$) => {
-            var _v$9 = !!formState.hasErrors(key), _v$10 = !!formState.isValid(key), _v$11 = values[key];
-            _v$9 !== _p$.e && _el$10.classList.toggle("user-error", _p$.e = _v$9);
-            _v$10 !== _p$.t && _el$10.classList.toggle("user-valid", _p$.t = _v$10);
-            _v$11 !== _p$.a && (_el$10.value = _p$.a = _v$11);
-            return _p$;
-          }, {
-            e: void 0,
-            t: void 0,
-            a: void 0
-          });
-          return _el$10;
-        })()
-      }), _el$3);
-      insert(_el$2, createComponent(FormField, {
-        key: "zip",
-        formState,
-        children: (key) => (() => {
-          var _el$11 = _tmpl$35();
+          var _el$11 = _tmpl$43();
           addEventListener(_el$11, "blur", () => formState.validateField(key));
           addEventListener(_el$11, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$11.label = "Postnummer";
+          _el$11.label = "Virksomhetens navn";
           _el$11.size = "small";
           _el$11.name = key;
           _el$11.required = true;
           _el$11._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$12 = !!formState.hasErrors(key), _v$13 = !!formState.isValid(key), _v$14 = values[key];
-            _v$12 !== _p$.e && _el$11.classList.toggle("user-error", _p$.e = _v$12);
-            _v$13 !== _p$.t && _el$11.classList.toggle("user-valid", _p$.t = _v$13);
-            _v$14 !== _p$.a && (_el$11.value = _p$.a = _v$14);
+            var _v$4 = !!formState.hasErrors(key), _v$5 = !!formState.isValid(key), _v$6 = values[key];
+            _v$4 !== _p$.e && _el$11.classList.toggle("user-error", _p$.e = _v$4);
+            _v$5 !== _p$.t && _el$11.classList.toggle("user-valid", _p$.t = _v$5);
+            _v$6 !== _p$.a && (_el$11.value = _p$.a = _v$6);
             return _p$;
           }, {
             e: void 0,
@@ -19771,26 +19714,27 @@
           });
           return _el$11;
         })()
-      }), _el$3);
+      }), _el$6);
       insert(_el$2, createComponent(FormField, {
-        key: "phone",
+        key: "description",
         formState,
+        "class": "break-flow",
         children: (key) => (() => {
-          var _el$12 = _tmpl$35();
+          var _el$12 = _tmpl$43();
           addEventListener(_el$12, "blur", () => formState.validateField(key));
           addEventListener(_el$12, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$12.label = "Telefonnummer";
+          _el$12.label = "Beskrivelse av tjeneste eller produkt";
           _el$12.size = "small";
           _el$12.name = key;
           _el$12.required = true;
           _el$12._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$15 = !!formState.hasErrors(key), _v$16 = !!formState.isValid(key), _v$17 = values[key];
-            _v$15 !== _p$.e && _el$12.classList.toggle("user-error", _p$.e = _v$15);
-            _v$16 !== _p$.t && _el$12.classList.toggle("user-valid", _p$.t = _v$16);
-            _v$17 !== _p$.a && (_el$12.value = _p$.a = _v$17);
+            var _v$7 = !!formState.hasErrors(key), _v$8 = !!formState.isValid(key), _v$9 = values[key];
+            _v$7 !== _p$.e && _el$12.classList.toggle("user-error", _p$.e = _v$7);
+            _v$8 !== _p$.t && _el$12.classList.toggle("user-valid", _p$.t = _v$8);
+            _v$9 !== _p$.a && (_el$12.value = _p$.a = _v$9);
             return _p$;
           }, {
             e: void 0,
@@ -19799,26 +19743,26 @@
           });
           return _el$12;
         })()
-      }), _el$3);
+      }), _el$6);
       insert(_el$2, createComponent(FormField, {
-        key: "email",
+        key: "address",
         formState,
         children: (key) => (() => {
-          var _el$13 = _tmpl$35();
+          var _el$13 = _tmpl$43();
           addEventListener(_el$13, "blur", () => formState.validateField(key));
           addEventListener(_el$13, "input", ({
             target
           }) => setValue(key, target.value));
-          _el$13.label = "Epostadresse";
+          _el$13.label = "Gateadresse";
           _el$13.size = "small";
           _el$13.name = key;
           _el$13.required = true;
           _el$13._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$18 = !!formState.hasErrors(key), _v$19 = !!formState.isValid(key), _v$20 = values[key];
-            _v$18 !== _p$.e && _el$13.classList.toggle("user-error", _p$.e = _v$18);
-            _v$19 !== _p$.t && _el$13.classList.toggle("user-valid", _p$.t = _v$19);
-            _v$20 !== _p$.a && (_el$13.value = _p$.a = _v$20);
+            var _v$10 = !!formState.hasErrors(key), _v$11 = !!formState.isValid(key), _v$12 = values[key];
+            _v$10 !== _p$.e && _el$13.classList.toggle("user-error", _p$.e = _v$10);
+            _v$11 !== _p$.t && _el$13.classList.toggle("user-valid", _p$.t = _v$11);
+            _v$12 !== _p$.a && (_el$13.value = _p$.a = _v$12);
             return _p$;
           }, {
             e: void 0,
@@ -19827,7 +19771,91 @@
           });
           return _el$13;
         })()
-      }), _el$3);
+      }), _el$6);
+      insert(_el$2, createComponent(FormField, {
+        key: "zip",
+        formState,
+        children: (key) => (() => {
+          var _el$14 = _tmpl$43();
+          addEventListener(_el$14, "blur", () => formState.validateField(key));
+          addEventListener(_el$14, "input", ({
+            target
+          }) => setValue(key, target.value));
+          _el$14.label = "Postnummer";
+          _el$14.size = "small";
+          _el$14.name = key;
+          _el$14.required = true;
+          _el$14._$owner = getOwner();
+          createRenderEffect((_p$) => {
+            var _v$13 = !!formState.hasErrors(key), _v$14 = !!formState.isValid(key), _v$15 = values[key];
+            _v$13 !== _p$.e && _el$14.classList.toggle("user-error", _p$.e = _v$13);
+            _v$14 !== _p$.t && _el$14.classList.toggle("user-valid", _p$.t = _v$14);
+            _v$15 !== _p$.a && (_el$14.value = _p$.a = _v$15);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0,
+            a: void 0
+          });
+          return _el$14;
+        })()
+      }), _el$6);
+      insert(_el$2, createComponent(FormField, {
+        key: "phone",
+        formState,
+        children: (key) => (() => {
+          var _el$15 = _tmpl$43();
+          addEventListener(_el$15, "blur", () => formState.validateField(key));
+          addEventListener(_el$15, "input", ({
+            target
+          }) => setValue(key, target.value));
+          _el$15.label = "Telefonnummer";
+          _el$15.size = "small";
+          _el$15.name = key;
+          _el$15.required = true;
+          _el$15._$owner = getOwner();
+          createRenderEffect((_p$) => {
+            var _v$16 = !!formState.hasErrors(key), _v$17 = !!formState.isValid(key), _v$18 = values[key];
+            _v$16 !== _p$.e && _el$15.classList.toggle("user-error", _p$.e = _v$16);
+            _v$17 !== _p$.t && _el$15.classList.toggle("user-valid", _p$.t = _v$17);
+            _v$18 !== _p$.a && (_el$15.value = _p$.a = _v$18);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0,
+            a: void 0
+          });
+          return _el$15;
+        })()
+      }), _el$6);
+      insert(_el$2, createComponent(FormField, {
+        key: "email",
+        formState,
+        children: (key) => (() => {
+          var _el$16 = _tmpl$43();
+          addEventListener(_el$16, "blur", () => formState.validateField(key));
+          addEventListener(_el$16, "input", ({
+            target
+          }) => setValue(key, target.value));
+          _el$16.label = "Epostadresse";
+          _el$16.size = "small";
+          _el$16.name = key;
+          _el$16.required = true;
+          _el$16._$owner = getOwner();
+          createRenderEffect((_p$) => {
+            var _v$19 = !!formState.hasErrors(key), _v$20 = !!formState.isValid(key), _v$21 = values[key];
+            _v$19 !== _p$.e && _el$16.classList.toggle("user-error", _p$.e = _v$19);
+            _v$20 !== _p$.t && _el$16.classList.toggle("user-valid", _p$.t = _v$20);
+            _v$21 !== _p$.a && (_el$16.value = _p$.a = _v$21);
+            return _p$;
+          }, {
+            e: void 0,
+            t: void 0,
+            a: void 0
+          });
+          return _el$16;
+        })()
+      }), _el$6);
       insert(_el$2, createComponent(FormTags_default, {
         get tags() {
           return tags.directory();
@@ -19841,7 +19869,7 @@
         get selectedTagIds() {
           return values.tags;
         }
-      }), _el$3);
+      }), _el$6);
       insert(_el$2, createComponent(FormLinks_default, {
         get addLink() {
           return links.add;
@@ -19856,26 +19884,28 @@
           return values.links;
         },
         formState
-      }), _el$3);
-      _el$4._$owner = getOwner();
-      addEventListener(_el$5, "click", handleSubmit);
-      _el$5.size = "medium";
-      _el$5.type = "button";
-      _el$5.variant = "primary";
-      _el$5._$owner = getOwner();
-      addEventListener(_el$6, "click", props.onCancel);
-      _el$6.size = "medium";
-      _el$6.type = "button";
-      _el$6.variant = "neutral";
-      _el$6._$owner = getOwner();
+      }), _el$6);
+      _el$7._$owner = getOwner();
+      addEventListener(_el$8, "click", handleSubmit);
+      _el$8.size = "medium";
+      _el$8.type = "button";
+      _el$8.variant = "primary";
+      _el$8._$owner = getOwner();
+      addEventListener(_el$9, "click", props.onCancel);
+      _el$9.size = "medium";
+      _el$9.type = "button";
+      _el$9.variant = "neutral";
+      _el$9._$owner = getOwner();
       createRenderEffect((_p$) => {
-        var _v$ = join(css9.form, "validity-styles"), _v$2 = join(css9.controls, "break-flow");
+        var _v$ = join(css9.form, "validity-styles"), _v$2 = join("break-flow", css9.itemRow), _v$3 = join(css9.controls, "break-flow");
         _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
+        _v$3 !== _p$.a && className(_el$6, _p$.a = _v$3);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0
       });
       return _el$;
     })();
@@ -19917,6 +19947,9 @@
       }
       _setActiveListing(listingDto);
       setIsDirty(false);
+    }
+    function handleDelete(listingId) {
+      listings()?.deleteListing(listingId);
     }
     function handleSubmit(listingDto) {
       listings().saveListing(listingDto);
@@ -19973,7 +20006,8 @@
                 },
                 setIsDirty,
                 onSubmit: handleSubmit,
-                onCancel: () => clearActiveListing()
+                onCancel: clearActiveListing,
+                onDelete: handleDelete
               }), (() => {
                 var _el$11 = _tmpl$15(), _el$12 = _el$11.firstChild;
                 _el$11.variant = "success";
@@ -20006,7 +20040,7 @@
   var _tmpl$16 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
   var _tmpl$29 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
   var _tmpl$37 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
-  var _tmpl$43 = /* @__PURE__ */ template(`<div>`);
+  var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
   var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
   var css11 = addCss({});
   var PageAccount = (props) => {
@@ -20032,7 +20066,7 @@
             createRenderEffect(() => _el$2.open = Boolean(mustVerifyEmail()));
             return _el$2;
           })(), (() => {
-            var _el$8 = _tmpl$43();
+            var _el$8 = _tmpl$44();
             insert(_el$8, createComponent(Show, {
               get when() {
                 return !mustVerifyEmail();

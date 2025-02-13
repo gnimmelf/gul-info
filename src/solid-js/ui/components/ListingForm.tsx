@@ -1,4 +1,4 @@
-import { Setter, Component, createEffect, createSignal } from 'solid-js';
+import { Setter, Component, createEffect, createSignal, Show } from 'solid-js';
 import { unwrap } from 'solid-js/store';
 
 import { toDotPath } from '~/shared/lib/utils';
@@ -62,6 +62,7 @@ export const ListingForm: Component<{
   setIsDirty: Setter<boolean>;
   onSubmit: (listing: CreateListingDto | UpdateListingDto) => void;
   onCancel: () => void;
+  onDelete: (listingId: string) => void;
 }> = (props) => {
   const { directory } = useService();
 
@@ -102,7 +103,11 @@ export const ListingForm: Component<{
       setValue(toDotPath('tags', values.tags.length), tagId);
     },
     remove(tagId: string) {
-      setValue('tags', (tags) => tags.filter((tagId2) => {tagId2 != tagId}));
+      setValue('tags', (tags) =>
+        tags.filter((tagId2) => {
+          tagId2 != tagId;
+        }),
+      );
     },
     directory: () => directory()?.resources.tags(),
   };
@@ -116,7 +121,7 @@ export const ListingForm: Component<{
     }
 
     if (props.listingDto instanceof CreateListingDto) {
-      props.onSubmit(CreateListingDto.from({}));
+      props.onSubmit(CreateListingDto.from(values));
     } else if (props.listingDto instanceof UpdateListingDto) {
       props.onSubmit(UpdateListingDto.from(values));
     }
@@ -126,17 +131,32 @@ export const ListingForm: Component<{
     <>
       <sl-card>
         <form class={join(css.form, 'validity-styles')}>
-          <FormField key="isActive" formState={formState} class="break-flow">
-            {(key) => (
-              <sl-checkbox
-                prop:size="small"
-                prop:checked={values[key]}
-                on:input={() => setValue(key, !values[key])}
+          <div class={join("break-flow", css.itemRow)}>
+            <FormField key="isActive" formState={formState}>
+              {(key) => (
+                <sl-checkbox
+                  prop:size="small"
+                  prop:checked={values[key]}
+                  on:input={() => setValue(key, !values[key])}
+                >
+                  Aktiv
+                </sl-checkbox>
+              )}
+            </FormField>
+
+            <Show when={props.listingDto instanceof UpdateListingDto}>
+              <sl-button
+                prop:size="medium"
+                prop:type="button"
+                prop:variant="danger"
+                on:click={() => props.onDelete((props.listingDto as UpdateListingDto).id)}
               >
-                Aktiv
-              </sl-checkbox>
-            )}
-          </FormField>
+                <sl-icon slot="suffix" prop:name="trash"></sl-icon>
+                Slett
+              </sl-button>
+            </Show>
+          </div>
+
           <FormField key="title" formState={formState}>
             {(key) => (
               <sl-input

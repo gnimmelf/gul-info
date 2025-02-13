@@ -5,9 +5,6 @@ import { ListingSchema, LinkShema } from './Listing';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 
 export const UpdateListingDtoSchema = ListingSchema.extend({
-  id: ListingSchema.shape.id,
-  owner: ListingSchema.shape.owner,
-  isActive: ListingSchema.shape.isActive,
   title: ListingSchema.shape.title.min(3).max(70),
   description: ListingSchema.shape.description.min(15).max(150),
   address: fields.address,
@@ -15,10 +12,8 @@ export const UpdateListingDtoSchema = ListingSchema.extend({
   muncipiality: ListingSchema.shape.muncipiality,
   phone: fields.phone,
   email: fields.email,
-  // TODO! Tags
-  tags: z.array(z.any()).min(1).default([]),
-  // Sub-schemas
-  links: z.array(LinkShema).default([]),
+  tags: ListingSchema.shape.tags.min(1).default([]),
+  links: ListingSchema.shape.links.default([]),
 });
 
 export type UpdateListingDtoSchemaType = z.infer<typeof UpdateListingDtoSchema>;

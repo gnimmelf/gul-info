@@ -46,4 +46,10 @@ export class ListingsService {
     const res = await this.db.updateListing(listing.data);
     return Listing.from({ ...listing.data, ...res });
   }
+
+  public async deleteListing(listingId: string) {
+    await timeout(500);
+    const res = await this.db.deleteListing(listingId);
+    return res;
+  }
 }

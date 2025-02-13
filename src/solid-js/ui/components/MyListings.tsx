@@ -49,6 +49,10 @@ export const MyListings: Component<{}> = (props) => {
     setIsDirty(false);
   }
 
+  function handleDelete(listingId: string) {
+    listings()?.deleteListing(listingId)
+  }
+
   function handleSubmit(listingDto: CreateListingDto | UpdateListingDto) {
     listings()!.saveListing(listingDto);
     setIsDirty(false);
@@ -98,7 +102,8 @@ export const MyListings: Component<{}> = (props) => {
             listingDto={activeListing()!}
             setIsDirty={setIsDirty}
             onSubmit={handleSubmit}
-            onCancel={() => clearActiveListing()}
+            onCancel={clearActiveListing}
+            onDelete={handleDelete}
           />
 
           <sl-alert prop:variant="success" prop:open={isSaved()}>

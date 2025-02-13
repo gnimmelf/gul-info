@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
 import { parseWithDefaults } from '~/shared/zod/helpers';
+import { TagViewSchema } from '../TagViewModel';
 
 export const LinkShema = z.object({
   href: z.string().url(),
@@ -17,11 +18,9 @@ export const ListingSchema = z.object({
   muncipiality: z.string(),
   phone: z.string(),
   email: z.string(),
-  // TODO! Tags
-  tags: z.array(z.any()),
-  // SubSchemas
   links: z.array(LinkShema),
-});
+  tags: z.array(z.any()),
+}).required();
 
 export type ListingSchemaType = z.infer<typeof ListingSchema>;
 
