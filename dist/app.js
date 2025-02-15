@@ -8058,6 +8058,62 @@
     }
   });
 
+  // node_modules/.pnpm/fast-json-stable-stringify@2.1.0/node_modules/fast-json-stable-stringify/index.js
+  var require_fast_json_stable_stringify = __commonJS({
+    "node_modules/.pnpm/fast-json-stable-stringify@2.1.0/node_modules/fast-json-stable-stringify/index.js"(exports, module) {
+      "use strict";
+      module.exports = function(data, opts) {
+        if (!opts) opts = {};
+        if (typeof opts === "function") opts = { cmp: opts };
+        var cycles = typeof opts.cycles === "boolean" ? opts.cycles : false;
+        var cmp = opts.cmp && /* @__PURE__ */ function(f7) {
+          return function(node) {
+            return function(a5, b4) {
+              var aobj = { key: a5, value: node[a5] };
+              var bobj = { key: b4, value: node[b4] };
+              return f7(aobj, bobj);
+            };
+          };
+        }(opts.cmp);
+        var seen = [];
+        return function stringify2(node) {
+          if (node && node.toJSON && typeof node.toJSON === "function") {
+            node = node.toJSON();
+          }
+          if (node === void 0) return;
+          if (typeof node == "number") return isFinite(node) ? "" + node : "null";
+          if (typeof node !== "object") return JSON.stringify(node);
+          var i9, out;
+          if (Array.isArray(node)) {
+            out = "[";
+            for (i9 = 0; i9 < node.length; i9++) {
+              if (i9) out += ",";
+              out += stringify2(node[i9]) || "null";
+            }
+            return out + "]";
+          }
+          if (node === null) return "null";
+          if (seen.indexOf(node) !== -1) {
+            if (cycles) return JSON.stringify("__cycle__");
+            throw new TypeError("Converting circular structure to JSON");
+          }
+          var seenIndex = seen.push(node) - 1;
+          var keys = Object.keys(node).sort(cmp && cmp(node));
+          out = "";
+          for (i9 = 0; i9 < keys.length; i9++) {
+            var key = keys[i9];
+            var value = stringify2(node[key]);
+            if (!value) continue;
+            if (out) out += ",";
+            out += JSON.stringify(key) + ":" + value;
+          }
+          seen.splice(seenIndex, 1);
+          return "{" + out + "}";
+        }(data);
+      };
+    }
+  });
+
   // node_modules/.pnpm/component-register@0.8.7/node_modules/component-register/dist/component-register.js
   function cloneProps(props) {
     const propKeys = Object.keys(props);
@@ -16184,7 +16240,6 @@
     }
     return pickObject(schema, propertyPath);
   }
-  var zodDeepPick_default = zodDeepPick;
 
   // src/shared/zod/helpers.ts
   var mergeWithDefaults = (schema, data) => {
@@ -16412,6 +16467,7 @@
 
   // src/shared/lib/utils.ts
   var import_es6 = __toESM(require_es6());
+  var import_fast_json_stable_stringify = __toESM(require_fast_json_stable_stringify());
   var timeout = async (ms = 200, fn) => {
     return new Promise(
       (resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms)
@@ -16423,9 +16479,6 @@
   };
   var fromDotPath = (path) => {
     return path.split(/\.|\[(\d+)\]/).filter(Boolean).map((p4) => p4.match(/^\d+$/) ? Number(p4) : p4);
-  };
-  var isPrimitive = (value) => {
-    return value === null || typeof value !== "object" && typeof value !== "function";
   };
 
   // src/domains/infrastructure/configs/infrastructure/ConfigsService.ts
@@ -19282,17 +19335,28 @@
      * with SolidJs' immensly complex store-setter defintion.
      * @param args Same as StoreSetter<SchemaType>
      */
-    setValue(dotPath, value) {
-      const path = fromDotPath(dotPath);
-      this._setValues(...path, value);
-      if (isPrimitive(value)) {
-        const initialValue = getProperty(this._initialValues, dotPath, "");
-        const isTouched = initialValue !== value;
-        this.setIsTouched(dotPath, isTouched);
-        if (this.hasErrors(dotPath)) {
-          this.validateField(dotPath);
-        }
+    setValue(...args) {
+      this._setValues(...args);
+      const pathParts = Array.from(args).splice(0, args.length - 1);
+      if (!Number.isNaN(parseInt(pathParts[pathParts.length - 1]))) {
+        pathParts.pop();
       }
+      const dotPath = toDotPath(...pathParts);
+      if (this.hasErrors(dotPath)) {
+        this.validateField(dotPath);
+      }
+      const value = getProperty(
+        this._values,
+        dotPath,
+        ""
+      );
+      const initialValue = getProperty(
+        this._initialValues,
+        dotPath,
+        ""
+      );
+      const isTouched = (0, import_fast_json_stable_stringify.default)(initialValue) !== (0, import_fast_json_stable_stringify.default)(value);
+      this.setIsTouched(dotPath, isTouched);
     }
     validateField(dotPath) {
       const isTouched = this.isTouched(dotPath);
@@ -19305,7 +19369,7 @@
         );
       } else {
         const value = getProperty(this._values, dotPath);
-        const fieldSchema = zodDeepPick_default(this._schema, dotPath);
+        const fieldSchema = zodDeepPick(this._schema, dotPath);
         const res = fieldSchema.safeParse(value);
         this._setState(
           "errors",
@@ -19453,27 +19517,22 @@
   };
 
   // src/solid-js/ui/components/ListingFormTags.tsx
-  var _tmpl$12 = /* @__PURE__ */ template(`<fieldset><legend>Knagger (<!> av <!>)</legend><div></div><div><sl-select></sl-select><sl-button>Legg til`, true, false);
+  var _tmpl$12 = /* @__PURE__ */ template(`<fieldset><legend>Knagger (<!> av <!>)</legend><div></div><div><sl-select>`, true, false);
   var _tmpl$25 = /* @__PURE__ */ template(`<sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
   var _tmpl$34 = /* @__PURE__ */ template(`<sl-option>`, true, false);
   var css7 = addCss({
-    itemRow: (theme2) => ({
+    tagsContainer: (theme2) => ({
       display: "flex",
-      alignItems: "end",
-      marginBottom: theme2.gapMd,
-      ">:first-child": {
-        flex: "1"
-      },
-      ">:last-child": {
-        flexShrink: "0"
-      }
+      justifyContent: "space-evenly",
+      marginTop: theme2.gapMd,
+      marginBottom: theme2.gapMd
     })
   });
   var ListingFormTags = (props) => {
     const defaultFormElementSize = "small";
     const [selectedTag, setSelectedTag] = createSignal("");
     return (() => {
-      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.nextSibling;
+      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$9.firstChild;
       insert(_el$2, () => props.selectedTagIds?.length, _el$6);
       insert(_el$2, MAX_TAGS, _el$7);
       insert(_el$8, createComponent(For, {
@@ -19483,15 +19542,16 @@
         children: (tagId) => {
           const tag = props.tags?.find((tag2) => tag2.id === tagId);
           return (() => {
-            var _el$12 = _tmpl$25(), _el$13 = _el$12.firstChild, _el$14 = _el$13.firstChild;
+            var _el$11 = _tmpl$25(), _el$12 = _el$11.firstChild, _el$13 = _el$12.firstChild;
+            _el$11._$owner = getOwner();
+            addEventListener(_el$12, "click", () => props.removeTag(tagId));
+            _el$12.size = "small";
+            _el$12.variant = "primary";
             _el$12._$owner = getOwner();
-            addEventListener(_el$13, "click", () => props.removeTag(tagId));
-            _el$13.size = "small";
+            _el$13.name = "trash";
             _el$13._$owner = getOwner();
-            _el$14.name = "trash";
-            _el$14._$owner = getOwner();
-            insert(_el$13, () => tag.name, null);
-            return _el$12;
+            insert(_el$12, () => tag.name, null);
+            return _el$11;
           })();
         }
       }));
@@ -19502,34 +19562,25 @@
         get each() {
           return props.tags;
         },
-        children: (tag) => (() => {
-          var _el$15 = _tmpl$34();
-          addEventListener(_el$15, "click", () => setSelectedTag(tag.id));
-          _el$15._$owner = getOwner();
-          insert(_el$15, () => tag.name);
-          createRenderEffect(() => _el$15.value = tag.id);
-          return _el$15;
-        })()
+        children: (tag) => {
+          return (() => {
+            var _el$14 = _tmpl$34();
+            addEventListener(_el$14, "click", () => props.addTag(tag.id));
+            _el$14._$owner = getOwner();
+            insert(_el$14, () => tag.name);
+            createRenderEffect(() => _el$14.value = tag.id);
+            return _el$14;
+          })();
+        }
       }));
-      addEventListener(_el$11, "click", () => {
-        props.addTag(selectedTag());
-      });
-      _el$11.size = "small";
-      _el$11.type = "button";
-      _el$11.variant = "primary";
-      _el$11._$owner = getOwner();
       createRenderEffect((_p$) => {
-        var _v$ = css7.itemRow, _v$2 = css7.itemRow, _v$3 = props.selectedTagIds?.length === MAX_TAGS, _v$4 = props.selectedTagIds?.length === MAX_TAGS;
+        var _v$ = css7.tagsContainer, _v$2 = props.selectedTagIds?.length === MAX_TAGS;
         _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
-        _v$2 !== _p$.t && className(_el$9, _p$.t = _v$2);
-        _v$3 !== _p$.a && (_el$10.disabled = _p$.a = _v$3);
-        _v$4 !== _p$.o && (_el$11.disabled = _p$.o = _v$4);
+        _v$2 !== _p$.t && (_el$10.disabled = _p$.t = _v$2);
         return _p$;
       }, {
         e: void 0,
-        t: void 0,
-        a: void 0,
-        o: void 0
+        t: void 0
       });
       return _el$;
     })();
@@ -19665,10 +19716,10 @@
     });
     const links = {
       update(idx, value) {
-        setValue(toDotPath("links", idx, "href"), value);
+        setValue("links", idx, "href", value);
       },
       add() {
-        setValue(toDotPath("links", values.links.length), {
+        setValue("links", values.links.length, {
           href: ""
         });
       },
@@ -19678,12 +19729,11 @@
     };
     const tags = {
       add(tagId) {
-        setValue(toDotPath("tags", values.tags.length), tagId);
+        if (values.tags.includes(tagId)) return;
+        setValue("tags", values.tags.length, tagId);
       },
       remove(tagId) {
-        setValue("tags", (tags2) => tags2.filter((tagId2) => {
-          tagId2 != tagId;
-        }));
+        setValue("tags", (tags2) => tags2.filter((tagId2) => tagId2 != tagId));
       },
       tags: () => listings()?.resources.tags()
     };
@@ -19745,10 +19795,10 @@
           _el$11.required = true;
           _el$11._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$4 = !!formState.hasErrors(key), _v$5 = !!formState.isValid(key), _v$6 = values[key];
-            _v$4 !== _p$.e && _el$11.classList.toggle("user-error", _p$.e = _v$4);
-            _v$5 !== _p$.t && _el$11.classList.toggle("user-valid", _p$.t = _v$5);
-            _v$6 !== _p$.a && (_el$11.value = _p$.a = _v$6);
+            var _v$5 = !!formState.hasErrors(key), _v$6 = !!formState.isValid(key), _v$7 = values[key];
+            _v$5 !== _p$.e && _el$11.classList.toggle("user-error", _p$.e = _v$5);
+            _v$6 !== _p$.t && _el$11.classList.toggle("user-valid", _p$.t = _v$6);
+            _v$7 !== _p$.a && (_el$11.value = _p$.a = _v$7);
             return _p$;
           }, {
             e: void 0,
@@ -19774,10 +19824,10 @@
           _el$12.required = true;
           _el$12._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$7 = !!formState.hasErrors(key), _v$8 = !!formState.isValid(key), _v$9 = values[key];
-            _v$7 !== _p$.e && _el$12.classList.toggle("user-error", _p$.e = _v$7);
-            _v$8 !== _p$.t && _el$12.classList.toggle("user-valid", _p$.t = _v$8);
-            _v$9 !== _p$.a && (_el$12.value = _p$.a = _v$9);
+            var _v$8 = !!formState.hasErrors(key), _v$9 = !!formState.isValid(key), _v$10 = values[key];
+            _v$8 !== _p$.e && _el$12.classList.toggle("user-error", _p$.e = _v$8);
+            _v$9 !== _p$.t && _el$12.classList.toggle("user-valid", _p$.t = _v$9);
+            _v$10 !== _p$.a && (_el$12.value = _p$.a = _v$10);
             return _p$;
           }, {
             e: void 0,
@@ -19802,10 +19852,10 @@
           _el$13.required = true;
           _el$13._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$10 = !!formState.hasErrors(key), _v$11 = !!formState.isValid(key), _v$12 = values[key];
-            _v$10 !== _p$.e && _el$13.classList.toggle("user-error", _p$.e = _v$10);
-            _v$11 !== _p$.t && _el$13.classList.toggle("user-valid", _p$.t = _v$11);
-            _v$12 !== _p$.a && (_el$13.value = _p$.a = _v$12);
+            var _v$11 = !!formState.hasErrors(key), _v$12 = !!formState.isValid(key), _v$13 = values[key];
+            _v$11 !== _p$.e && _el$13.classList.toggle("user-error", _p$.e = _v$11);
+            _v$12 !== _p$.t && _el$13.classList.toggle("user-valid", _p$.t = _v$12);
+            _v$13 !== _p$.a && (_el$13.value = _p$.a = _v$13);
             return _p$;
           }, {
             e: void 0,
@@ -19830,10 +19880,10 @@
           _el$14.required = true;
           _el$14._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$13 = !!formState.hasErrors(key), _v$14 = !!formState.isValid(key), _v$15 = values[key];
-            _v$13 !== _p$.e && _el$14.classList.toggle("user-error", _p$.e = _v$13);
-            _v$14 !== _p$.t && _el$14.classList.toggle("user-valid", _p$.t = _v$14);
-            _v$15 !== _p$.a && (_el$14.value = _p$.a = _v$15);
+            var _v$14 = !!formState.hasErrors(key), _v$15 = !!formState.isValid(key), _v$16 = values[key];
+            _v$14 !== _p$.e && _el$14.classList.toggle("user-error", _p$.e = _v$14);
+            _v$15 !== _p$.t && _el$14.classList.toggle("user-valid", _p$.t = _v$15);
+            _v$16 !== _p$.a && (_el$14.value = _p$.a = _v$16);
             return _p$;
           }, {
             e: void 0,
@@ -19858,10 +19908,10 @@
           _el$15.required = true;
           _el$15._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$16 = !!formState.hasErrors(key), _v$17 = !!formState.isValid(key), _v$18 = values[key];
-            _v$16 !== _p$.e && _el$15.classList.toggle("user-error", _p$.e = _v$16);
-            _v$17 !== _p$.t && _el$15.classList.toggle("user-valid", _p$.t = _v$17);
-            _v$18 !== _p$.a && (_el$15.value = _p$.a = _v$18);
+            var _v$17 = !!formState.hasErrors(key), _v$18 = !!formState.isValid(key), _v$19 = values[key];
+            _v$17 !== _p$.e && _el$15.classList.toggle("user-error", _p$.e = _v$17);
+            _v$18 !== _p$.t && _el$15.classList.toggle("user-valid", _p$.t = _v$18);
+            _v$19 !== _p$.a && (_el$15.value = _p$.a = _v$19);
             return _p$;
           }, {
             e: void 0,
@@ -19886,10 +19936,10 @@
           _el$16.required = true;
           _el$16._$owner = getOwner();
           createRenderEffect((_p$) => {
-            var _v$19 = !!formState.hasErrors(key), _v$20 = !!formState.isValid(key), _v$21 = values[key];
-            _v$19 !== _p$.e && _el$16.classList.toggle("user-error", _p$.e = _v$19);
-            _v$20 !== _p$.t && _el$16.classList.toggle("user-valid", _p$.t = _v$20);
-            _v$21 !== _p$.a && (_el$16.value = _p$.a = _v$21);
+            var _v$20 = !!formState.hasErrors(key), _v$21 = !!formState.isValid(key), _v$22 = values[key];
+            _v$20 !== _p$.e && _el$16.classList.toggle("user-error", _p$.e = _v$20);
+            _v$21 !== _p$.t && _el$16.classList.toggle("user-valid", _p$.t = _v$21);
+            _v$22 !== _p$.a && (_el$16.value = _p$.a = _v$22);
             return _p$;
           }, {
             e: void 0,
@@ -19940,24 +19990,25 @@
       _el$9.variant = "neutral";
       _el$9._$owner = getOwner();
       createRenderEffect((_p$) => {
-        var _v$ = join(css9.form, "validity-styles"), _v$2 = join("break-flow", css9.itemRow), _v$3 = join(css9.controls, "break-flow");
+        var _v$ = join(css9.form, "validity-styles"), _v$2 = join("break-flow", css9.itemRow), _v$3 = join(css9.controls, "break-flow"), _v$4 = !formState.isDirty();
         _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$3, _p$.t = _v$2);
         _v$3 !== _p$.a && className(_el$6, _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$8.disabled = _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
-        a: void 0
+        a: void 0,
+        o: void 0
       });
       return _el$;
     })();
   };
 
   // src/solid-js/ui/components/MyListings.tsx
-  var _tmpl$15 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Your changes have been saved`, true, false);
-  var _tmpl$28 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny`, true, false);
-  var _tmpl$36 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
+  var _tmpl$15 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny</sl-button></div><sl-alert><sl-icon slot=icon></sl-icon><strong>Your changes have been saved`, true, false);
+  var _tmpl$28 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
   var css10 = addCss({
     listings: (theme2) => ({
       display: "flex",
@@ -19999,7 +20050,7 @@
       setIsDirty(false);
     }
     return (() => {
-      var _el$ = _tmpl$28(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild;
+      var _el$ = _tmpl$15(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild, _el$11 = _el$8.nextSibling, _el$12 = _el$11.firstChild;
       insert(_el$2, () => myListings()?.length || 0, _el$6);
       insert(_el$2, MAX_LISTINGS, _el$7);
       insert(_el$8, createComponent(For, {
@@ -20007,7 +20058,7 @@
           return myListings();
         },
         children: (listing, idx) => (() => {
-          var _el$13 = _tmpl$36(), _el$14 = _el$13.firstChild;
+          var _el$13 = _tmpl$28(), _el$14 = _el$13.firstChild;
           addEventListener(_el$13, "click", () => setActiveListing(listing));
           _el$13.name = "pencil";
           _el$13._$owner = getOwner();
@@ -20015,9 +20066,9 @@
           _el$14._$owner = getOwner();
           insert(_el$13, () => listing.title, null);
           createRenderEffect((_p$) => {
-            var _v$4 = listing.id === activeListing()?.id ? "primary" : "default", _v$5 = isDirty2();
-            _v$4 !== _p$.e && (_el$13.variant = _p$.e = _v$4);
-            _v$5 !== _p$.t && (_el$13.disabled = _p$.t = _v$5);
+            var _v$5 = listing.id === activeListing()?.id ? "primary" : "default", _v$6 = isDirty2();
+            _v$5 !== _p$.e && (_el$13.variant = _p$.e = _v$5);
+            _v$6 !== _p$.t && (_el$13.disabled = _p$.t = _v$6);
             return _p$;
           }, {
             e: void 0,
@@ -20031,6 +20082,10 @@
       _el$9._$owner = getOwner();
       _el$10.name = "plus-circle";
       _el$10._$owner = getOwner();
+      _el$11.variant = "success";
+      _el$11._$owner = getOwner();
+      _el$12.name = "check2-circle";
+      _el$12._$owner = getOwner();
       insert(_el$, createComponent(Show, {
         get when() {
           return activeListing();
@@ -20043,7 +20098,7 @@
               });
             },
             get children() {
-              return [createComponent(ListingForm, {
+              return createComponent(ListingForm, {
                 get listingDto() {
                   return activeListing();
                 },
@@ -20051,29 +20106,23 @@
                 onSubmit: handleSubmit,
                 onCancel: clearActiveListing,
                 onDelete: handleDelete
-              }), (() => {
-                var _el$11 = _tmpl$15(), _el$12 = _el$11.firstChild;
-                _el$11.variant = "success";
-                _el$11._$owner = getOwner();
-                _el$12.name = "check2-circle";
-                _el$12._$owner = getOwner();
-                createRenderEffect(() => _el$11.open = isSaved());
-                return _el$11;
-              })()];
+              });
             }
           });
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = css10.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2();
+        var _v$ = css10.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2(), _v$4 = isSaved();
         _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
         _v$2 !== _p$.t && (_el$9.variant = _p$.t = _v$2);
         _v$3 !== _p$.a && (_el$9.disabled = _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$11.open = _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
-        a: void 0
+        a: void 0,
+        o: void 0
       });
       return _el$;
     })();
@@ -20082,7 +20131,7 @@
   // src/solid-js/ui/pages/PageAccount.tsx
   var _tmpl$16 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
   var _tmpl$29 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$37 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
+  var _tmpl$36 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
   var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
   var css11 = addCss({});
@@ -20126,7 +20175,7 @@
                 return mustVerifyEmail();
               },
               get children() {
-                var _el$10 = _tmpl$37(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
+                var _el$10 = _tmpl$36(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
                 _el$10.label = "Alignment";
                 _el$10._$owner = getOwner();
                 addEventListener(_el$11, "click", () => account()?.login());

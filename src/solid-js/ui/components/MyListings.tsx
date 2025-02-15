@@ -96,6 +96,12 @@ export const MyListings: Component<{}> = (props) => {
         </sl-button>
       </div>
 
+      {/* TODO! Format messages */}
+      <sl-alert prop:variant="success" prop:open={isSaved()}>
+        <sl-icon slot="icon" prop:name="check2-circle"></sl-icon>
+        <strong>Your changes have been saved</strong>
+      </sl-alert>
+
       <Show when={activeListing()}>
         <Suspense fallback={<Loading>Form</Loading>}>
           <ListingForm
@@ -105,11 +111,6 @@ export const MyListings: Component<{}> = (props) => {
             onCancel={clearActiveListing}
             onDelete={handleDelete}
           />
-
-          <sl-alert prop:variant="success" prop:open={isSaved()}>
-            <sl-icon slot="icon" prop:name="check2-circle"></sl-icon>
-            <strong>Your changes have been saved</strong>
-          </sl-alert>
         </Suspense>
       </Show>
     </section>

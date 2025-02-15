@@ -49,7 +49,7 @@ function pickArray(schema: z.ZodTypeAny): z.ZodTypeAny {
 }
 
 // 🔹 Deeply pick a property path from a Zod schema
-function zodDeepPick(schema: z.ZodTypeAny, propertyPath: string): z.ZodTypeAny {
+export function zodDeepPick(schema: z.ZodTypeAny, propertyPath: string): z.ZodTypeAny {
   if (propertyPath === '') return schema;
 
   const numberRegex = /\[\d+\]/g;
@@ -85,5 +85,3 @@ function zodDeepPick(schema: z.ZodTypeAny, propertyPath: string): z.ZodTypeAny {
 
   return pickObject(schema, propertyPath);
 }
-
-export default zodDeepPick;

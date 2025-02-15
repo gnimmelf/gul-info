@@ -5,16 +5,11 @@ import { TagViewModel } from '~/shared/models/TagViewModel';
 import { MAX_TAGS } from '~/shared/constants';
 
 const css = addCss({
-  itemRow: (theme: Theme) => ({
+  tagsContainer: (theme: Theme) => ({
     display: 'flex',
-    alignItems: 'end',
+    justifyContent: 'space-evenly',
+    marginTop: theme.gapMd,
     marginBottom: theme.gapMd,
-    '>:first-child': {
-      flex: '1',
-    },
-    '>:last-child': {
-      flexShrink: '0',
-    },
   }),
 });
 
@@ -36,7 +31,7 @@ export const ListingFormTags: Component<{
       <legend>
         Knagger ({props.selectedTagIds?.length} av {MAX_TAGS})
       </legend>
-      <div class={css.itemRow}>
+      <div class={css.tagsContainer}>
         <For each={props.selectedTagIds}>
           {(tagId) => {
             const tag = props.tags?.find((tag) => tag.id === tagId)!;
@@ -44,6 +39,7 @@ export const ListingFormTags: Component<{
               <sl-button-group>
                 <sl-button
                   prop:size="small"
+                  prop:variant="primary"
                   on:click={() => props.removeTag(tagId)}
                 >
                   <sl-icon slot="suffix" prop:name="trash"></sl-icon>
@@ -55,35 +51,25 @@ export const ListingFormTags: Component<{
         </For>
       </div>
 
-      <div class={css.itemRow}>
+      <div>
         <sl-select
           prop:size={defaultFormElementSize}
           prop:placeholder="Velg knagg"
           prop:disabled={props.selectedTagIds?.length === MAX_TAGS}
         >
           <For each={props.tags}>
-            {(tag) => (
+            {(tag) => {
+              // TODO! Add incremental filtering
+              return (
               <sl-option
                 prop:value={tag.id}
-                on:click={() => setSelectedTag(tag.id)}
+                on:click={() => props.addTag(tag.id)}
               >
                 {tag.name}
               </sl-option>
-            )}
+            )}}
           </For>
         </sl-select>
-
-        <sl-button
-          prop:size={defaultFormElementSize}
-          prop:disabled={props.selectedTagIds?.length === MAX_TAGS}
-          prop:type="button"
-          prop:variant="primary"
-          on:click={() => {
-            props.addTag(selectedTag());
-          }}
-        >
-          Legg til
-        </sl-button>
       </div>
     </fieldset>
   );

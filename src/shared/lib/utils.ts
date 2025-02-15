@@ -1,4 +1,5 @@
 export { default as deepEqual } from 'fast-deep-equal/es6';
+export { default as stableStringify } from 'fast-json-stable-stringify'
 
 export const timeout = async (ms = 200, fn?: () => void) => {
   return new Promise((resolve) =>

@@ -1,8 +1,6 @@
 import { Setter, Component, createEffect, createSignal, Show } from 'solid-js';
 import { unwrap } from 'solid-js/store';
 
-import { toDotPath } from '~/shared/lib/utils';
-
 import {
   CreateListingDto,
   CreateListingDtoSchemaType,
@@ -88,10 +86,10 @@ export const ListingForm: Component<{
 
   const links = {
     update(idx: number, value: string) {
-      setValue(toDotPath('links', idx, 'href'), value);
+      setValue('links', idx, 'href', value);
     },
     add() {
-      setValue(toDotPath('links', values.links.length), { href: '' });
+      setValue('links', values.links.length, { href: '' });
     },
     remove(idx: number) {
       setValue('links', (links) => links.filter((_, i) => i !== idx));
@@ -100,14 +98,12 @@ export const ListingForm: Component<{
 
   const tags = {
     add(tagId: string) {
-      setValue(toDotPath('tags', values.tags.length), tagId);
+      if (values.tags.includes(tagId)) return;
+
+      setValue('tags', values.tags.length, tagId);
     },
     remove(tagId: string) {
-      setValue('tags', (tags) =>
-        tags.filter((tagId2) => {
-          tagId2 != tagId;
-        }),
-      );
+      setValue('tags', (tags) => tags.filter((tagId2) => tagId2 != tagId));
     },
     tags: () => listings()?.resources.tags(),
   };
@@ -301,6 +297,7 @@ export const ListingForm: Component<{
                 prop:size="medium"
                 prop:type="button"
                 prop:variant="primary"
+                prop:disabled={!formState.isDirty()}
                 on:click={handleSubmit}
               >
                 Lagre

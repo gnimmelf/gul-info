@@ -31,7 +31,6 @@ surreal start surrealkv://.dev-data \
   --deny-all \
   --allow-scripting \
   --allow-guests \
-  --allow-funcs \
   --allow-net intergate.eu.auth0.com \
   --user r00t \
   --pass r00t \

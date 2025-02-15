@@ -13,7 +13,7 @@ import {
   deepCopy,
   toDotPath,
   fromDotPath,
-  isPrimitive,
+  stableStringify,
 } from '~/shared/lib/utils';
 
 import { zodDeepPick } from '~/shared/zod/helpers';
@@ -167,23 +167,41 @@ export class FormState<SchemaType> {
    * with SolidJs' immensly complex store-setter defintion.
    * @param args Same as StoreSetter<SchemaType>
    */
-  private setValue(dotPath: string, value: any) {
-    const path = fromDotPath(dotPath);
+  private setValue(...args: any[]) {
     //@ts-expect-error
-    this._setValues(...path, value);
+    this._setValues(...args);
 
-    if (isPrimitive(value)) {
-      // Only tracking leaf values.
-      const initialValue: any = getProperty(this._initialValues, dotPath, '');
-      const isTouched = initialValue !== value;
+    // Extract dotPath from arguments list
+    const pathParts = Array.from(args).splice(0, args.length-1);
 
-      this.setIsTouched(dotPath, isTouched);
-
-      // Revalidate to remove error while typing
-      if (this.hasErrors(dotPath)) {
-        this.validateField(dotPath);
-      }
+    if (!Number.isNaN(parseInt(pathParts[pathParts.length-1]))) {
+      /**
+       * The last part of the path is an index, we are maipulaiting an array.
+       * Therefor we must check the array itself for change, not the element
+       * */
+      pathParts.pop()
     }
+    const dotPath = toDotPath(...pathParts);
+
+    // Revalidate to maybe remove any error
+    if (this.hasErrors(dotPath)) {
+      this.validateField(dotPath);
+    }
+
+    // Set isTouched
+    const value: any = getProperty(
+      this._values,
+      dotPath,
+      ''
+    );
+    const initialValue: any = getProperty(
+      this._initialValues,
+      dotPath,
+      ''
+    );
+    // Value might be a non-primitive, so use a deep-compare that also covers primitives
+    const isTouched = stableStringify(initialValue) !== stableStringify(value);
+    this.setIsTouched(dotPath, isTouched);
   }
 
   public validateField(dotPath: string) {
