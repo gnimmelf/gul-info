@@ -24,9 +24,14 @@ const css = addCss({
     justifyContent: 'space-between',
   },
   title: (theme: Theme) => ({
-    fontFamily: "'Playwrite HU', sans-serif",
+    marginTop: '0px',
+    marginBottom: '0px',
     fontSize: theme.fontSizeLg,
     cursor: 'pointer',
+    '&>.logo': {
+      fontSize: theme.fontSizeMd,
+      fontFamily: "'Playwrite HU', sans-serif",
+    },
   }),
   user: {
     display: 'flex',
@@ -41,7 +46,6 @@ export const Layout: Component<{
   toggleMainPages: () => void;
   children: JSXElement;
 }> = (props) => {
-
   // TODO! Add a proper menu
 
   return (
@@ -49,6 +53,8 @@ export const Layout: Component<{
       <section class={css.header}>
         <div>
           <h1 class={css.title} on:click={props.toggleMainPages}>
+            <span class="logo">Gul Info</span>
+            <br />
             {props.title}
           </h1>
         </div>

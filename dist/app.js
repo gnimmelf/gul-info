@@ -18473,7 +18473,7 @@
 
   // src/solid-js/ui/components/Layout.tsx
   var _tmpl$3 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
-  var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1></h1></div><div>`);
+  var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1><span class=logo>Gul Info</span><br></h1></div><div>`);
   var _tmpl$32 = /* @__PURE__ */ template(`<div>Error: `);
   var css2 = addCss({
     app: (theme2) => ({
@@ -18493,9 +18493,14 @@
       justifyContent: "space-between"
     },
     title: (theme2) => ({
-      fontFamily: "'Playwrite HU', sans-serif",
+      marginTop: "0px",
+      marginBottom: "0px",
       fontSize: theme2.fontSizeLg,
-      cursor: "pointer"
+      cursor: "pointer",
+      "&>.logo": {
+        fontSize: theme2.fontSizeMd,
+        fontFamily: "'Playwrite HU', sans-serif"
+      }
     }),
     user: {
       display: "flex",
@@ -18505,25 +18510,25 @@
   });
   var Layout = (props) => {
     return (() => {
-      var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
+      var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$5.nextSibling, _el$7 = _el$3.nextSibling;
       addEventListener(_el$4, "click", props.toggleMainPages);
-      insert(_el$4, () => props.title);
-      insert(_el$5, createComponent(AccountHead, {
+      insert(_el$4, () => props.title, null);
+      insert(_el$7, createComponent(AccountHead, {
         get children() {
-          var _el$6 = _tmpl$3();
-          addEventListener(_el$6, "click", props.toggleMainPages);
-          _el$6._$owner = getOwner();
-          createRenderEffect(() => _el$6.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
-          return _el$6;
+          var _el$8 = _tmpl$3();
+          addEventListener(_el$8, "click", props.toggleMainPages);
+          _el$8._$owner = getOwner();
+          createRenderEffect(() => _el$8.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
+          return _el$8;
         }
       }));
       insert(_el$, createComponent(ErrorBoundary, {
         fallback: (error) => {
           console.error(error);
           return (() => {
-            var _el$7 = _tmpl$32(), _el$8 = _el$7.firstChild;
-            insert(_el$7, () => error.message, null);
-            return _el$7;
+            var _el$9 = _tmpl$32(), _el$10 = _el$9.firstChild;
+            insert(_el$9, () => error.message, null);
+            return _el$9;
           })();
         },
         get children() {
@@ -18544,7 +18549,7 @@
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
         _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
-        _v$4 !== _p$.o && className(_el$5, _p$.o = _v$4);
+        _v$4 !== _p$.o && className(_el$7, _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
