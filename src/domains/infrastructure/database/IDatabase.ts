@@ -13,15 +13,9 @@ export interface IDatabase {
   getTagUsages: () => Promise<TagViewModelSchemaType[]>;
   authenticate: (token: string, isVerified: boolean) => Promise<boolean>;
   getUserData: () => Promise<UserViewSchemaType>;
-  getListingsByFilters: (
-    filters?: FilterSchemaType,
-  ) => Promise<ListingViewSchemaType[]>;
+  getListingsByFilters: (filters?: FilterSchemaType) => Promise<ListingViewSchemaType[]>;
   getListingsByEmail: (email: string) => Promise<ListingSchemaType[]>;
-  createListing: (
-    data: CreateListingDtoSchemaType,
-  ) => Promise<ListingSchemaType>;
+  createListing: (data: CreateListingDtoSchemaType) => Promise<ListingSchemaType>;
   deleteListing: (listingId: string) => Promise<void>;
-  updateListing: (
-    data: UpdateListingDtoSchemaType,
-  ) => Promise<ListingSchemaType>;
+  updateListing: (data: UpdateListingDtoSchemaType) => Promise<ListingSchemaType>;
 }

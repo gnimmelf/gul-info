@@ -34,7 +34,7 @@ export const ListingFormLinks: Component<{
   const defaultFormElementSize = 'small';
 
   return (
-    <fieldset >
+    <fieldset>
       <legend>
         Lenker ({props.links?.length} av {MAX_LINKS})
       </legend>
@@ -59,10 +59,7 @@ export const ListingFormLinks: Component<{
                   prop:required={true}
                   prop:value={link.href}
                   on:input={(e) =>
-                    props.updateLink(
-                      idx(),
-                      (e.target as HTMLInputElement).value,
-                    )
+                    props.updateLink(idx(), (e.target as HTMLInputElement).value)
                   }
                   on:blur={() => props.formState.validateField(key)}
                 />

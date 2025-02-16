@@ -14,8 +14,7 @@ export class ResourceRegistry {
 
   get(key: string) {
     const actions = this.actions.get(key);
-    if (!actions)
-        throw new Error(`Could not find resource by key '${key}'!`);
-    return actions!
+    if (!actions) throw new Error(`Could not find resource by key '${key}'!`);
+    return actions!;
   }
 }

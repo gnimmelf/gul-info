@@ -29,8 +29,7 @@ export const ListingsFilters: Component<{
   const indexLetters = () => directory()?.resources.indexLetters();
   const isLoading = () => directory()?.resources.filteredListings.loading;
 
-  const isTagMatchTypeAll = () =>
-    filters()?.data.tagsMatchType === TagsMatchType.ALL;
+  const isTagMatchTypeAll = () => filters()?.data.tagsMatchType === TagsMatchType.ALL;
 
   const toggleTagMatchType = () => {
     const next = isTagMatchTypeAll() ? TagsMatchType.ANY : TagsMatchType.ALL;

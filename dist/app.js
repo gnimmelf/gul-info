@@ -16354,10 +16354,9 @@
     }
     async getIndexLetterUsages() {
       const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${"listings" /* LISTINGS */} GROUP BY letter;`;
-      const res = pop(
-        await this.client.query(query),
-        { popCount: 1 }
-      );
+      const res = pop(await this.client.query(query), {
+        popCount: 1
+      });
       return stringifyIds(res);
     }
     async getTags() {
@@ -16418,11 +16417,10 @@
         owner: new StringRecordId(owner),
         tags: tags.map((tagId) => new StringRecordId(tagId))
       };
-      const listing = await this.client.create(
+      const [listing] = await this.client.create(
         "listings",
         payload
       );
-      console.log("created", { payload, listing });
       return stringifyIds(listing);
     }
     async deleteListing(listingId) {
@@ -16452,9 +16450,9 @@
     }
     return ensureArray && !Array.isArray(res) ? [res] : res;
   };
-  var stringifyIds = (obj) => {
-    const parsed = JSON.parse(JSON.stringify(obj));
-    console.log({ obj, parsed });
+  var stringifyIds = (res) => {
+    const parsed = JSON.parse(JSON.stringify(res));
+    console.log({ res, parsed });
     return parsed;
   };
 
@@ -16469,9 +16467,7 @@
   var import_es6 = __toESM(require_es6());
   var import_fast_json_stable_stringify = __toESM(require_fast_json_stable_stringify());
   var timeout = async (ms = 200, fn) => {
-    return new Promise(
-      (resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms)
-    );
+    return new Promise((resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms));
   };
   var deepCopy = (obj) => JSON.parse(JSON.stringify(obj));
   var toDotPath = (...args) => {
@@ -16528,8 +16524,7 @@
     }
     get(key) {
       const actions = this.actions.get(key);
-      if (!actions)
-        throw new Error(`Could not find resource by key '${key}'!`);
+      if (!actions) throw new Error(`Could not find resource by key '${key}'!`);
       return actions;
     }
   };
@@ -18172,9 +18167,12 @@
       })
     );
     const directoryService = new DirectoryService(db);
-    const [onFilterListings, setFilterListings] = createSignal(null, {
-      equals: false
-    });
+    const [onFilterListings, setFilterListings] = createSignal(
+      null,
+      {
+        equals: false
+      }
+    );
     const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
       // `createResource`-source signal has own memoization, shallow comparison, which is not
       // exposed, so re-wrap the data in a new object to bypass that:
@@ -18186,12 +18184,10 @@
       }
     );
     const tags = resources.add(
-      "loadTags",
+      "loadTagUsages",
       createResource(() => directoryService.loadTagUsages())
     );
-    const [indexLetters] = createResource(
-      () => directoryService.loadIndexLetterUsages()
-    );
+    const [indexLetters] = createResource(() => directoryService.loadIndexLetterUsages());
     const adapter = checkAdapterReturnType({
       resources: {
         tags,
@@ -18300,133 +18296,71 @@
       return res;
     }
     async createListing(listing) {
-      await timeout(500);
+      await timeout();
       const data = await this.db.createListing(listing.data);
       return Listing.from({ ...listing, ...data });
     }
     async updateListing(listing) {
-      await timeout(500);
+      await timeout();
       const res = await this.db.updateListing(listing.data);
       return Listing.from({ ...listing.data, ...res });
     }
-    async deleteListing(listingId) {
-      await timeout(500);
-      const res = await this.db.deleteListing(listingId);
-      return res;
+    async deleteListing(listing) {
+      await timeout();
+      await this.db.deleteListing(listing.id);
+      return Listing.from(listing.data);
     }
   };
-
-  // src/shared/zod/schemas.ts
-  var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
-  var rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
-  var reStreet = new RegExp(/^[\p{L}'][ \p{L}\p{N}'-,]{8,}$/u);
-  var reZip = new RegExp(/^\d{4}$/);
-  var email = z.string().trim().email("Must be a valid email address");
-  var name = z.string().trim().regex(reName, "Must be a valid name");
-  var address = z.string().trim().regex(reStreet, "Must be a valid street address");
-  var zip = z.string().trim().regex(reZip, "Must be a valid zip code");
-  var phone = z.preprocess(
-    (val) => val?.split(" ").join(""),
-    z.string().trim().regex(rePhone, "Must be a valid phone number")
-  );
-
-  // src/shared/models/listing/UpdateListingDto.ts
-  var UpdateListingDtoSchema = ListingSchema.extend({
-    title: ListingSchema.shape.title.min(3).max(70),
-    description: ListingSchema.shape.description.min(15).max(150),
-    address,
-    zip,
-    muncipiality: ListingSchema.shape.muncipiality,
-    phone,
-    email,
-    tags: ListingSchema.shape.tags.min(1).default([]),
-    links: ListingSchema.shape.links.default([])
-  });
-  var UpdateListingDto = class {
-    schema = UpdateListingDtoSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
-      return new UpdateListingDto(parsedData);
-    }
-  };
-  UpdateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
-  ], UpdateListingDto);
-
-  // src/shared/models/listing/CreateListingDto.ts
-  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
-    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
-    title: UpdateListingDtoSchema.shape.title.default(""),
-    description: UpdateListingDtoSchema.shape.description.default(""),
-    address: UpdateListingDtoSchema.shape.address.default(""),
-    zip: UpdateListingDtoSchema.shape.zip.default(""),
-    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
-    phone: UpdateListingDtoSchema.shape.phone.default(""),
-    email: UpdateListingDtoSchema.shape.email.default("")
-  }).omit({
-    id: true
-  });
-  var CreateListingDto = class {
-    schema = CreateListingDtoSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
-      return new CreateListingDto(parsedData);
-    }
-  };
-  CreateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(CreateListingDtoSchema)
-  ], CreateListingDto);
 
   // src/solid-js/serviceAdapters/createListingsServiceAdaper.ts
   var createListingsServiceAdaper = (db, user, resources) => {
     const listingService = new ListingsService(db);
-    const [onSaveListing, setSaveListing] = createSignal();
+    const [onCreateListing, setCreateListing] = createSignal();
+    const [onUpdateListing, setUpdateListing] = createSignal();
     const [onDeleteListing, setDeleteListing] = createSignal();
     const [tags] = createResource(async () => {
       const tags2 = await listingService.loadTags();
       return tags2;
     });
-    const myListings = resources.add("loadListingByEmail", createResource(
-      user,
-      async ({ email: email2 }) => {
+    const myListings = resources.add(
+      "loadListingByEmail",
+      createResource(user, async ({ email: email2 }) => {
         const listings = await listingService.loadListingsByEmail(email2);
         return listings;
-      }
-    ));
-    const [saveListing] = createResource(onSaveListing, async (listingDto) => {
-      let res;
-      if (listingDto instanceof CreateListingDto) {
-        res = await listingService.createListing(listingDto);
-      } else if (listingDto instanceof UpdateListingDto) {
-        res = await listingService.updateListing(listingDto);
-      }
+      })
+    );
+    const [createdListing] = createResource(onCreateListing, async (listingDto) => {
+      const createdListing2 = await listingService.createListing(
+        listingDto
+      );
       resources.get("loadListingByEmail").refetch();
-      return res;
+      resources.get("loadTagUsages").refetch();
+      return createdListing2;
     });
-    const [deleteListing] = createResource(onDeleteListing, async (listingId) => {
-      const res = listingService.deleteListing(listingId);
-      setDeleteListing();
+    const [updatedListing] = createResource(onUpdateListing, async (listingDto) => {
+      const updatedListing2 = await listingService.updateListing(
+        listingDto
+      );
       resources.get("loadListingByEmail").refetch();
-      return res;
+      resources.get("loadTagUsages").refetch();
+      return updatedListing2;
+    });
+    const [deletedListing] = createResource(onDeleteListing, async (listingDto) => {
+      const deletedListing2 = await listingService.deleteListing(listingDto);
+      resources.get("loadListingByEmail").refetch();
+      resources.get("loadTagUsages").refetch();
+      return deletedListing2;
     });
     const adapter = checkAdapterReturnType({
       resources: {
         tags,
         myListings,
-        saveListing,
-        deleteListing
+        createdListing,
+        updatedListing,
+        deletedListing
       },
-      saveListing: setSaveListing,
+      createListing: setCreateListing,
+      updateListing: setUpdateListing,
       deleteListing: setDeleteListing
     });
     return adapter;
@@ -19066,6 +19000,77 @@
   var MAX_LINKS = 3;
   var MAX_TAGS = 3;
 
+  // src/shared/zod/schemas.ts
+  var reName = new RegExp(/^[\p{L}'][ \p{L}'-]*[\p{L}]$/u);
+  var rePhone = new RegExp(/^([\+][1-9]{2})?[ ]?([0-9 ]{8})$/);
+  var reStreet = new RegExp(/^[\p{L}'][ \p{L}\p{N}'-,]{8,}$/u);
+  var reZip = new RegExp(/^\d{4}$/);
+  var email = z.string().trim().email("Must be a valid email address");
+  var name = z.string().trim().regex(reName, "Must be a valid name");
+  var address = z.string().trim().regex(reStreet, "Must be a valid street address");
+  var zip = z.string().trim().regex(reZip, "Must be a valid zip code");
+  var phone = z.preprocess(
+    (val) => val?.split(" ").join(""),
+    z.string().trim().regex(rePhone, "Must be a valid phone number")
+  );
+
+  // src/shared/models/listing/UpdateListingDto.ts
+  var UpdateListingDtoSchema = ListingSchema.extend({
+    title: ListingSchema.shape.title.min(3).max(70),
+    description: ListingSchema.shape.description.min(15).max(150),
+    address,
+    zip,
+    muncipiality: ListingSchema.shape.muncipiality,
+    phone,
+    email,
+    tags: ListingSchema.shape.tags.min(1).default([]),
+    links: ListingSchema.shape.links.default([])
+  });
+  var UpdateListingDto = class {
+    schema = UpdateListingDtoSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
+      return new UpdateListingDto(parsedData);
+    }
+  };
+  UpdateListingDto = __decorateClass([
+    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
+  ], UpdateListingDto);
+
+  // src/shared/models/listing/CreateListingDto.ts
+  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
+    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
+    title: UpdateListingDtoSchema.shape.title.default(""),
+    description: UpdateListingDtoSchema.shape.description.default(""),
+    address: UpdateListingDtoSchema.shape.address.default(""),
+    zip: UpdateListingDtoSchema.shape.zip.default(""),
+    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
+    phone: UpdateListingDtoSchema.shape.phone.default(""),
+    email: UpdateListingDtoSchema.shape.email.default("")
+  }).omit({
+    id: true
+  });
+  var CreateListingDto = class {
+    schema = CreateListingDtoSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+      Object.freeze(this.data);
+    }
+    static from(data) {
+      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
+      return new CreateListingDto(parsedData);
+    }
+  };
+  CreateListingDto = __decorateClass([
+    ExposeDataAsSchemaProps(CreateListingDtoSchema)
+  ], CreateListingDto);
+
   // node_modules/.pnpm/dot-prop@9.0.0/node_modules/dot-prop/index.js
   var isObject2 = (value) => {
     const type = typeof value;
@@ -19345,16 +19350,8 @@
       if (this.hasErrors(dotPath)) {
         this.validateField(dotPath);
       }
-      const value = getProperty(
-        this._values,
-        dotPath,
-        ""
-      );
-      const initialValue = getProperty(
-        this._initialValues,
-        dotPath,
-        ""
-      );
+      const value = getProperty(this._values, dotPath, "");
+      const initialValue = getProperty(this._initialValues, dotPath, "");
       const isTouched = (0, import_fast_json_stable_stringify.default)(initialValue) !== (0, import_fast_json_stable_stringify.default)(value);
       this.setIsTouched(dotPath, isTouched);
     }
@@ -19530,7 +19527,6 @@
   });
   var ListingFormTags = (props) => {
     const defaultFormElementSize = "small";
-    const [selectedTag, setSelectedTag] = createSignal("");
     return (() => {
       var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$9.firstChild;
       insert(_el$2, () => props.selectedTagIds?.length, _el$6);
@@ -19562,25 +19558,27 @@
         get each() {
           return props.tags;
         },
-        children: (tag) => {
-          return (() => {
-            var _el$14 = _tmpl$34();
-            addEventListener(_el$14, "click", () => props.addTag(tag.id));
-            _el$14._$owner = getOwner();
-            insert(_el$14, () => tag.name);
-            createRenderEffect(() => _el$14.value = tag.id);
-            return _el$14;
-          })();
-        }
+        children: (tag) => (() => {
+          var _el$14 = _tmpl$34();
+          addEventListener(_el$14, "click", () => props.addTag(tag.id));
+          _el$14._$owner = getOwner();
+          insert(_el$14, () => tag.name);
+          createRenderEffect(() => _el$14.value = tag.id);
+          return _el$14;
+        })()
       }));
       createRenderEffect((_p$) => {
-        var _v$ = css7.tagsContainer, _v$2 = props.selectedTagIds?.length === MAX_TAGS;
+        var _v$ = css7.tagsContainer, _v$2 = !!props.formState.hasErrors("tags"), _v$3 = !!props.formState.isValid("tags"), _v$4 = props.selectedTagIds?.length === MAX_TAGS;
         _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
-        _v$2 !== _p$.t && (_el$10.disabled = _p$.t = _v$2);
+        _v$2 !== _p$.t && _el$10.classList.toggle("user-error", _p$.t = _v$2);
+        _v$3 !== _p$.a && _el$10.classList.toggle("user-valid", _p$.a = _v$3);
+        _v$4 !== _p$.o && (_el$10.disabled = _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
-        t: void 0
+        t: void 0,
+        a: void 0,
+        o: void 0
       });
       return _el$;
     })();
@@ -19770,7 +19768,7 @@
         },
         get children() {
           var _el$4 = _tmpl$14(), _el$5 = _el$4.firstChild;
-          addEventListener(_el$4, "click", () => props.onDelete(props.listingDto.id));
+          addEventListener(_el$4, "click", () => props.onDelete(props.listingDto));
           _el$4.size = "medium";
           _el$4.type = "button";
           _el$4.variant = "danger";
@@ -19961,7 +19959,8 @@
         },
         get selectedTagIds() {
           return values.tags;
-        }
+        },
+        formState
       }), _el$6);
       insert(_el$2, createComponent(ListingFormLinks_default, {
         get addLink() {
@@ -20007,13 +20006,16 @@
   };
 
   // src/solid-js/ui/components/MyListings.tsx
-  var _tmpl$15 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny</sl-button></div><sl-alert><sl-icon slot=icon></sl-icon><strong>Your changes have been saved`, true, false);
+  var _tmpl$15 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny</sl-button></div><sl-alert><sl-icon slot=icon></sl-icon><strong>Listing <!> was `, true, false);
   var _tmpl$28 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
   var css10 = addCss({
     listings: (theme2) => ({
       display: "flex",
       flexWrap: "wrap",
       gap: theme2.gapMd,
+      marginBottom: theme2.gapMd
+    }),
+    userMessage: (theme2) => ({
       marginBottom: theme2.gapMd
     })
   });
@@ -20023,34 +20025,70 @@
       account
     } = useService();
     const [isDirty2, setIsDirty] = createSignal(false);
+    const [userMessage, setUserMessage] = createSignal(null);
     const [activeListing, _setActiveListing] = createSignal(null);
     const myListings = () => listings()?.resources.myListings();
-    const isSaved = () => Boolean(listings()?.resources.saveListing());
+    createEffect(() => {
+      const listing = listings()?.resources.createdListing();
+      if (listing) {
+        editListing(listing);
+        setUserMessage({
+          action: "created",
+          title: listing.title
+        });
+      }
+    });
+    createEffect(() => {
+      const listing = listings()?.resources.updatedListing();
+      if (listing) {
+        editListing(listing);
+        setUserMessage({
+          action: "updated",
+          title: listing.title
+        });
+      }
+    });
+    createEffect(() => {
+      const listing = listings()?.resources.deletedListing();
+      if (listing) {
+        clearActiveListing();
+        setUserMessage({
+          action: "deleted",
+          title: listing.title
+        });
+      }
+    });
     function clearActiveListing() {
       _setActiveListing(null);
       setIsDirty(false);
     }
-    function setActiveListing(listing) {
-      let listingDto = null;
-      if (listing === null) {
-        listingDto = CreateListingDto.from({
-          owner: account().resources.user().id
-        });
-      } else {
-        listingDto = UpdateListingDto.from(listing.data);
-      }
+    function createListing() {
+      const listingDto = CreateListingDto.from({
+        owner: account().resources.user().id
+      });
       _setActiveListing(listingDto);
+      setUserMessage(null);
       setIsDirty(false);
     }
-    function handleDelete(listingId) {
-      listings()?.deleteListing(listingId);
+    function editListing(listing) {
+      const listingDto = UpdateListingDto.from(listing.data);
+      _setActiveListing(listingDto);
+      setUserMessage(null);
+      setIsDirty(false);
+    }
+    function handleDelete(listing) {
+      listings()?.deleteListing(listing);
+      setUserMessage(null);
     }
     function handleSubmit(listingDto) {
-      listings().saveListing(listingDto);
-      setIsDirty(false);
+      if (listingDto instanceof CreateListingDto) {
+        listings().createListing(listingDto);
+      } else if (listingDto instanceof UpdateListingDto) {
+        listings().updateListing(listingDto);
+      }
     }
     return (() => {
-      var _el$ = _tmpl$15(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild, _el$11 = _el$8.nextSibling, _el$12 = _el$11.firstChild;
+      var _el$ = _tmpl$15(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild, _el$11 = _el$8.nextSibling, _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$13.firstChild, _el$16 = _el$14.nextSibling, _el$15 = _el$16.nextSibling;
       insert(_el$2, () => myListings()?.length || 0, _el$6);
       insert(_el$2, MAX_LISTINGS, _el$7);
       insert(_el$8, createComponent(For, {
@@ -20058,26 +20096,26 @@
           return myListings();
         },
         children: (listing, idx) => (() => {
-          var _el$13 = _tmpl$28(), _el$14 = _el$13.firstChild;
-          addEventListener(_el$13, "click", () => setActiveListing(listing));
-          _el$13.name = "pencil";
-          _el$13._$owner = getOwner();
-          _el$14.name = "pencil";
-          _el$14._$owner = getOwner();
-          insert(_el$13, () => listing.title, null);
+          var _el$17 = _tmpl$28(), _el$18 = _el$17.firstChild;
+          addEventListener(_el$17, "click", () => editListing(listing));
+          _el$17.name = "pencil";
+          _el$17._$owner = getOwner();
+          _el$18.name = "pencil";
+          _el$18._$owner = getOwner();
+          insert(_el$17, () => listing.title, null);
           createRenderEffect((_p$) => {
-            var _v$5 = listing.id === activeListing()?.id ? "primary" : "default", _v$6 = isDirty2();
-            _v$5 !== _p$.e && (_el$13.variant = _p$.e = _v$5);
-            _v$6 !== _p$.t && (_el$13.disabled = _p$.t = _v$6);
+            var _v$6 = listing.id === activeListing()?.id ? "primary" : "default", _v$7 = isDirty2();
+            _v$6 !== _p$.e && (_el$17.variant = _p$.e = _v$6);
+            _v$7 !== _p$.t && (_el$17.disabled = _p$.t = _v$7);
             return _p$;
           }, {
             e: void 0,
             t: void 0
           });
-          return _el$13;
+          return _el$17;
         })()
       }), _el$9);
-      addEventListener(_el$9, "click", () => setActiveListing(null));
+      addEventListener(_el$9, "click", () => createListing());
       _el$9.name = "pencil";
       _el$9._$owner = getOwner();
       _el$10.name = "plus-circle";
@@ -20086,6 +20124,8 @@
       _el$11._$owner = getOwner();
       _el$12.name = "check2-circle";
       _el$12._$owner = getOwner();
+      insert(_el$13, () => userMessage()?.title, _el$16);
+      insert(_el$13, () => userMessage()?.action, null);
       insert(_el$, createComponent(Show, {
         get when() {
           return activeListing();
@@ -20112,17 +20152,19 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = css10.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2(), _v$4 = isSaved();
+        var _v$ = css10.listings, _v$2 = activeListing() instanceof CreateListingDto ? "primary" : "default", _v$3 = isDirty2(), _v$4 = css10.userMessage, _v$5 = !!userMessage();
         _v$ !== _p$.e && className(_el$8, _p$.e = _v$);
         _v$2 !== _p$.t && (_el$9.variant = _p$.t = _v$2);
         _v$3 !== _p$.a && (_el$9.disabled = _p$.a = _v$3);
-        _v$4 !== _p$.o && (_el$11.open = _p$.o = _v$4);
+        _v$4 !== _p$.o && className(_el$11, _p$.o = _v$4);
+        _v$5 !== _p$.i && (_el$11.open = _p$.i = _v$5);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
         a: void 0,
-        o: void 0
+        o: void 0,
+        i: void 0
       });
       return _el$;
     })();
@@ -32110,9 +32152,7 @@
   SlRadioButton.define("sl-radio-button");
 
   // src/solid-js/lib/shoelace-setup.ts
-  setBasePath(
-    "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/dist"
-  );
+  setBasePath("https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/dist");
 
   // src/solid-js/index.ts
   customElement(

@@ -19,10 +19,12 @@ export const createDirectoryServiceAdapter = async (
 
   const directoryService = new DirectoryService(db);
 
-  const [onFilterListings, setFilterListings] =
-    createSignal<FilterSchemaType | null>(null, {
+  const [onFilterListings, setFilterListings] = createSignal<FilterSchemaType | null>(
+    null,
+    {
       equals: false,
-    });
+    },
+  );
 
   const [filteredListings, { mutate: mutateFilteredListings }] = createResource(
     // `createResource`-source signal has own memoization, shallow comparison, which is not
@@ -36,13 +38,11 @@ export const createDirectoryServiceAdapter = async (
   );
 
   const tags = resources.add(
-    'loadTags',
+    'loadTagUsages',
     createResource(() => directoryService.loadTagUsages()),
   );
 
-  const [indexLetters] = createResource(() =>
-    directoryService.loadIndexLetterUsages(),
-  );
+  const [indexLetters] = createResource(() => directoryService.loadIndexLetterUsages());
 
   const adapter = checkAdapterReturnType({
     resources: {

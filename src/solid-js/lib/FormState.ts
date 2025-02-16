@@ -9,12 +9,7 @@ import {
 } from 'solid-js/store';
 import { getProperty } from 'dot-prop';
 
-import {
-  deepCopy,
-  toDotPath,
-  fromDotPath,
-  stableStringify,
-} from '~/shared/lib/utils';
+import { deepCopy, toDotPath, fromDotPath, stableStringify } from '~/shared/lib/utils';
 
 import { zodDeepPick } from '~/shared/zod/helpers';
 
@@ -28,7 +23,7 @@ type InternalState = {
 };
 
 /**
- * Dynamic form state tracker based around zod schema and solidJs store.
+ * Dynamic form state tracker based around zod schema and SolidJs store.
  * Caveat:
  * - Only validates on root-level of schema,
  * - Errors on nested values will show as root prop errors
@@ -172,14 +167,14 @@ export class FormState<SchemaType> {
     this._setValues(...args);
 
     // Extract dotPath from arguments list
-    const pathParts = Array.from(args).splice(0, args.length-1);
+    const pathParts = Array.from(args).splice(0, args.length - 1);
 
-    if (!Number.isNaN(parseInt(pathParts[pathParts.length-1]))) {
+    if (!Number.isNaN(parseInt(pathParts[pathParts.length - 1]))) {
       /**
        * The last part of the path is an index, we are maipulaiting an array.
        * Therefor we must check the array itself for change, not the element
        * */
-      pathParts.pop()
+      pathParts.pop();
     }
     const dotPath = toDotPath(...pathParts);
 
@@ -189,16 +184,8 @@ export class FormState<SchemaType> {
     }
 
     // Set isTouched
-    const value: any = getProperty(
-      this._values,
-      dotPath,
-      ''
-    );
-    const initialValue: any = getProperty(
-      this._initialValues,
-      dotPath,
-      ''
-    );
+    const value: any = getProperty(this._values, dotPath, '');
+    const initialValue: any = getProperty(this._initialValues, dotPath, '');
     // Value might be a non-primitive, so use a deep-compare that also covers primitives
     const isTouched = stableStringify(initialValue) !== stableStringify(value);
     this.setIsTouched(dotPath, isTouched);
@@ -305,9 +292,7 @@ export class FormState<SchemaType> {
    */
   public isValid(dotPath: string) {
     return (
-      this.isTouched(dotPath) &&
-      this.isValidated(dotPath) &&
-      !this.isValidating(dotPath)
+      this.isTouched(dotPath) && this.isValidated(dotPath) && !this.isValidating(dotPath)
     );
   }
 
@@ -350,8 +335,7 @@ export class FormState<SchemaType> {
    */
   public getErrorMessage(dotPath: string) {
     //@ts-expect-error
-    return this._state.errors?.find(({ path }) => toDotPath(path) === dotPath)
-      ?.message;
+    return this._state.errors?.find(({ path }) => toDotPath(path) === dotPath)?.message;
   }
 
   /**

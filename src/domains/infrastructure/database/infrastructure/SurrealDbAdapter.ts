@@ -79,13 +79,11 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getIndexLetterUsages() {
     const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
-    const res = pop<IndexLetterViewSchemaType[]>(
-      await this.client.query(query),
-      { popCount: 1 },
-    );
+    const res = pop<IndexLetterViewSchemaType[]>(await this.client.query(query), {
+      popCount: 1,
+    });
     return stringifyIds(res);
   }
-
 
   async getTags() {
     const query = `SELECT * FROM tags;`;
@@ -154,11 +152,10 @@ export class SurrealDbAdapter implements IDatabase {
       tags: tags.map((tagId) => new StringRecordId(tagId)),
     };
 
-    const listing = await this.client.create<CreateListingDtoSchemaType>(
+    const [listing] = await this.client.create<CreateListingDtoSchemaType>(
       'listings',
       payload,
     );
-    console.log('created', {payload, listing})
     return stringifyIds(listing);
   }
 
@@ -199,8 +196,7 @@ type PopOptions = {
  */
 const pop = <T>(data: NestedArray<any>, options?: PopOptions): T => {
   let popCount = options?.popCount || 2;
-  const ensureArray =
-    options?.ensureArray === undefined ? true : options?.ensureArray;
+  const ensureArray = options?.ensureArray === undefined ? true : options?.ensureArray;
 
   let res = data;
   while (popCount > 0 && Array.isArray(res) && res.length === 1) {
@@ -214,12 +210,12 @@ const pop = <T>(data: NestedArray<any>, options?: PopOptions): T => {
  * SurrealDb has a complex concept of record ids as objects.
  * These object can be stringified. Since results may have record ids
  * deep in the results, the simplest way to stringify all record ids is to
- * JSON-stringify the result object, the re-parse it.
- * @param obj Surrealdb result
- * @returns obj with surreal id objects stringified
+ * JSON-stringify the result object,then re-parse it back to an object.
+ * @param res Surrealdb result
+ * @returns obj with surreal record-ids stringified
  */
-const stringifyIds = (obj: any) => {
-  const parsed = JSON.parse(JSON.stringify(obj));
-  console.log({ obj, parsed });
+const stringifyIds = (res: any) => {
+  const parsed = JSON.parse(JSON.stringify(res));
+  console.log({ res, parsed });
   return parsed;
 };

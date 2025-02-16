@@ -20,9 +20,7 @@ const App: Component<{
 }> = (props) => {
   const PAGE_KEY = 'pageKey';
   const pageKey = window.localStorage.getItem(PAGE_KEY) || PAGES.LISTINGS;
-  const [selectedPage, _setSelectedPage] = createSignal<PAGES>(
-    pageKey as PAGES,
-  );
+  const [selectedPage, _setSelectedPage] = createSignal<PAGES>(pageKey as PAGES);
 
   const setSelectedPage = (pageKey: PAGES) => {
     window.localStorage.setItem(PAGE_KEY, pageKey);
@@ -49,9 +47,7 @@ const App: Component<{
               selectedPage={selectedPage()}
               toggleMainPages={() =>
                 setSelectedPage(
-                  selectedPage() === PAGES.ACCOUNT
-                    ? PAGES.LISTINGS
-                    : PAGES.ACCOUNT,
+                  selectedPage() === PAGES.ACCOUNT ? PAGES.LISTINGS : PAGES.ACCOUNT,
                 )
               }
             >

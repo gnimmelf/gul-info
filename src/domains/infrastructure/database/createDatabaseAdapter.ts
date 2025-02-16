@@ -1,8 +1,5 @@
 import { IDatabase } from './IDatabase';
-import {
-  SurrealDbAdapter,
-  SurrealConfig,
-} from './infrastructure/SurrealDbAdapter';
+import { SurrealDbAdapter, SurrealConfig } from './infrastructure/SurrealDbAdapter';
 
 export const createDatabaseAdapter = async (
   surrealConfig: SurrealConfig,

@@ -1,10 +1,8 @@
 export { default as deepEqual } from 'fast-deep-equal/es6';
-export { default as stableStringify } from 'fast-json-stable-stringify'
+export { default as stableStringify } from 'fast-json-stable-stringify';
 
 export const timeout = async (ms = 200, fn?: () => void) => {
-  return new Promise((resolve) =>
-    setTimeout(() => resolve(fn ? fn() : undefined), ms),
-  );
+  return new Promise((resolve) => setTimeout(() => resolve(fn ? fn() : undefined), ms));
 };
 
 export const deepCopy = (obj: any) => JSON.parse(JSON.stringify(obj));
@@ -24,7 +22,5 @@ export const fromDotPath = (path: string): (string | number)[] => {
 };
 
 export const isPrimitive = (value: unknown): boolean => {
-  return (
-    value === null || (typeof value !== 'object' && typeof value !== 'function')
-  );
+  return value === null || (typeof value !== 'object' && typeof value !== 'function');
 };

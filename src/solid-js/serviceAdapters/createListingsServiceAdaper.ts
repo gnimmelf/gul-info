@@ -7,59 +7,69 @@ import { UserViewModel } from '~/shared/models/UserViewModel';
 import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
 import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
 import { ResourceRegistry } from '../lib/ResourceRegistry';
+import { Listing } from '~/shared/models/listing/Listing';
 
 export const createListingsServiceAdaper = (
   db: IDatabase,
   user: Accessor<UserViewModel | undefined>,
-  resources: ResourceRegistry
+  resources: ResourceRegistry,
 ) => {
   const listingService = new ListingsService(db);
 
-  const [onSaveListing, setSaveListing] = createSignal<
-    CreateListingDto | UpdateListingDto | null
-  >();
+  const [onCreateListing, setCreateListing] = createSignal<CreateListingDto>();
 
-  const [onDeleteListing, setDeleteListing] = createSignal<string>();
+  const [onUpdateListing, setUpdateListing] = createSignal<UpdateListingDto>();
 
-  const [tags] = createResource(async() => {
-    const tags = await listingService.loadTags()
-    return tags
-  })
+  const [onDeleteListing, setDeleteListing] = createSignal<UpdateListingDto>();
 
-  const myListings = resources.add('loadListingByEmail', createResource(
-    user,
-    async ({ email }) => {
-      const listings = await listingService.loadListingsByEmail(email);
-      return listings;
-    },
-  ));
-
-  const [saveListing] = createResource(onSaveListing, async (listingDto) => {
-    let res;
-    if (listingDto instanceof CreateListingDto) {
-      res = await listingService.createListing(listingDto);
-    } else if (listingDto instanceof UpdateListingDto) {
-      res = await listingService.updateListing(listingDto);
-    }
-    resources.get('loadListingByEmail').refetch()
-    return res;
+  const [tags] = createResource(async () => {
+    const tags = await listingService.loadTags();
+    return tags;
   });
 
-  const [deleteListing] = createResource(onDeleteListing, async (listingId) => {
-    const res = listingService.deleteListing(listingId);
-    setDeleteListing();
-    resources.get('loadListingByEmail').refetch()
-    return res;
+  const myListings = resources.add(
+    'loadListingByEmail',
+    createResource(user, async ({ email }) => {
+      const listings = await listingService.loadListingsByEmail(email);
+      return listings;
+    }),
+  );
+
+  const [createdListing] = createResource(onCreateListing, async (listingDto) => {
+    const createdListing = await listingService.createListing(
+      listingDto as CreateListingDto,
+    );
+    resources.get('loadListingByEmail').refetch();
+    resources.get('loadTagUsages').refetch();
+    return createdListing;
+  });
+
+  const [updatedListing] = createResource(onUpdateListing, async (listingDto) => {
+    const updatedListing = await listingService.updateListing(
+      listingDto as UpdateListingDto,
+    );
+    resources.get('loadListingByEmail').refetch();
+    resources.get('loadTagUsages').refetch();
+    return updatedListing;
+  });
+
+  const [deletedListing] = createResource(onDeleteListing, async (listingDto) => {
+    const deletedListing = await listingService.deleteListing(listingDto);
+    resources.get('loadListingByEmail').refetch();
+    resources.get('loadTagUsages').refetch();
+    return deletedListing;
   });
 
   const adapter = checkAdapterReturnType({
     resources: {
       tags,
       myListings,
-      saveListing,
-      deleteListing,
+      createdListing,
+      updatedListing,
+      deletedListing,
     },
-    saveListing: setSaveListing,
+    createListing: setCreateListing,
+    updateListing: setUpdateListing,
     deleteListing: setDeleteListing,
   });
 

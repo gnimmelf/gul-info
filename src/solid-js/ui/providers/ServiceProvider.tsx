@@ -18,9 +18,7 @@ import { createAccountServiceAdaper } from '~/solid-js/serviceAdapters/createAcc
 import { createListingsServiceAdaper } from '~/solid-js/serviceAdapters/createListingsServiceAdaper';
 import { UserViewModel } from '~/shared/models/UserViewModel';
 
-type TDirectoryAdapter = Awaited<
-  ReturnType<typeof createDirectoryServiceAdapter>
->;
+type TDirectoryAdapter = Awaited<ReturnType<typeof createDirectoryServiceAdapter>>;
 type TAccountAdapter = Awaited<ReturnType<typeof createAccountServiceAdaper>>;
 type TListingsAdapter = Awaited<ReturnType<typeof createListingsServiceAdaper>>;
 
@@ -53,9 +51,7 @@ export const ServiceProvider: Component<{
     createListingsServiceAdaper(db, user, resources),
   );
 
-  const [directory] = createResource(() =>
-    createDirectoryServiceAdapter(db, resources),
-  );
+  const [directory] = createResource(() => createDirectoryServiceAdapter(db, resources));
 
   const services = {
     account,
@@ -64,9 +60,7 @@ export const ServiceProvider: Component<{
   };
 
   return (
-    <ServiceContext.Provider value={services}>
-      {props.children}
-    </ServiceContext.Provider>
+    <ServiceContext.Provider value={services}>{props.children}</ServiceContext.Provider>
   );
 };
 

@@ -35,20 +35,20 @@ export class ListingsService {
   }
 
   public async createListing(listing: CreateListingDto) {
-    await timeout(500);
+    await timeout();
     const data = await this.db.createListing(listing.data);
     return Listing.from({ ...listing, ...data });
   }
 
   public async updateListing(listing: UpdateListingDto) {
-    await timeout(500);
+    await timeout();
     const res = await this.db.updateListing(listing.data);
     return Listing.from({ ...listing.data, ...res });
   }
 
-  public async deleteListing(listingId: string) {
-    await timeout(500);
-    const res = await this.db.deleteListing(listingId);
-    return res;
+  public async deleteListing(listing: UpdateListingDto) {
+    await timeout();
+    await this.db.deleteListing(listing.id);
+    return Listing.from(listing.data);
   }
 }

@@ -1,4 +1,4 @@
-import { Component, createSignal, For, Show, Suspense } from 'solid-js';
+import { Component, createEffect, createSignal, For, Show, Suspense } from 'solid-js';
 
 import { addCss, Theme } from '~/shared/ui/theme';
 import { MAX_LISTINGS } from '~/shared/constants';
@@ -18,44 +18,81 @@ const css = addCss({
     gap: theme.gapMd,
     marginBottom: theme.gapMd,
   }),
+  userMessage: (theme: Theme) => ({
+    marginBottom: theme.gapMd,
+  }),
 });
 
 export const MyListings: Component<{}> = (props) => {
   const { listings, account } = useService();
 
   const [isDirty, setIsDirty] = createSignal(false);
+  const [userMessage, setUserMessage] = createSignal<{
+    action: string;
+    title: string;
+  } | null>(null);
   const [activeListing, _setActiveListing] = createSignal<
     CreateListingDto | UpdateListingDto | null
   >(null);
 
   const myListings = () => listings()?.resources.myListings();
-  const isSaved = () => Boolean(listings()?.resources.saveListing());
+
+  createEffect(() => {
+    const listing = listings()?.resources.createdListing();
+    if (listing) {
+      editListing(listing);
+      setUserMessage({ action: 'created', title: listing.title });
+    }
+  });
+
+  createEffect(() => {
+    const listing = listings()?.resources.updatedListing();
+    if (listing) {
+      editListing(listing);
+      setUserMessage({ action: 'updated', title: listing.title });
+    }
+  });
+
+  createEffect(() => {
+    const listing = listings()?.resources.deletedListing();
+    if (listing) {
+      clearActiveListing();
+      setUserMessage({ action: 'deleted', title: listing.title });
+    }
+  });
 
   function clearActiveListing() {
     _setActiveListing(null);
     setIsDirty(false);
   }
 
-  function setActiveListing(listing: Listing | null) {
-    let listingDto = null;
-    if (listing === null) {
-      listingDto = CreateListingDto.from({
-        owner: account()!.resources.user()!.id,
-      });
-    } else {
-      listingDto = UpdateListingDto.from(listing!.data);
-    }
+  function createListing() {
+    const listingDto = CreateListingDto.from({
+      owner: account()!.resources.user()!.id,
+    });
     _setActiveListing(listingDto);
+    setUserMessage(null);
     setIsDirty(false);
   }
 
-  function handleDelete(listingId: string) {
-    listings()?.deleteListing(listingId);
+  function editListing(listing: Listing) {
+    const listingDto = UpdateListingDto.from(listing!.data);
+    _setActiveListing(listingDto);
+    setUserMessage(null);
+    setIsDirty(false);
+  }
+
+  function handleDelete(listing: UpdateListingDto) {
+    listings()?.deleteListing(listing);
+    setUserMessage(null);
   }
 
   function handleSubmit(listingDto: CreateListingDto | UpdateListingDto) {
-    listings()!.saveListing(listingDto);
-    setIsDirty(false);
+    if (listingDto instanceof CreateListingDto) {
+      listings()!.createListing(listingDto);
+    } else if (listingDto instanceof UpdateListingDto) {
+      listings()!.updateListing(listingDto);
+    }
   }
 
   return (
@@ -75,7 +112,7 @@ export const MyListings: Component<{}> = (props) => {
               }
               prop:name="pencil"
               prop:disabled={isDirty()}
-              on:click={() => setActiveListing(listing)}
+              on:click={() => editListing(listing)}
             >
               <sl-icon slot="prefix" prop:name="pencil"></sl-icon>
               {listing.title}
@@ -89,17 +126,22 @@ export const MyListings: Component<{}> = (props) => {
           }
           prop:name="pencil"
           prop:disabled={isDirty()}
-          on:click={() => setActiveListing(null)}
+          on:click={() => createListing()}
         >
           <sl-icon slot="prefix" prop:name="plus-circle"></sl-icon>
           Ny
         </sl-button>
       </div>
 
-      {/* TODO! Format messages */}
-      <sl-alert prop:variant="success" prop:open={isSaved()}>
+      <sl-alert
+        class={css.userMessage}
+        prop:variant="success"
+        prop:open={!!userMessage()}
+      >
         <sl-icon slot="icon" prop:name="check2-circle"></sl-icon>
-        <strong>Your changes have been saved</strong>
+        <strong>
+          Listing {userMessage()?.title} was {userMessage()?.action}
+        </strong>
       </sl-alert>
 
       <Show when={activeListing()}>

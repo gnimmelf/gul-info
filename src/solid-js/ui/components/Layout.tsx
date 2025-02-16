@@ -41,6 +41,9 @@ export const Layout: Component<{
   toggleMainPages: () => void;
   children: JSXElement;
 }> = (props) => {
+
+  // TODO! Add a proper menu
+
   return (
     <div class={join(css.app, css.border)}>
       <section class={css.header}>
@@ -69,9 +72,7 @@ export const Layout: Component<{
           return <div>Error: {error.message}</div>;
         }}
       >
-        <Suspense fallback={<Loading>Layout</Loading>}>
-          {props.children}
-        </Suspense>
+        <Suspense fallback={<Loading>Layout</Loading>}>{props.children}</Suspense>
       </ErrorBoundary>
     </div>
   );

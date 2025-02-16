@@ -5,10 +5,7 @@ import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { IAuthentication } from '~/domains/infrastructure/authentication/IAuthentication';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
 
-export const createAccountServiceAdaper = (
-  db: IDatabase,
-  auth: IAuthentication,
-) => {
+export const createAccountServiceAdaper = (db: IDatabase, auth: IAuthentication) => {
   const accountService = new AccountService(db);
 
   const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);

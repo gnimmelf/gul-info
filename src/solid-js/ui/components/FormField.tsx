@@ -14,10 +14,7 @@ export const FormField = <T,>(props: FormFieldProps<T>) => {
     <div class={props.class || ''}>
       {props.children(props.key as keyof T)}
       <Show
-        when={
-          !props.hideError &&
-          props.formState.showFieldError(props.key as string)
-        }
+        when={!props.hideError && props.formState.showFieldError(props.key as string)}
       >
         <div>{props.formState.getErrorMessage(props.key as string)}</div>
       </Show>

@@ -8,9 +8,7 @@ export function writableSignal<T, InitialValue>(
 
   // Create an outer signal that holds the producer function.
   // We unwrap the "make" part so that the type defs for
-  const [getProducer, setProducer] = createSignal<() => T>(
-    makeInitialProducer(),
-  );
+  const [getProducer, setProducer] = createSignal<() => T>(makeInitialProducer());
 
   // Create a derived memo that always calls the current inner producer.
   const getValue = createMemo(() => getProducer()());

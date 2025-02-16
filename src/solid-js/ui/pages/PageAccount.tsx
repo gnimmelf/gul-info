@@ -1,11 +1,4 @@
-import {
-  Component,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Show,
-} from 'solid-js';
+import { Component, createEffect, createMemo, createSignal, For, Show } from 'solid-js';
 
 import { useService } from '~/solid-js/ui/providers/ServiceProvider';
 import { addCss, Theme } from '~/shared/ui/theme';
@@ -24,12 +17,9 @@ export const PageAccount: Component<{}> = (props) => {
       <Show when={!isLoggedIn()}>
         <sl-alert prop:variant="warning" prop:open={Boolean(mustVerifyEmail())}>
           <sl-icon slot="icon" prop:name="exclamation-triangle"></sl-icon>
-          <strong>
-            Vi har sendt en verifiserings-e-post til {mustVerifyEmail()}.
-          </strong>
+          <strong>Vi har sendt en verifiserings-e-post til {mustVerifyEmail()}.</strong>
           <br />
-          Verifiser e-postadressen din der og fortsett deretter innlogging
-          under.
+          Verifiser e-postadressen din der og fortsett deretter innlogging under.
         </sl-alert>
 
         <div>
@@ -38,10 +28,7 @@ export const PageAccount: Component<{}> = (props) => {
           </Show>
           <Show when={mustVerifyEmail()}>
             <sl-button-group prop:label="Alignment">
-              <sl-button
-                prop:variant="primary"
-                on:click={() => account()?.login()}
-              >
+              <sl-button prop:variant="primary" on:click={() => account()?.login()}>
                 Fortsett innlogging
               </sl-button>
               <sl-button on:click={() => account()?.logout()}>

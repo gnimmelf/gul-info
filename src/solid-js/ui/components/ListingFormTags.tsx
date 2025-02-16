@@ -3,6 +3,8 @@ import { Component, For, createSignal } from 'solid-js';
 import { join, addCss, Theme } from '~/shared/ui/theme';
 import { TagViewModel } from '~/shared/models/TagViewModel';
 import { MAX_TAGS } from '~/shared/constants';
+import { FormState } from '~/solid-js/lib/FormState';
+import { FormStateType } from './ListingForm';
 
 const css = addCss({
   tagsContainer: (theme: Theme) => ({
@@ -21,10 +23,9 @@ export const ListingFormTags: Component<{
   selectedTagIds?: string[];
   addTag: (tagId: string) => void;
   removeTag: (tagId: string) => void;
+  formState: FormState<FormStateType>;
 }> = (props) => {
   const defaultFormElementSize = 'small';
-
-  const [selectedTag, setSelectedTag] = createSignal<string>('');
 
   return (
     <fieldset>
@@ -55,19 +56,18 @@ export const ListingFormTags: Component<{
         <sl-select
           prop:size={defaultFormElementSize}
           prop:placeholder="Velg knagg"
+          classList={{
+            'user-error': props.formState.hasErrors('tags'),
+            'user-valid': props.formState.isValid('tags'),
+          }}
           prop:disabled={props.selectedTagIds?.length === MAX_TAGS}
         >
           <For each={props.tags}>
-            {(tag) => {
-              // TODO! Add incremental filtering
-              return (
-              <sl-option
-                prop:value={tag.id}
-                on:click={() => props.addTag(tag.id)}
-              >
+            {(tag) => (
+              <sl-option prop:value={tag.id} on:click={() => props.addTag(tag.id)}>
                 {tag.name}
               </sl-option>
-            )}}
+            )}
           </For>
         </sl-select>
       </div>

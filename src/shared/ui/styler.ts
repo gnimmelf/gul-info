@@ -72,9 +72,7 @@ export class StyleReg<Theme> {
    * @param styles Object with values as styles or function returning styles
    * @returns Object with modularized classnames as values
    */
-  public css(
-    styles: Record<string, object | Resolver<Theme>>,
-  ): Record<string, string> {
+  public css(styles: Record<string, object | Resolver<Theme>>): Record<string, string> {
     const classNames: Record<string, string> = {};
 
     for (const [key, styleDec] of Object.entries(styles)) {
@@ -116,9 +114,7 @@ export class StyleReg<Theme> {
     this.moduleStyles.forEach((declaration, className) => {
       // Resolve styles if a function is provided
       const resolvedDeclaration =
-        typeof declaration === 'function'
-          ? declaration(this.theme)
-          : declaration;
+        typeof declaration === 'function' ? declaration(this.theme) : declaration;
 
       const wrappedStyles = { [`.${className}`]: resolvedDeclaration };
 

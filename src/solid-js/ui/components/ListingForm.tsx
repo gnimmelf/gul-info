@@ -18,8 +18,7 @@ import { useService } from '../providers/ServiceProvider';
 import ListingFormTags from './ListingFormTags';
 import ListingFormLinks from './ListingFormLinks';
 
-export type FormStateType = CreateListingDtoSchemaType &
-  UpdateListingDtoSchemaType;
+export type FormStateType = CreateListingDtoSchemaType & UpdateListingDtoSchemaType;
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -60,7 +59,7 @@ export const ListingForm: Component<{
   setIsDirty: Setter<boolean>;
   onSubmit: (listing: CreateListingDto | UpdateListingDto) => void;
   onCancel: () => void;
-  onDelete: (listingId: string) => void;
+  onDelete: (listing: UpdateListingDto) => void;
 }> = (props) => {
   const { listings } = useService();
 
@@ -144,9 +143,7 @@ export const ListingForm: Component<{
                 prop:size="medium"
                 prop:type="button"
                 prop:variant="danger"
-                on:click={() =>
-                  props.onDelete((props.listingDto as UpdateListingDto).id)
-                }
+                on:click={() => props.onDelete(props.listingDto as UpdateListingDto)}
               >
                 <sl-icon slot="suffix" prop:name="trash"></sl-icon>
                 Slett
@@ -281,6 +278,7 @@ export const ListingForm: Component<{
             addTag={tags.add}
             removeTag={tags.remove}
             selectedTagIds={values.tags}
+            formState={formState}
           />
 
           <ListingFormLinks

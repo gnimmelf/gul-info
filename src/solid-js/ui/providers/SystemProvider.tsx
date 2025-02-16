@@ -47,9 +47,7 @@ export const CoreProvider: Component<{
 
   return (
     <Show when={system()}>
-      <SystemContext.Provider value={system()}>
-        {props.children}
-      </SystemContext.Provider>
+      <SystemContext.Provider value={system()}>{props.children}</SystemContext.Provider>
     </Show>
   );
 };

@@ -34,8 +34,7 @@ export class Filters {
 
   setIndexLetter(value: string) {
     const prev = this.data.indexLetter;
-    const next =
-      value.toLocaleLowerCase() != prev ? value.toLocaleLowerCase() : '';
+    const next = value.toLocaleLowerCase() != prev ? value.toLocaleLowerCase() : '';
     this.data.indexLetter = next;
   }
 

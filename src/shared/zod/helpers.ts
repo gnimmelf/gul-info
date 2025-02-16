@@ -30,9 +30,6 @@ export const checkLoadedData = (
 ) => {
   const res = Schema.safeParse(values);
   if (!res.success) {
-    console.warn(
-      'Incompatible data loaded:',
-      flatten ? res.error.flatten() : res.error,
-    );
+    console.warn('Incompatible data loaded:', flatten ? res.error.flatten() : res.error);
   }
 };

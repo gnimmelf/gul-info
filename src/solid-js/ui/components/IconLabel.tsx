@@ -20,11 +20,7 @@ export const IconLabel: Component<{
 }> = (props) => {
   return (
     <span class={css.wrapper}>
-      <sl-icon
-        class={css.icon}
-        prop:name={props.icon}
-        prop:label={props.label}
-      />
+      <sl-icon class={css.icon} prop:name={props.icon} prop:label={props.label} />
       <span class={css.label}>{props.children}</span>
     </span>
   );
