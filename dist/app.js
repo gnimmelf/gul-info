@@ -17715,24 +17715,6 @@
     ExposeDataSchemaAsProps(dataSchema4)
   ], Listing);
 
-  // src/shared/models/listing/ListingViewModel.ts
-  var dataSchema5 = Listing.schema.extend({});
-  var ListingViewModel = class {
-    data;
-    constructor(data) {
-      this.data = data;
-      Object.freeze(this.data);
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(dataSchema5, data);
-      return new ListingViewModel(parsedData);
-    }
-  };
-  __publicField(ListingViewModel, "schema", dataSchema5);
-  ListingViewModel = __decorateClass([
-    ExposeDataSchemaAsProps(dataSchema5)
-  ], ListingViewModel);
-
   // src/domains/ui/directory/DirectoryService.ts
   var DirectoryService = class {
     db;
@@ -17752,7 +17734,7 @@
     async loadListingsByFilters(filters) {
       await timeout();
       const data = await this.db.getListingsByFilters(filters);
-      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => ListingViewModel.from(data2));
+      const res = data.sort((a5, b4) => a5.title < b4.title ? -1 : 1).map((data2) => Listing.from(data2));
       return res;
     }
   };
@@ -18218,7 +18200,7 @@
   };
 
   // src/shared/models/UserViewModel.ts
-  var dataSchema6 = z.object({
+  var dataSchema5 = z.object({
     id: z.any(),
     name: z.string(),
     email: z.string().email()
@@ -18229,13 +18211,13 @@
       this.data = data;
     }
     static from(data) {
-      const parsedData = dataSchema6.parse(data);
+      const parsedData = dataSchema5.parse(data);
       return new UserViewModel(parsedData);
     }
   };
-  __publicField(UserViewModel, "schema", dataSchema6);
+  __publicField(UserViewModel, "schema", dataSchema5);
   UserViewModel = __decorateClass([
-    ExposeDataSchemaAsProps(dataSchema6)
+    ExposeDataSchemaAsProps(dataSchema5)
   ], UserViewModel);
 
   // src/domains/ui/account/AccountService.ts
@@ -19079,7 +19061,7 @@
   );
 
   // src/shared/models/listing/UpdateListingDto.ts
-  var dataSchema7 = Listing.schema.extend({
+  var dataSchema6 = Listing.schema.extend({
     title: Listing.schema.shape.title.min(3).max(70),
     description: Listing.schema.shape.description.min(15).max(150),
     address,
@@ -19097,17 +19079,17 @@
       Object.freeze(this.data);
     }
     static from(data) {
-      const parsedData = parseWithDefaults(dataSchema7, data);
+      const parsedData = parseWithDefaults(dataSchema6, data);
       return new UpdateListingDto(parsedData);
     }
   };
-  __publicField(UpdateListingDto, "schema", dataSchema7);
+  __publicField(UpdateListingDto, "schema", dataSchema6);
   UpdateListingDto = __decorateClass([
-    ExposeDataSchemaAsProps(dataSchema7)
+    ExposeDataSchemaAsProps(dataSchema6)
   ], UpdateListingDto);
 
   // src/shared/models/listing/CreateListingDto.ts
-  var dataSchema8 = UpdateListingDto.schema.extend({
+  var dataSchema7 = UpdateListingDto.schema.extend({
     isActive: UpdateListingDto.schema.shape.isActive.default(true),
     title: UpdateListingDto.schema.shape.title.default(""),
     description: UpdateListingDto.schema.shape.description.default(""),
@@ -19126,13 +19108,13 @@
       Object.freeze(this.data);
     }
     static from(data) {
-      const parsedData = mergeWithDefaults(dataSchema8, data);
+      const parsedData = mergeWithDefaults(dataSchema7, data);
       return new CreateListingDto(parsedData);
     }
   };
-  __publicField(CreateListingDto, "schema", dataSchema8);
+  __publicField(CreateListingDto, "schema", dataSchema7);
   CreateListingDto = __decorateClass([
-    ExposeDataSchemaAsProps(dataSchema8)
+    ExposeDataSchemaAsProps(dataSchema7)
   ], CreateListingDto);
 
   // node_modules/.pnpm/dot-prop@9.0.0/node_modules/dot-prop/index.js

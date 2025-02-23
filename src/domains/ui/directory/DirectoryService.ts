@@ -4,7 +4,7 @@ import { TagViewModel } from '../../../shared/models/TagViewModel';
 import { IndexLetterViewModel } from '../../../shared/models/IndexLetterViewModel';
 import { timeout } from '~/shared/lib/utils';
 import { Filters } from '~/shared/models/Filters';
-import { ListingViewModel } from '~/shared/models/listing/ListingViewModel';
+import { Listing } from '~/shared/models/listing/Listing';
 
 /**
  * Class
@@ -38,7 +38,7 @@ export class DirectoryService {
     const data = await this.db.getListingsByFilters(filters);
     const res = data
       .sort((a, b) => (a.title < b.title ? -1 : 1))
-      .map((data) => ListingViewModel.from(data));
+      .map((data) => Listing.from(data));
     return res;
   }
 }

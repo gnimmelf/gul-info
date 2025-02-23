@@ -2,14 +2,12 @@ import Surreal, { StringRecordId } from 'surrealdb';
 import { IDatabase } from '../IDatabase';
 import { Filters, TagsMatchType } from '~/shared/models/Filters';
 
-import { UserViewModel } from '~/shared/models/UserViewModel';
-import { IndexLetterViewModel } from '~/shared/models/IndexLetterViewModel';
-import { ListingViewModel } from '~/shared/models/listing/ListingViewModel';
-import { TagViewModel } from '~/shared/models/TagViewModel';
 import { Listing } from '~/shared/models/listing/Listing';
 import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
 import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
-import stringify from 'fast-json-stable-stringify';
+import { UserViewModel } from '~/shared/models/UserViewModel';
+import { IndexLetterViewModel } from '~/shared/models/IndexLetterViewModel';
+import { TagViewModel } from '~/shared/models/TagViewModel';
 
 export interface SurrealConfig {
   namespace: string;
@@ -134,7 +132,7 @@ export class SurrealDbAdapter implements IDatabase {
     }
 
     const query = `SELECT *, tags.*.* FROM ${TABLES.LISTINGS}${whereClause};`;
-    const res = pop<ListingViewModel.SchemaType[]>(await this.client.query(query));
+    const res = pop<Listing.SchemaType[]>(await this.client.query(query));
     return stringifyIds(res);
   }
 
@@ -180,7 +178,7 @@ export class SurrealDbAdapter implements IDatabase {
 }
 
 /**
- * Utils
+ * SurrealDb utils
  */
 
 type NestedArray<T> = T | NestedArray<T>[];
