@@ -1,13 +1,12 @@
 import { z } from 'zod';
-import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
+import { ExposeDataSchemaAsProps } from '~/shared/lib/ExposeDataSchemaAsProps';
 import { parseWithDefaults } from '~/shared/zod/helpers';
-import { TagViewSchema } from '../TagViewModel';
 
-export const LinkShema = z.object({
+const linkSchema = z.object({
   href: z.string().url(),
 });
 
-export const ListingSchema = z
+const dataSchema = z
   .object({
     id: z.any(),
     owner: z.any(),
@@ -19,28 +18,32 @@ export const ListingSchema = z
     muncipiality: z.string(),
     phone: z.string(),
     email: z.string(),
-    links: z.array(LinkShema),
+    links: z.array(linkSchema),
     tags: z.array(z.any()),
   })
   .required();
 
-export type ListingSchemaType = z.infer<typeof ListingSchema>;
+type DataSchemaType = z.infer<typeof dataSchema>;
 
-// Add Schema props type definitions
-export interface Listing extends ListingSchemaType {}
+// Class namespace exports
+export namespace Listing {
+  export type SchemaType = DataSchemaType;
+}
 
-@ExposeDataAsSchemaProps(ListingSchema)
+// Extend class with schema definitions
+export interface Listing extends DataSchemaType {}
+
+@ExposeDataSchemaAsProps(dataSchema)
 export class Listing {
-  public schema = ListingSchema;
-  public data: ListingSchemaType;
+  public static schema = dataSchema;
+  public data: DataSchemaType;
 
-  constructor(data: ListingSchemaType) {
+  constructor(data: DataSchemaType) {
     this.data = data;
-    Object.freeze(this.data);
   }
 
-  static from(data: Partial<ListingSchemaType>): Listing {
-    const parsedData = parseWithDefaults(ListingSchema, data);
+  static from(data: Partial<DataSchemaType>): Listing {
+    const parsedData = parseWithDefaults(dataSchema, data);
     return new Listing(parsedData);
   }
 }

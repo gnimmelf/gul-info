@@ -3,7 +3,7 @@ import { IDatabase } from '../../infrastructure/database/IDatabase';
 import { TagViewModel } from '../../../shared/models/TagViewModel';
 import { IndexLetterViewModel } from '../../../shared/models/IndexLetterViewModel';
 import { timeout } from '~/shared/lib/utils';
-import { FilterSchemaType } from '~/shared/models/Filters';
+import { Filters } from '~/shared/models/Filters';
 import { ListingViewModel } from '~/shared/models/listing/ListingViewModel';
 
 /**
@@ -33,7 +33,7 @@ export class DirectoryService {
     return res;
   }
 
-  public async loadListingsByFilters(filters: FilterSchemaType) {
+  public async loadListingsByFilters(filters: Filters.SchemaType) {
     await timeout();
     const data = await this.db.getListingsByFilters(filters);
     const res = data

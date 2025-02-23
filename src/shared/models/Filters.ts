@@ -6,25 +6,30 @@ export enum TagsMatchType {
   ANY = 'ANY',
 }
 
-export const FiltersSchema = z.object({
+const dataSchema = z.object({
   text: z.string().optional().default(''),
   tagIds: z.array(z.string()).optional().default([]),
   indexLetter: z.string().optional().default(''),
   tagsMatchType: z.nativeEnum(TagsMatchType).default(TagsMatchType.ALL),
 });
 
-export type FilterSchemaType = z.infer<typeof FiltersSchema>;
+type DataSchemaType = z.infer<typeof dataSchema>;
+
+// Class namespace exports
+export namespace Filters {
+  export type SchemaType = DataSchemaType;
+}
 
 export class Filters {
-  public schema = FiltersSchema;
-  public data: FilterSchemaType;
+  public static schema = dataSchema;
+  public data: DataSchemaType;
 
-  constructor(data: FilterSchemaType) {
+  constructor(data: DataSchemaType) {
     this.data = data;
   }
 
-  static from(data: Partial<FilterSchemaType>): Filters {
-    const parsedData = parseWithDefaults(FiltersSchema, data);
+  static from(data: Partial<DataSchemaType>): Filters {
+    const parsedData = parseWithDefaults(dataSchema, data);
     return new Filters(parsedData);
   }
 

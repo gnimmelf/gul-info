@@ -1,38 +1,43 @@
 import { z } from 'zod';
-import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
-import { UpdateListingDtoSchema } from './UpdateListingDto';
+import { ExposeDataSchemaAsProps } from '~/shared/lib/ExposeDataSchemaAsProps';
+import { UpdateListingDto } from './UpdateListingDto';
 import { mergeWithDefaults } from '~/shared/zod/helpers';
 
-export const CreateListingDtoSchema = UpdateListingDtoSchema.extend({
-  isActive: UpdateListingDtoSchema.shape.isActive.default(true),
-  title: UpdateListingDtoSchema.shape.title.default(''),
-  description: UpdateListingDtoSchema.shape.description.default(''),
-  address: UpdateListingDtoSchema.shape.address.default(''),
-  zip: UpdateListingDtoSchema.shape.zip.default(''),
-  muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(''),
-  phone: UpdateListingDtoSchema.shape.phone.default(''),
-  email: UpdateListingDtoSchema.shape.email.default(''),
+const dataSchema = UpdateListingDto.schema.extend({
+  isActive: UpdateListingDto.schema.shape.isActive.default(true),
+  title: UpdateListingDto.schema.shape.title.default(''),
+  description: UpdateListingDto.schema.shape.description.default(''),
+  address: UpdateListingDto.schema.shape.address.default(''),
+  zip: UpdateListingDto.schema.shape.zip.default(''),
+  muncipiality: UpdateListingDto.schema.shape.muncipiality.default(''),
+  phone: UpdateListingDto.schema.shape.phone.default(''),
+  email: UpdateListingDto.schema.shape.email.default(''),
 }).omit({
   id: true,
 });
 
-export type CreateListingDtoSchemaType = z.infer<typeof CreateListingDtoSchema>;
+type DataSchemaType = z.infer<typeof dataSchema>;
 
-// Add Schema props type definitions
-export interface CreateListingDto extends CreateListingDtoSchemaType {}
+// Class namespace exports
+export namespace CreateListingDto {
+  export type SchemaType = DataSchemaType;
+}
 
-@ExposeDataAsSchemaProps(CreateListingDtoSchema)
+// Extend class with schema definitions
+export interface CreateListingDto extends DataSchemaType {}
+
+@ExposeDataSchemaAsProps(dataSchema)
 export class CreateListingDto {
-  public schema = CreateListingDtoSchema;
-  public data: CreateListingDtoSchemaType;
+  public static schema = dataSchema;
+  public data: DataSchemaType;
 
-  constructor(data: CreateListingDtoSchemaType) {
+  constructor(data: DataSchemaType) {
     this.data = data;
     Object.freeze(this.data);
   }
 
-  static from(data: Partial<CreateListingDtoSchemaType>): CreateListingDto {
-    const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
+  static from(data: Partial<DataSchemaType>): CreateListingDto {
+    const parsedData = mergeWithDefaults(dataSchema, data);
     return new CreateListingDto(parsedData);
   }
 }

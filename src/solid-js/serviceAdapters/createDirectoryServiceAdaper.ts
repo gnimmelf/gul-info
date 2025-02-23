@@ -1,6 +1,6 @@
 import { createResource, createSignal } from 'solid-js';
 
-import { Filters, FilterSchemaType, TagsMatchType } from '../../shared/models/Filters';
+import { Filters, TagsMatchType } from '../../shared/models/Filters';
 import { DirectoryService } from '../../domains/ui/directory/DirectoryService';
 import { IDatabase } from '~/domains/infrastructure/database/IDatabase';
 import { checkAdapterReturnType } from './checkAdapterReturnType';
@@ -19,7 +19,7 @@ export const createDirectoryServiceAdapter = async (
 
   const directoryService = new DirectoryService(db);
 
-  const [onFilterListings, setFilterListings] = createSignal<FilterSchemaType | null>(
+  const [onFilterListings, setFilterListings] = createSignal<Filters.SchemaType | null>(
     null,
     {
       equals: false,

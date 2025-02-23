@@ -1,14 +1,14 @@
 import Surreal, { StringRecordId } from 'surrealdb';
 import { IDatabase } from '../IDatabase';
-import { FilterSchemaType, TagsMatchType } from '~/shared/models/Filters';
+import { Filters, TagsMatchType } from '~/shared/models/Filters';
 
-import { UserViewSchemaType } from '~/shared/models/UserViewModel';
-import { IndexLetterViewSchemaType } from '~/shared/models/IndexLetterViewModel';
-import { ListingViewSchemaType } from '~/shared/models/listing/ListingViewModel';
-import { TagViewModelSchemaType } from '~/shared/models/TagViewModel';
-import { ListingSchemaType } from '~/shared/models/listing/Listing';
-import { CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
-import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
+import { UserViewModel } from '~/shared/models/UserViewModel';
+import { IndexLetterViewModel } from '~/shared/models/IndexLetterViewModel';
+import { ListingViewModel } from '~/shared/models/listing/ListingViewModel';
+import { TagViewModel } from '~/shared/models/TagViewModel';
+import { Listing } from '~/shared/models/listing/Listing';
+import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
+import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
 import stringify from 'fast-json-stable-stringify';
 
 export interface SurrealConfig {
@@ -70,7 +70,7 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getUserData() {
     const query = `SELECT * FROM ${TABLES.USER};`;
-    const res = pop<UserViewSchemaType>(await this.client.query(query), {
+    const res = pop<UserViewModel.SchemaType>(await this.client.query(query), {
       popCount: 2,
       ensureArray: false,
     });
@@ -79,7 +79,7 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getIndexLetterUsages() {
     const query = `SELECT string::slice(title, 0, 1) AS letter, count() AS count FROM ${TABLES.LISTINGS} GROUP BY letter;`;
-    const res = pop<IndexLetterViewSchemaType[]>(await this.client.query(query), {
+    const res = pop<IndexLetterViewModel.SchemaType[]>(await this.client.query(query), {
       popCount: 1,
     });
     return stringifyIds(res);
@@ -87,7 +87,7 @@ export class SurrealDbAdapter implements IDatabase {
 
   async getTags() {
     const query = `SELECT * FROM tags;`;
-    const res = pop<TagViewModelSchemaType[]>(await this.client.query(query), {
+    const res = pop<TagViewModel.SchemaType[]>(await this.client.query(query), {
       popCount: 1,
     });
     return stringifyIds(res);
@@ -102,13 +102,13 @@ export class SurrealDbAdapter implements IDatabase {
       ) as usageCount
       FROM tags;
     `;
-    const res = pop<TagViewModelSchemaType[]>(await this.client.query(query), {
+    const res = pop<TagViewModel.SchemaType[]>(await this.client.query(query), {
       popCount: 1,
     });
     return stringifyIds(res);
   }
 
-  async getListingsByFilters(filters?: FilterSchemaType) {
+  async getListingsByFilters(filters?: Filters.SchemaType) {
     let whereClause = '';
     const conditions: string[] = ['isActive = true'];
 
@@ -134,25 +134,25 @@ export class SurrealDbAdapter implements IDatabase {
     }
 
     const query = `SELECT *, tags.*.* FROM ${TABLES.LISTINGS}${whereClause};`;
-    const res = pop<ListingViewSchemaType[]>(await this.client.query(query));
+    const res = pop<ListingViewModel.SchemaType[]>(await this.client.query(query));
     return stringifyIds(res);
   }
 
   async getListingsByEmail(email: string) {
     const query = `SELECT * FROM ${TABLES.LISTINGS} WHERE owner.email = '${email}';`;
-    const res = pop<ListingSchemaType[]>(await this.client.query(query));
+    const res = pop<Listing.SchemaType[]>(await this.client.query(query));
     return stringifyIds(res);
   }
 
-  async createListing(data: CreateListingDtoSchemaType) {
+  async createListing(data: CreateListingDto.SchemaType) {
     const { owner, tags, ...rest } = data;
     const payload = {
       ...rest,
       owner: new StringRecordId(owner),
-      tags: tags.map((tagId) => new StringRecordId(tagId)),
+      tags: tags.map((tagId: string) => new StringRecordId(tagId)),
     };
 
-    const [listing] = await this.client.create<CreateListingDtoSchemaType>(
+    const [listing] = await this.client.create<CreateListingDto.SchemaType>(
       'listings',
       payload,
     );
@@ -163,7 +163,7 @@ export class SurrealDbAdapter implements IDatabase {
     await this.client.delete(new StringRecordId(listingId));
   }
 
-  async updateListing(data: UpdateListingDtoSchemaType) {
+  async updateListing(data: UpdateListingDto.SchemaType) {
     const { id, owner, tags, ...rest } = data;
     const payload = {
       ...rest,
@@ -171,7 +171,7 @@ export class SurrealDbAdapter implements IDatabase {
       tags: tags.map((tagId) => new StringRecordId(tagId)),
     };
 
-    const listing = await this.client.merge<UpdateListingDtoSchemaType>(
+    const listing = await this.client.merge<UpdateListingDto.SchemaType>(
       new StringRecordId(id),
       payload,
     );

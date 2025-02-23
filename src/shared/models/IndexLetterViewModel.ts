@@ -1,25 +1,32 @@
 import { z } from 'zod';
-import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
+import { ExposeDataSchemaAsProps } from '~/shared/lib/ExposeDataSchemaAsProps';
 
-export const IndexLetterViewSchema = z.object({
+const dataSchema = z.object({
   letter: z.string().length(1),
   count: z.number(),
 });
 
-export type IndexLetterViewSchemaType = z.infer<typeof IndexLetterViewSchema>;
-// Add Schema props type definitions
-export interface IndexLetterViewModel extends IndexLetterViewSchemaType {}
+type DataSchemaType = z.infer<typeof dataSchema>;
 
-@ExposeDataAsSchemaProps(IndexLetterViewSchema)
+// Class namespace exports
+export namespace IndexLetterViewModel {
+  export type SchemaType = DataSchemaType;
+}
+
+// Extend class with schema definitions
+export interface IndexLetterViewModel extends DataSchemaType {}
+
+@ExposeDataSchemaAsProps(dataSchema)
 export class IndexLetterViewModel {
-  private data: IndexLetterViewSchemaType;
+  public static schema = dataSchema;
+  private data: DataSchemaType;
 
-  constructor(data: IndexLetterViewSchemaType) {
+  constructor(data: DataSchemaType) {
     this.data = data;
   }
 
-  static from(data: IndexLetterViewSchemaType): IndexLetterViewModel {
-    const parsedData = IndexLetterViewSchema.parse(data);
+  static from(data: DataSchemaType): IndexLetterViewModel {
+    const parsedData = dataSchema.parse(data);
     return new IndexLetterViewModel(parsedData);
   }
 }

@@ -6,6 +6,7 @@
   var __getOwnPropNames = Object.getOwnPropertyNames;
   var __getProtoOf = Object.getPrototypeOf;
   var __hasOwnProp = Object.prototype.hasOwnProperty;
+  var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __commonJS = (cb, mod) => function __require() {
     return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
   };
@@ -33,6 +34,7 @@
     if (kind && result) __defProp(target, key, result);
     return result;
   };
+  var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
   // node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.browser.js
   var require_picocolors_browser = __commonJS({
@@ -16261,20 +16263,20 @@
     TagsMatchType2["ANY"] = "ANY";
     return TagsMatchType2;
   })(TagsMatchType || {});
-  var FiltersSchema = z.object({
+  var dataSchema = z.object({
     text: z.string().optional().default(""),
     tagIds: z.array(z.string()).optional().default([]),
     indexLetter: z.string().optional().default(""),
     tagsMatchType: z.nativeEnum(TagsMatchType).default("ALL" /* ALL */)
   });
   var Filters = class _Filters {
-    schema = FiltersSchema;
+    static schema = dataSchema;
     data;
     constructor(data) {
       this.data = data;
     }
     static from(data) {
-      const parsedData = parseWithDefaults(FiltersSchema, data);
+      const parsedData = parseWithDefaults(dataSchema, data);
       return new _Filters(parsedData);
     }
     setText(value) {
@@ -17604,8 +17606,8 @@
     return instance;
   };
 
-  // src/shared/lib/ExposeDataAsSchemaProps.ts
-  function ExposeDataAsSchemaProps(schema) {
+  // src/shared/lib/ExposeDataSchemaAsProps.ts
+  function ExposeDataSchemaAsProps(schema) {
     return function(constructor) {
       const schemaKeys = Object.keys(schema.shape);
       return class extends constructor {
@@ -17637,7 +17639,7 @@
   }
 
   // src/shared/models/TagViewModel.ts
-  var TagViewSchema = z.object({
+  var dataSchema2 = z.object({
     id: z.any(),
     name: z.string(),
     usageCount: z.number().optional()
@@ -17648,19 +17650,20 @@
       this.data = data;
     }
     static from(data) {
-      const parsedData = TagViewSchema.parse(data);
+      const parsedData = dataSchema2.parse(data);
       return new TagViewModel(parsedData);
     }
     get id() {
       return String(this.data.id);
     }
   };
+  __publicField(TagViewModel, "schema", dataSchema2);
   TagViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(TagViewSchema)
+    ExposeDataSchemaAsProps(dataSchema2)
   ], TagViewModel);
 
   // src/shared/models/IndexLetterViewModel.ts
-  var IndexLetterViewSchema = z.object({
+  var dataSchema3 = z.object({
     letter: z.string().length(1),
     count: z.number()
   });
@@ -17670,19 +17673,20 @@
       this.data = data;
     }
     static from(data) {
-      const parsedData = IndexLetterViewSchema.parse(data);
+      const parsedData = dataSchema3.parse(data);
       return new IndexLetterViewModel(parsedData);
     }
   };
+  __publicField(IndexLetterViewModel, "schema", dataSchema3);
   IndexLetterViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(IndexLetterViewSchema)
+    ExposeDataSchemaAsProps(dataSchema3)
   ], IndexLetterViewModel);
 
   // src/shared/models/listing/Listing.ts
-  var LinkShema = z.object({
+  var linkSchema = z.object({
     href: z.string().url()
   });
-  var ListingSchema = z.object({
+  var dataSchema4 = z.object({
     id: z.any(),
     owner: z.any(),
     isActive: z.boolean(),
@@ -17693,40 +17697,40 @@
     muncipiality: z.string(),
     phone: z.string(),
     email: z.string(),
-    links: z.array(LinkShema),
+    links: z.array(linkSchema),
     tags: z.array(z.any())
   }).required();
   var Listing = class {
-    schema = ListingSchema;
+    data;
+    constructor(data) {
+      this.data = data;
+    }
+    static from(data) {
+      const parsedData = parseWithDefaults(dataSchema4, data);
+      return new Listing(parsedData);
+    }
+  };
+  __publicField(Listing, "schema", dataSchema4);
+  Listing = __decorateClass([
+    ExposeDataSchemaAsProps(dataSchema4)
+  ], Listing);
+
+  // src/shared/models/listing/ListingViewModel.ts
+  var dataSchema5 = Listing.schema.extend({});
+  var ListingViewModel = class {
     data;
     constructor(data) {
       this.data = data;
       Object.freeze(this.data);
     }
     static from(data) {
-      const parsedData = parseWithDefaults(ListingSchema, data);
-      return new Listing(parsedData);
-    }
-  };
-  Listing = __decorateClass([
-    ExposeDataAsSchemaProps(ListingSchema)
-  ], Listing);
-
-  // src/shared/models/listing/ListingViewModel.ts
-  var ListingViewSchema = ListingSchema.extend({});
-  var ListingViewModel = class {
-    schema = ListingViewSchema;
-    data;
-    constructor(data) {
-      this.data = data;
-    }
-    static from(data) {
-      const parsedData = parseWithDefaults(ListingViewSchema, data);
+      const parsedData = parseWithDefaults(dataSchema5, data);
       return new ListingViewModel(parsedData);
     }
   };
+  __publicField(ListingViewModel, "schema", dataSchema5);
   ListingViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(ListingViewSchema)
+    ExposeDataSchemaAsProps(dataSchema5)
   ], ListingViewModel);
 
   // src/domains/ui/directory/DirectoryService.ts
@@ -18214,7 +18218,7 @@
   };
 
   // src/shared/models/UserViewModel.ts
-  var UserViewSchema = z.object({
+  var dataSchema6 = z.object({
     id: z.any(),
     name: z.string(),
     email: z.string().email()
@@ -18225,12 +18229,13 @@
       this.data = data;
     }
     static from(data) {
-      const parsedData = UserViewSchema.parse(data);
+      const parsedData = dataSchema6.parse(data);
       return new UserViewModel(parsedData);
     }
   };
+  __publicField(UserViewModel, "schema", dataSchema6);
   UserViewModel = __decorateClass([
-    ExposeDataAsSchemaProps(UserViewSchema)
+    ExposeDataSchemaAsProps(dataSchema6)
   ], UserViewModel);
 
   // src/domains/ui/account/AccountService.ts
@@ -19074,60 +19079,60 @@
   );
 
   // src/shared/models/listing/UpdateListingDto.ts
-  var UpdateListingDtoSchema = ListingSchema.extend({
-    title: ListingSchema.shape.title.min(3).max(70),
-    description: ListingSchema.shape.description.min(15).max(150),
+  var dataSchema7 = Listing.schema.extend({
+    title: Listing.schema.shape.title.min(3).max(70),
+    description: Listing.schema.shape.description.min(15).max(150),
     address,
     zip,
-    muncipiality: ListingSchema.shape.muncipiality,
+    muncipiality: Listing.schema.shape.muncipiality,
     phone,
     email,
-    tags: ListingSchema.shape.tags.min(1).default([]),
-    links: ListingSchema.shape.links.default([])
+    tags: Listing.schema.shape.tags.min(1).default([]),
+    links: Listing.schema.shape.links.default([])
   });
   var UpdateListingDto = class {
-    schema = UpdateListingDtoSchema;
     data;
     constructor(data) {
       this.data = data;
       Object.freeze(this.data);
     }
     static from(data) {
-      const parsedData = parseWithDefaults(UpdateListingDtoSchema, data);
+      const parsedData = parseWithDefaults(dataSchema7, data);
       return new UpdateListingDto(parsedData);
     }
   };
+  __publicField(UpdateListingDto, "schema", dataSchema7);
   UpdateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(UpdateListingDtoSchema)
+    ExposeDataSchemaAsProps(dataSchema7)
   ], UpdateListingDto);
 
   // src/shared/models/listing/CreateListingDto.ts
-  var CreateListingDtoSchema = UpdateListingDtoSchema.extend({
-    isActive: UpdateListingDtoSchema.shape.isActive.default(true),
-    title: UpdateListingDtoSchema.shape.title.default(""),
-    description: UpdateListingDtoSchema.shape.description.default(""),
-    address: UpdateListingDtoSchema.shape.address.default(""),
-    zip: UpdateListingDtoSchema.shape.zip.default(""),
-    muncipiality: UpdateListingDtoSchema.shape.muncipiality.default(""),
-    phone: UpdateListingDtoSchema.shape.phone.default(""),
-    email: UpdateListingDtoSchema.shape.email.default("")
+  var dataSchema8 = UpdateListingDto.schema.extend({
+    isActive: UpdateListingDto.schema.shape.isActive.default(true),
+    title: UpdateListingDto.schema.shape.title.default(""),
+    description: UpdateListingDto.schema.shape.description.default(""),
+    address: UpdateListingDto.schema.shape.address.default(""),
+    zip: UpdateListingDto.schema.shape.zip.default(""),
+    muncipiality: UpdateListingDto.schema.shape.muncipiality.default(""),
+    phone: UpdateListingDto.schema.shape.phone.default(""),
+    email: UpdateListingDto.schema.shape.email.default("")
   }).omit({
     id: true
   });
   var CreateListingDto = class {
-    schema = CreateListingDtoSchema;
     data;
     constructor(data) {
       this.data = data;
       Object.freeze(this.data);
     }
     static from(data) {
-      const parsedData = mergeWithDefaults(CreateListingDtoSchema, data);
+      const parsedData = mergeWithDefaults(dataSchema8, data);
       return new CreateListingDto(parsedData);
     }
   };
+  __publicField(CreateListingDto, "schema", dataSchema8);
   CreateListingDto = __decorateClass([
-    ExposeDataAsSchemaProps(CreateListingDtoSchema)
+    ExposeDataSchemaAsProps(dataSchema8)
   ], CreateListingDto);
 
   // node_modules/.pnpm/dot-prop@9.0.0/node_modules/dot-prop/index.js
@@ -19763,9 +19768,15 @@
     const formState = new FormState();
     const [values, setValue] = formState.getStore();
     createEffect(() => {
+      let dtoSchema;
+      if (props.listingDto instanceof CreateListingDto) {
+        dtoSchema = CreateListingDto.schema;
+      } else if (props.listingDto instanceof UpdateListingDto) {
+        dtoSchema = UpdateListingDto.schema;
+      }
       formState.initialize({
         initialValues: props.listingDto.data,
-        schema: props.listingDto.schema
+        schema: dtoSchema
       });
     });
     createEffect(() => {
@@ -21106,15 +21117,15 @@
   var __typeError = (msg) => {
     throw TypeError(msg);
   };
-  var __defNormalProp = (obj, key, value) => key in obj ? __defProp3(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+  var __defNormalProp2 = (obj, key, value) => key in obj ? __defProp3(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __spreadValues = (a5, b4) => {
     for (var prop in b4 || (b4 = {}))
       if (__hasOwnProp2.call(b4, prop))
-        __defNormalProp(a5, prop, b4[prop]);
+        __defNormalProp2(a5, prop, b4[prop]);
     if (__getOwnPropSymbols)
       for (var prop of __getOwnPropSymbols(b4)) {
         if (__propIsEnum.call(b4, prop))
-          __defNormalProp(a5, prop, b4[prop]);
+          __defNormalProp2(a5, prop, b4[prop]);
       }
     return a5;
   };

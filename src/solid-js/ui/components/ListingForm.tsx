@@ -3,11 +3,9 @@ import { unwrap } from 'solid-js/store';
 
 import {
   CreateListingDto,
-  CreateListingDtoSchemaType,
 } from '~/shared/models/listing/CreateListingDto';
 import {
   UpdateListingDto,
-  UpdateListingDtoSchemaType,
 } from '~/shared/models/listing/UpdateListingDto';
 
 import { FormState } from '~/solid-js/lib/FormState';
@@ -18,7 +16,7 @@ import { useService } from '../providers/ServiceProvider';
 import ListingFormTags from './ListingFormTags';
 import ListingFormLinks from './ListingFormLinks';
 
-export type FormStateType = CreateListingDtoSchemaType & UpdateListingDtoSchemaType;
+export type FormStateType = CreateListingDto.SchemaType & UpdateListingDto.SchemaType;
 
 const css = addCss({
   form: (theme: Theme) => ({
@@ -72,9 +70,17 @@ export const ListingForm: Component<{
 
   createEffect(() => {
     // (Re)Initialize formState when model changes
+    let dtoSchema;
+    if (props.listingDto instanceof CreateListingDto) {
+      dtoSchema = CreateListingDto.schema
+    }
+    else if (props.listingDto instanceof UpdateListingDto) {
+      dtoSchema = UpdateListingDto.schema
+    }
+
     formState.initialize({
       initialValues: props.listingDto.data,
-      schema: props.listingDto.schema,
+      schema: dtoSchema!,
     });
   });
 

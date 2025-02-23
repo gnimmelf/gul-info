@@ -1,27 +1,33 @@
 import { z } from 'zod';
-import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
+import { ExposeDataSchemaAsProps } from '~/shared/lib/ExposeDataSchemaAsProps';
 
-export const TagViewSchema = z.object({
+const dataSchema = z.object({
   id: z.any(),
   name: z.string(),
   usageCount: z.number().optional(),
 });
 
-export type TagViewModelSchemaType = z.infer<typeof TagViewSchema>;
+type DataSchemaType = z.infer<typeof dataSchema>;
+
+// Class namespace exports
+export namespace TagViewModel {
+  export type SchemaType = DataSchemaType;
+}
 
 // Add Schema props type definitions
-export interface TagViewModel extends TagViewModelSchemaType {}
+export interface TagViewModel extends DataSchemaType {}
 
-@ExposeDataAsSchemaProps(TagViewSchema)
+@ExposeDataSchemaAsProps(dataSchema)
 export class TagViewModel {
+  public static schema = dataSchema;
   private data;
 
-  constructor(data: TagViewModelSchemaType) {
+  constructor(data: DataSchemaType) {
     this.data = data;
   }
 
-  static from(data: TagViewModelSchemaType): TagViewModel {
-    const parsedData = TagViewSchema.parse(data);
+  static from(data: DataSchemaType): TagViewModel {
+    const parsedData = dataSchema.parse(data);
     return new TagViewModel(parsedData);
   }
 

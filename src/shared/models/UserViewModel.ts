@@ -1,26 +1,32 @@
 import { z } from 'zod';
-import { ExposeDataAsSchemaProps } from '~/shared/lib/ExposeDataAsSchemaProps';
+import { ExposeDataSchemaAsProps } from '~/shared/lib/ExposeDataSchemaAsProps';
 
-export const UserViewSchema = z.object({
+export const dataSchema = z.object({
   id: z.any(),
   name: z.string(),
   email: z.string().email(),
 });
 
-export type UserViewSchemaType = z.infer<typeof UserViewSchema>;
+export type DataSchemaType = z.infer<typeof dataSchema>;
+
+// Class namespace exports
+export namespace UserViewModel {
+  export type SchemaType = DataSchemaType;
+}
 // Add Schema props type definitions
-export interface UserViewModel extends UserViewSchemaType {}
+export interface UserViewModel extends DataSchemaType {}
 
-@ExposeDataAsSchemaProps(UserViewSchema)
+@ExposeDataSchemaAsProps(dataSchema)
 export class UserViewModel {
-  private data: UserViewSchemaType;
+  public static schema = dataSchema;
+  private data: DataSchemaType;
 
-  constructor(data: UserViewSchemaType) {
+  constructor(data: DataSchemaType) {
     this.data = data;
   }
 
-  static from(data: UserViewSchemaType): UserViewModel {
-    const parsedData = UserViewSchema.parse(data);
+  static from(data: DataSchemaType): UserViewModel {
+    const parsedData = dataSchema.parse(data);
     return new UserViewModel(parsedData);
   }
 }

@@ -1,21 +1,20 @@
-import { ListingViewSchemaType } from '../../../shared/models/listing/ListingViewModel';
-import { IndexLetterViewSchemaType } from '../../../shared/models/IndexLetterViewModel';
-import { TagViewModelSchemaType } from '../../../shared/models/TagViewModel';
-import { FilterSchemaType } from '../../../shared/models/Filters';
-import { UserViewSchemaType } from '../../../shared/models/UserViewModel';
-import { ListingSchemaType } from '~/shared/models/listing/Listing';
-import { CreateListingDtoSchemaType } from '~/shared/models/listing/CreateListingDto';
-import { UpdateListingDtoSchemaType } from '~/shared/models/listing/UpdateListingDto';
+import { IndexLetterViewModel } from '../../../shared/models/IndexLetterViewModel';
+import { TagViewModel } from '../../../shared/models/TagViewModel';
+import { Filters } from '../../../shared/models/Filters';
+import { UserViewModel } from '../../../shared/models/UserViewModel';
+import { Listing } from '~/shared/models/listing/Listing';
+import { CreateListingDto } from '~/shared/models/listing/CreateListingDto';
+import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
 
 export interface IDatabase {
-  getIndexLetterUsages: () => Promise<IndexLetterViewSchemaType[]>;
-  getTags: () => Promise<TagViewModelSchemaType[]>;
-  getTagUsages: () => Promise<TagViewModelSchemaType[]>;
+  getIndexLetterUsages: () => Promise<IndexLetterViewModel.SchemaType[]>;
+  getTags: () => Promise<TagViewModel.SchemaType[]>;
+  getTagUsages: () => Promise<TagViewModel.SchemaType[]>;
   authenticate: (token: string, isVerified: boolean) => Promise<boolean>;
-  getUserData: () => Promise<UserViewSchemaType>;
-  getListingsByFilters: (filters?: FilterSchemaType) => Promise<ListingViewSchemaType[]>;
-  getListingsByEmail: (email: string) => Promise<ListingSchemaType[]>;
-  createListing: (data: CreateListingDtoSchemaType) => Promise<ListingSchemaType>;
+  getUserData: () => Promise<UserViewModel.SchemaType>;
+  getListingsByFilters: (filters?: Filters.SchemaType) => Promise<Listing.SchemaType[]>;
+  getListingsByEmail: (email: string) => Promise<Listing.SchemaType[]>;
+  createListing: (data: CreateListingDto.SchemaType) => Promise<Listing.SchemaType>;
   deleteListing: (listingId: string) => Promise<void>;
-  updateListing: (data: UpdateListingDtoSchemaType) => Promise<ListingSchemaType>;
+  updateListing: (data: UpdateListingDto.SchemaType) => Promise<Listing.SchemaType>;
 }
