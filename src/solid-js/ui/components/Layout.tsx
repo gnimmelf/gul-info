@@ -2,9 +2,10 @@ import { Component, ErrorBoundary, JSXElement, Suspense } from 'solid-js';
 
 import { PAGES } from '../../lib/enums';
 import { Loading } from './Loading';
-import { AccountHead } from './AccountHead';
+import { AppMenu } from './AppMenu';
 
 import { addCss, join, Theme } from '~/shared/ui/theme';
+import { useSystem } from '../providers/SystemProvider';
 
 const css = addCss({
   app: (theme: Theme) => ({
@@ -32,44 +33,27 @@ const css = addCss({
       fontSize: theme.fontSizeMd,
       fontFamily: "'Playwrite HU', sans-serif",
     },
-  }),
-  user: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'end',
-  },
+  })
 });
 
 export const Layout: Component<{
   title: string;
-  selectedPage: PAGES;
-  toggleMainPages: () => void;
   children: JSXElement;
 }> = (props) => {
-  // TODO! Add a proper menu
+  const { setCurrentPage } = useSystem();
 
   return (
     <div class={join(css.app, css.border)}>
       <section class={css.header}>
         <div>
-          <h1 class={css.title} on:click={props.toggleMainPages}>
+          <h1 class={css.title} on:click={() => setCurrentPage(PAGES.LISTINGS)}>
             <span class="logo">Gul Info</span>
             <br />
             {props.title}
           </h1>
         </div>
-        <div class={css.user}>
-          <AccountHead>
-            <sl-icon-button
-              style="font-size: 20px;"
-              prop:name={
-                props.selectedPage === PAGES.LISTINGS
-                  ? 'person-circle'
-                  : 'arrow-left-circle'
-              }
-              on:click={props.toggleMainPages}
-            />
-          </AccountHead>
+        <div>
+          <AppMenu />
         </div>
       </section>
       <ErrorBoundary

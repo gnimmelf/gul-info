@@ -16531,15 +16531,28 @@
 
   // src/solid-js/ui/providers/SystemProvider.tsx
   var SystemContext = createContext();
-  var CoreProvider = (props) => {
+  var SystemProvider = (props) => {
     const initialize = async () => {
       const configs = await createConfigsServiceAdaper("https://intergate.io/configs/gul-info-hurdal");
       const db = await createDatabaseAdapter(configs.surreal);
       const resources = new ResourceRegistry();
+      const PAGE_KEY = "pageKey";
+      const pageKey = window.localStorage.getItem(PAGE_KEY) || "PAGE_LISTINGS" /* LISTINGS */;
+      const [_currentPage, _setCurrentPage] = createSignal(pageKey);
+      function setCurrentPage(pageKey2) {
+        window.localStorage.setItem(PAGE_KEY, pageKey2);
+        _setCurrentPage(pageKey2);
+      }
+      ;
+      function isCurrentPage(pageKey2) {
+        return _currentPage() === pageKey2;
+      }
       return {
         configs,
         db,
-        resources
+        resources,
+        isCurrentPage,
+        setCurrentPage
       };
     };
     const [system] = createResource(initialize);
@@ -16562,7 +16575,7 @@
   var useSystem = () => {
     const context = useContext(SystemContext);
     if (!context) {
-      throw new Error("useSystem must be used within an CoreProvider");
+      throw new Error("useSystem must be used within an SystemProvider");
     }
     return context;
   };
@@ -18440,9 +18453,15 @@
     })();
   };
 
-  // src/solid-js/ui/components/AccountHead.tsx
-  var _tmpl$2 = /* @__PURE__ */ template(`<sl-button>Logout`, true, false);
-  var AccountHead = (props) => {
+  // src/solid-js/ui/components/AppMenu.tsx
+  var _tmpl$2 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=suffix>`, true, false);
+  var _tmpl$22 = /* @__PURE__ */ template(`<sl-divider>`, true, false);
+  var _tmpl$3 = /* @__PURE__ */ template(`<sl-menu-item>Logout<sl-icon slot=prefix>`, true, false);
+  var _tmpl$4 = /* @__PURE__ */ template(`<sl-dropdown><sl-menu><sl-menu-item>Gul info<sl-icon slot=prefix></sl-icon></sl-menu-item><sl-menu-item>Min side<sl-icon slot=prefix>`, true, false);
+  var AppMenu = (props) => {
+    const {
+      setCurrentPage
+    } = useSystem();
     const {
       account
     } = useService();
@@ -18454,27 +18473,74 @@
         });
       },
       get children() {
-        return [createMemo(() => props.children), createComponent(Show, {
+        var _el$ = _tmpl$4(), _el$6 = _el$.firstChild, _el$7 = _el$6.firstChild, _el$8 = _el$7.firstChild, _el$9 = _el$8.nextSibling, _el$10 = _el$7.nextSibling, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
+        _el$._$owner = getOwner();
+        insert(_el$, createComponent(Switch, {
+          get children() {
+            return [createComponent(Match, {
+              get when() {
+                return !user();
+              },
+              get children() {
+                var _el$2 = _tmpl$2(), _el$3 = _el$2.firstChild;
+                _el$2.slot = "trigger";
+                _el$2._$owner = getOwner();
+                _el$3.name = "list";
+                _el$3._$owner = getOwner();
+                return _el$2;
+              }
+            }), createComponent(Match, {
+              get when() {
+                return user();
+              },
+              get children() {
+                var _el$4 = _tmpl$2(), _el$5 = _el$4.firstChild;
+                _el$4.slot = "trigger";
+                _el$4._$owner = getOwner();
+                _el$5.name = "list";
+                _el$5._$owner = getOwner();
+                insert(_el$4, () => user().name, null);
+                return _el$4;
+              }
+            })];
+          }
+        }), _el$6);
+        _el$6._$owner = getOwner();
+        addEventListener(_el$7, "click", () => setCurrentPage("PAGE_LISTINGS" /* LISTINGS */));
+        _el$7._$owner = getOwner();
+        _el$9.name = "shop";
+        _el$9._$owner = getOwner();
+        addEventListener(_el$10, "click", () => setCurrentPage("PAGE_ACCOUNT" /* ACCOUNT */));
+        _el$10._$owner = getOwner();
+        _el$12.name = "person-circle";
+        _el$12._$owner = getOwner();
+        insert(_el$6, createComponent(Show, {
           get when() {
             return user();
           },
           get children() {
-            return [createMemo(() => user()?.name), (() => {
-              var _el$ = _tmpl$2();
-              addEventListener(_el$, "click", () => account()?.logout());
-              _el$._$owner = getOwner();
-              return _el$;
+            return [(() => {
+              var _el$13 = _tmpl$22();
+              _el$13._$owner = getOwner();
+              return _el$13;
+            })(), (() => {
+              var _el$14 = _tmpl$3(), _el$15 = _el$14.firstChild, _el$16 = _el$15.nextSibling;
+              addEventListener(_el$14, "click", () => account()?.logout());
+              _el$14._$owner = getOwner();
+              _el$16.name = "door-open";
+              _el$16._$owner = getOwner();
+              return _el$14;
             })()];
           }
-        })];
+        }), null);
+        return _el$;
       }
     });
   };
 
   // src/solid-js/ui/components/Layout.tsx
-  var _tmpl$3 = /* @__PURE__ */ template(`<sl-icon-button style=font-size:20px;>`, true, false);
-  var _tmpl$22 = /* @__PURE__ */ template(`<div><section><div><h1><span class=logo>Gul Info</span><br></h1></div><div>`);
-  var _tmpl$32 = /* @__PURE__ */ template(`<div>Error: `);
+  var _tmpl$5 = /* @__PURE__ */ template(`<div><section><div><h1><span class=logo>Gul Info</span><br></h1></div><div>`);
+  var _tmpl$23 = /* @__PURE__ */ template(`<div>Error: `);
   var css2 = addCss({
     app: (theme2) => ({
       padding: "10px 15px",
@@ -18501,34 +18567,24 @@
         fontSize: theme2.fontSizeMd,
         fontFamily: "'Playwrite HU', sans-serif"
       }
-    }),
-    user: {
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "end"
-    }
+    })
   });
   var Layout = (props) => {
+    const {
+      setCurrentPage
+    } = useSystem();
     return (() => {
-      var _el$ = _tmpl$22(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$5.nextSibling, _el$7 = _el$3.nextSibling;
-      addEventListener(_el$4, "click", props.toggleMainPages);
+      var _el$ = _tmpl$5(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.firstChild, _el$6 = _el$5.nextSibling, _el$7 = _el$3.nextSibling;
+      addEventListener(_el$4, "click", () => setCurrentPage("PAGE_LISTINGS" /* LISTINGS */));
       insert(_el$4, () => props.title, null);
-      insert(_el$7, createComponent(AccountHead, {
-        get children() {
-          var _el$8 = _tmpl$3();
-          addEventListener(_el$8, "click", props.toggleMainPages);
-          _el$8._$owner = getOwner();
-          createRenderEffect(() => _el$8.name = props.selectedPage === "PAGE_LISTINGS" /* LISTINGS */ ? "person-circle" : "arrow-left-circle");
-          return _el$8;
-        }
-      }));
+      insert(_el$7, createComponent(AppMenu, {}));
       insert(_el$, createComponent(ErrorBoundary, {
         fallback: (error) => {
           console.error(error);
           return (() => {
-            var _el$9 = _tmpl$32(), _el$10 = _el$9.firstChild;
-            insert(_el$9, () => error.message, null);
-            return _el$9;
+            var _el$8 = _tmpl$23(), _el$9 = _el$8.firstChild;
+            insert(_el$8, () => error.message, null);
+            return _el$8;
           })();
         },
         get children() {
@@ -18545,17 +18601,15 @@
         }
       }), null);
       createRenderEffect((_p$) => {
-        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title, _v$4 = css2.user;
+        var _v$ = join(css2.app, css2.border), _v$2 = css2.header, _v$3 = css2.title;
         _v$ !== _p$.e && className(_el$, _p$.e = _v$);
         _v$2 !== _p$.t && className(_el$2, _p$.t = _v$2);
         _v$3 !== _p$.a && className(_el$4, _p$.a = _v$3);
-        _v$4 !== _p$.o && className(_el$7, _p$.o = _v$4);
         return _p$;
       }, {
         e: void 0,
         t: void 0,
-        a: void 0,
-        o: void 0
+        a: void 0
       });
       return _el$;
     })();
@@ -18611,7 +18665,7 @@
   }
 
   // src/solid-js/ui/components/IconLabel.tsx
-  var _tmpl$4 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
+  var _tmpl$6 = /* @__PURE__ */ template(`<span><sl-icon></sl-icon><span>`, true, false);
   var css3 = addCss({
     wrapper: {
       display: "flex"
@@ -18625,7 +18679,7 @@
   });
   var IconLabel = (props) => {
     return (() => {
-      var _el$ = _tmpl$4(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
+      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling;
       _el$2._$owner = getOwner();
       insert(_el$3, () => props.children);
       createRenderEffect((_p$) => {
@@ -18648,7 +18702,7 @@
   };
 
   // src/solid-js/ui/components/WebLink.tsx
-  var _tmpl$5 = /* @__PURE__ */ template(`<a target=_blank>`);
+  var _tmpl$7 = /* @__PURE__ */ template(`<a target=_blank>`);
   var WebLink = (props) => {
     const {
       pathname,
@@ -18674,7 +18728,7 @@
       },
       label: hostname,
       get children() {
-        var _el$ = _tmpl$5();
+        var _el$ = _tmpl$7();
         insert(_el$, () => link.title);
         createRenderEffect(() => setAttribute(_el$, "href", props.link.href));
         return _el$;
@@ -18683,7 +18737,7 @@
   };
 
   // src/solid-js/ui/components/Phone.tsx
-  var _tmpl$6 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
+  var _tmpl$8 = /* @__PURE__ */ template(`<sl-dropdown><sl-button><sl-icon slot=prefix></sl-icon></sl-button><sl-menu><sl-menu-item><sl-icon slot=prefix></sl-icon>Copy</sl-menu-item><sl-menu-item><sl-icon slot=prefix></sl-icon>Call`, true, false);
   var Phone = (props) => {
     const copyToClipboard = () => {
       navigator.clipboard.writeText(props.phoneNumber);
@@ -18692,7 +18746,7 @@
       window.location.href = `tel:${props.phoneNumber}`;
     };
     return (() => {
-      var _el$ = _tmpl$6(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
+      var _el$ = _tmpl$8(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$4 = _el$2.nextSibling, _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$5.nextSibling, _el$8 = _el$7.firstChild;
       _el$._$owner = getOwner();
       _el$2.slot = "trigger";
       _el$2.caret = true;
@@ -18714,14 +18768,14 @@
   };
 
   // src/solid-js/ui/components/Address.tsx
-  var _tmpl$7 = /* @__PURE__ */ template(`<br>`);
+  var _tmpl$9 = /* @__PURE__ */ template(`<br>`);
   var Address = (props) => {
-    return [createMemo(() => props.address), _tmpl$7(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
+    return [createMemo(() => props.address), _tmpl$9(), createMemo(() => props.zip), " ", createMemo(() => props.muncipiality)];
   };
 
   // src/solid-js/ui/components/BadgeButton.tsx
-  var _tmpl$8 = /* @__PURE__ */ template(`<div><div class=text>`);
-  var _tmpl$23 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
+  var _tmpl$10 = /* @__PURE__ */ template(`<div><div class=text>`);
+  var _tmpl$24 = /* @__PURE__ */ template(`<sl-button><span>`, true, false);
   var css4 = addCss({
     button: {
       // width: "34px",
@@ -18750,7 +18804,7 @@
   });
   var BadgeButton = (props) => {
     return (() => {
-      var _el$ = _tmpl$23(), _el$2 = _el$.firstChild;
+      var _el$ = _tmpl$24(), _el$2 = _el$.firstChild;
       addEventListener(_el$, "click", props.onClick, true);
       _el$._$owner = getOwner();
       insert(_el$2, () => props.buttonLabel);
@@ -18759,7 +18813,7 @@
           return props.badgeLabel;
         },
         get children() {
-          var _el$3 = _tmpl$8(), _el$4 = _el$3.firstChild;
+          var _el$3 = _tmpl$10(), _el$4 = _el$3.firstChild;
           insert(_el$4, () => props.badgeLabel);
           createRenderEffect(() => className(_el$3, css4.badge));
           return _el$3;
@@ -18784,7 +18838,7 @@
   delegateEvents(["click"]);
 
   // src/solid-js/ui/components/ListingsFilters.tsx
-  var _tmpl$9 = /* @__PURE__ */ template(`<section><div></div><div><sl-checkbox>M\xE5 match alle valgte tagger</sl-checkbox></div><div>`, true, false);
+  var _tmpl$11 = /* @__PURE__ */ template(`<section><div></div><div><sl-checkbox>M\xE5 match alle valgte tagger</sl-checkbox></div><div>`, true, false);
   var css5 = addCss({
     section: (theme2) => ({
       display: "flex",
@@ -18812,7 +18866,7 @@
       filters()?.setTagsMatchType(next);
     };
     return (() => {
-      var _el$ = _tmpl$9(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
+      var _el$ = _tmpl$11(), _el$2 = _el$.firstChild, _el$3 = _el$2.nextSibling, _el$4 = _el$3.firstChild, _el$5 = _el$3.nextSibling;
       insert(_el$2, () => indexLetters()?.map(({
         letter,
         count
@@ -18867,9 +18921,9 @@
   };
 
   // src/solid-js/ui/pages/PageListings.tsx
-  var _tmpl$10 = /* @__PURE__ */ template(`<div> treff.`);
-  var _tmpl$24 = /* @__PURE__ */ template(`<section>`);
-  var _tmpl$33 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
+  var _tmpl$12 = /* @__PURE__ */ template(`<div> treff.`);
+  var _tmpl$25 = /* @__PURE__ */ template(`<section>`);
+  var _tmpl$32 = /* @__PURE__ */ template(`<sl-card><div slot=header><div class=title></div><div class=flex-middle></div><div></div></div><div><div><div></div><div></div></div><div>`, true, false);
   var _tmpl$42 = /* @__PURE__ */ template(`<span><br>`);
   var _tmpl$52 = /* @__PURE__ */ template(`<sl-tag>`, true, false);
   var css6 = addCss({
@@ -18927,10 +18981,10 @@
       }
     });
     return (() => {
-      var _el$ = _tmpl$24();
+      var _el$ = _tmpl$25();
       insert(_el$, createComponent(ListingsFilters, {
         get children() {
-          var _el$2 = _tmpl$10(), _el$3 = _el$2.firstChild;
+          var _el$2 = _tmpl$12(), _el$3 = _el$2.firstChild;
           insert(_el$2, hitCount, _el$3);
           return _el$2;
         }
@@ -18947,7 +19001,7 @@
               return filteredListings();
             },
             children: (listing) => (() => {
-              var _el$4 = _tmpl$33(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
+              var _el$4 = _tmpl$32(), _el$5 = _el$4.firstChild, _el$6 = _el$5.firstChild, _el$7 = _el$6.nextSibling, _el$8 = _el$7.nextSibling, _el$9 = _el$5.nextSibling, _el$10 = _el$9.firstChild, _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling, _el$13 = _el$10.nextSibling;
               _el$4._$owner = getOwner();
               insert(_el$6, () => listing.title);
               insert(_el$7, createComponent(IconLabel, {
@@ -19498,17 +19552,17 @@
   };
 
   // src/solid-js/ui/components/FormField.tsx
-  var _tmpl$11 = /* @__PURE__ */ template(`<div>`);
+  var _tmpl$13 = /* @__PURE__ */ template(`<div>`);
   var FormField = (props) => {
     return (() => {
-      var _el$ = _tmpl$11();
+      var _el$ = _tmpl$13();
       insert(_el$, () => props.children(props.key), null);
       insert(_el$, createComponent(Show, {
         get when() {
           return createMemo(() => !!!props.hideError)() && props.formState.showFieldError(props.key);
         },
         get children() {
-          var _el$2 = _tmpl$11();
+          var _el$2 = _tmpl$13();
           insert(_el$2, () => props.formState.getErrorMessage(props.key));
           return _el$2;
         }
@@ -19519,9 +19573,9 @@
   };
 
   // src/solid-js/ui/components/ListingFormTags.tsx
-  var _tmpl$12 = /* @__PURE__ */ template(`<fieldset><legend>Knagger (<!> av <!>)</legend><div></div><div><sl-select>`, true, false);
-  var _tmpl$25 = /* @__PURE__ */ template(`<sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
-  var _tmpl$34 = /* @__PURE__ */ template(`<sl-option>`, true, false);
+  var _tmpl$14 = /* @__PURE__ */ template(`<fieldset><legend>Knagger (<!> av <!>)</legend><div></div><div><sl-select>`, true, false);
+  var _tmpl$26 = /* @__PURE__ */ template(`<sl-button-group><sl-button><sl-icon slot=suffix>`, true, false);
+  var _tmpl$33 = /* @__PURE__ */ template(`<sl-option>`, true, false);
   var css7 = addCss({
     tagsContainer: (theme2) => ({
       display: "flex",
@@ -19533,7 +19587,7 @@
   var ListingFormTags = (props) => {
     const defaultFormElementSize = "small";
     return (() => {
-      var _el$ = _tmpl$12(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$9.firstChild;
+      var _el$ = _tmpl$14(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.nextSibling, _el$10 = _el$9.firstChild;
       insert(_el$2, () => props.selectedTagIds?.length, _el$6);
       insert(_el$2, MAX_TAGS, _el$7);
       insert(_el$8, createComponent(For, {
@@ -19543,7 +19597,7 @@
         children: (tagId) => {
           const tag = props.tags?.find((tag2) => tag2.id === tagId);
           return (() => {
-            var _el$11 = _tmpl$25(), _el$12 = _el$11.firstChild, _el$13 = _el$12.firstChild;
+            var _el$11 = _tmpl$26(), _el$12 = _el$11.firstChild, _el$13 = _el$12.firstChild;
             _el$11._$owner = getOwner();
             addEventListener(_el$12, "click", () => props.removeTag(tagId));
             _el$12.size = "small";
@@ -19564,7 +19618,7 @@
           return props.tags;
         },
         children: (tag) => (() => {
-          var _el$14 = _tmpl$34();
+          var _el$14 = _tmpl$33();
           addEventListener(_el$14, "click", () => props.addTag(tag.id));
           _el$14._$owner = getOwner();
           insert(_el$14, () => tag.name);
@@ -19591,8 +19645,8 @@
   var ListingFormTags_default = ListingFormTags;
 
   // src/solid-js/ui/components/ListingFormLinks.tsx
-  var _tmpl$13 = /* @__PURE__ */ template(`<fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny`, true, false);
-  var _tmpl$26 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
+  var _tmpl$15 = /* @__PURE__ */ template(`<fieldset><legend>Lenker (<!> av <!>)</legend><sl-button>Legg til ny`, true, false);
+  var _tmpl$27 = /* @__PURE__ */ template(`<div><sl-input></sl-input><sl-icon-button color=red>`, true, false);
   var css8 = addCss({
     itemRow: (theme2) => ({
       display: "flex",
@@ -19609,7 +19663,7 @@
   var ListingFormLinks = (props) => {
     const defaultFormElementSize = "small";
     return (() => {
-      var _el$ = _tmpl$13(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling;
+      var _el$ = _tmpl$15(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling;
       insert(_el$2, () => props.links?.length, _el$6);
       insert(_el$2, MAX_LINKS, _el$7);
       insert(_el$, createComponent(For, {
@@ -19625,7 +19679,7 @@
           },
           hideError: true,
           children: (key) => (() => {
-            var _el$9 = _tmpl$26(), _el$10 = _el$9.firstChild, _el$11 = _el$10.nextSibling;
+            var _el$9 = _tmpl$27(), _el$10 = _el$9.firstChild, _el$11 = _el$10.nextSibling;
             addEventListener(_el$10, "blur", () => props.formState.validateField(key));
             addEventListener(_el$10, "input", (e13) => props.updateLink(idx(), e13.target.value));
             _el$10.size = "small";
@@ -19667,9 +19721,9 @@
   var ListingFormLinks_default = ListingFormLinks;
 
   // src/solid-js/ui/components/ListingForm.tsx
-  var _tmpl$14 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=suffix></sl-icon>Slett`, true, false);
-  var _tmpl$27 = /* @__PURE__ */ template(`<sl-card><form><div></div><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
-  var _tmpl$35 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
+  var _tmpl$16 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=suffix></sl-icon>Slett`, true, false);
+  var _tmpl$28 = /* @__PURE__ */ template(`<sl-card><form><div></div><div><sl-button-group><sl-button>Lagre</sl-button><sl-button>Avbryt`, true, false);
+  var _tmpl$34 = /* @__PURE__ */ template(`<sl-checkbox>Aktiv`, true, false);
   var _tmpl$43 = /* @__PURE__ */ template(`<sl-input>`, true, false);
   var css9 = addCss({
     form: (theme2) => ({
@@ -19753,13 +19807,13 @@
       }
     }
     return (() => {
-      var _el$ = _tmpl$27(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$7 = _el$6.firstChild, _el$8 = _el$7.firstChild, _el$9 = _el$8.nextSibling;
+      var _el$ = _tmpl$28(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$7 = _el$6.firstChild, _el$8 = _el$7.firstChild, _el$9 = _el$8.nextSibling;
       _el$._$owner = getOwner();
       insert(_el$3, createComponent(FormField, {
         key: "isActive",
         formState,
         children: (key) => (() => {
-          var _el$10 = _tmpl$35();
+          var _el$10 = _tmpl$34();
           addEventListener(_el$10, "input", () => setValue(key, !values[key]));
           _el$10.size = "small";
           _el$10._$owner = getOwner();
@@ -19772,7 +19826,7 @@
           return props.listingDto instanceof UpdateListingDto;
         },
         get children() {
-          var _el$4 = _tmpl$14(), _el$5 = _el$4.firstChild;
+          var _el$4 = _tmpl$16(), _el$5 = _el$4.firstChild;
           addEventListener(_el$4, "click", () => props.onDelete(props.listingDto));
           _el$4.size = "medium";
           _el$4.type = "button";
@@ -20011,8 +20065,8 @@
   };
 
   // src/solid-js/ui/components/MyListings.tsx
-  var _tmpl$15 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny</sl-button></div><sl-alert><sl-icon slot=icon></sl-icon><strong>Listing <!> was `, true, false);
-  var _tmpl$28 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
+  var _tmpl$17 = /* @__PURE__ */ template(`<section><h2>Mine oppf\xF8ringer (<!> / <!>)</h2><div><sl-button><sl-icon slot=prefix></sl-icon>Ny</sl-button></div><sl-alert><sl-icon slot=icon></sl-icon><strong>Listing <!> was `, true, false);
+  var _tmpl$29 = /* @__PURE__ */ template(`<sl-button><sl-icon slot=prefix>`, true, false);
   var css10 = addCss({
     listings: (theme2) => ({
       display: "flex",
@@ -20093,7 +20147,7 @@
       }
     }
     return (() => {
-      var _el$ = _tmpl$15(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild, _el$11 = _el$8.nextSibling, _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$13.firstChild, _el$16 = _el$14.nextSibling, _el$15 = _el$16.nextSibling;
+      var _el$ = _tmpl$17(), _el$2 = _el$.firstChild, _el$3 = _el$2.firstChild, _el$6 = _el$3.nextSibling, _el$4 = _el$6.nextSibling, _el$7 = _el$4.nextSibling, _el$5 = _el$7.nextSibling, _el$8 = _el$2.nextSibling, _el$9 = _el$8.firstChild, _el$10 = _el$9.firstChild, _el$11 = _el$8.nextSibling, _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$13.firstChild, _el$16 = _el$14.nextSibling, _el$15 = _el$16.nextSibling;
       insert(_el$2, () => myListings()?.length || 0, _el$6);
       insert(_el$2, MAX_LISTINGS, _el$7);
       insert(_el$8, createComponent(For, {
@@ -20101,7 +20155,7 @@
           return myListings();
         },
         children: (listing, idx) => (() => {
-          var _el$17 = _tmpl$28(), _el$18 = _el$17.firstChild;
+          var _el$17 = _tmpl$29(), _el$18 = _el$17.firstChild;
           addEventListener(_el$17, "click", () => editListing(listing));
           _el$17.name = "pencil";
           _el$17._$owner = getOwner();
@@ -20176,9 +20230,9 @@
   };
 
   // src/solid-js/ui/pages/PageAccount.tsx
-  var _tmpl$16 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
-  var _tmpl$29 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$36 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
+  var _tmpl$18 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
+  var _tmpl$210 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
+  var _tmpl$35 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
   var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
   var css11 = addCss({});
@@ -20196,7 +20250,7 @@
         },
         get children() {
           return [(() => {
-            var _el$2 = _tmpl$16(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$7 = _el$5.nextSibling, _el$6 = _el$7.nextSibling;
+            var _el$2 = _tmpl$18(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$7 = _el$5.nextSibling, _el$6 = _el$7.nextSibling;
             _el$2.variant = "warning";
             _el$2._$owner = getOwner();
             _el$3.name = "exclamation-triangle";
@@ -20211,7 +20265,7 @@
                 return !mustVerifyEmail();
               },
               get children() {
-                var _el$9 = _tmpl$29();
+                var _el$9 = _tmpl$210();
                 addEventListener(_el$9, "click", () => account()?.login());
                 _el$9._$owner = getOwner();
                 return _el$9;
@@ -20222,7 +20276,7 @@
                 return mustVerifyEmail();
               },
               get children() {
-                var _el$10 = _tmpl$36(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
+                var _el$10 = _tmpl$35(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
                 _el$10.label = "Alignment";
                 _el$10._$owner = getOwner();
                 addEventListener(_el$11, "click", () => account()?.login());
@@ -20249,19 +20303,38 @@
     })();
   };
 
+  // src/solid-js/ui/Routes.tsx
+  var Routes = (props) => {
+    const {
+      isCurrentPage
+    } = useSystem();
+    return createComponent(Switch, {
+      get children() {
+        return [createComponent(Match, {
+          get when() {
+            return isCurrentPage("PAGE_LISTINGS" /* LISTINGS */);
+          },
+          get children() {
+            return createComponent(PageListings, {});
+          }
+        }), createComponent(Match, {
+          get when() {
+            return isCurrentPage("PAGE_ACCOUNT" /* ACCOUNT */);
+          },
+          get children() {
+            return createComponent(PageAccount, {});
+          }
+        })];
+      }
+    });
+  };
+
   // src/solid-js/ui/App.tsx
-  var _tmpl$17 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
-  var _tmpl$210 = /* @__PURE__ */ template(`<style id=styler>`);
+  var _tmpl$19 = /* @__PURE__ */ template(`<link rel=stylesheet href=https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.0/dist/themes/light.css>`);
+  var _tmpl$211 = /* @__PURE__ */ template(`<style id=styler>`);
   var App = (props) => {
-    const PAGE_KEY = "pageKey";
-    const pageKey = window.localStorage.getItem(PAGE_KEY) || "PAGE_LISTINGS" /* LISTINGS */;
-    const [selectedPage, _setSelectedPage] = createSignal(pageKey);
-    const setSelectedPage = (pageKey2) => {
-      window.localStorage.setItem(PAGE_KEY, pageKey2);
-      _setSelectedPage(pageKey2);
-    };
-    return [_tmpl$17(), (() => {
-      var _el$2 = _tmpl$210();
+    return [_tmpl$19(), (() => {
+      var _el$2 = _tmpl$211();
       insert(_el$2, resolveStylesToString);
       return _el$2;
     })(), createComponent(Suspense, {
@@ -20271,7 +20344,7 @@
         });
       },
       get children() {
-        return createComponent(CoreProvider, {
+        return createComponent(SystemProvider, {
           get children() {
             return createComponent(ServiceProvider, {
               get children() {
@@ -20279,30 +20352,8 @@
                   get title() {
                     return props.title;
                   },
-                  get selectedPage() {
-                    return selectedPage();
-                  },
-                  toggleMainPages: () => setSelectedPage(selectedPage() === "PAGE_ACCOUNT" /* ACCOUNT */ ? "PAGE_LISTINGS" /* LISTINGS */ : "PAGE_ACCOUNT" /* ACCOUNT */),
                   get children() {
-                    return createComponent(Switch, {
-                      get children() {
-                        return [createComponent(Match, {
-                          get when() {
-                            return selectedPage() === "PAGE_LISTINGS" /* LISTINGS */;
-                          },
-                          get children() {
-                            return createComponent(PageListings, {});
-                          }
-                        }), createComponent(Match, {
-                          get when() {
-                            return selectedPage() === "PAGE_ACCOUNT" /* ACCOUNT */;
-                          },
-                          get children() {
-                            return createComponent(PageAccount, {});
-                          }
-                        })];
-                      }
-                    });
+                    return createComponent(Routes, {});
                   }
                 });
               }
