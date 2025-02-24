@@ -23,7 +23,7 @@ export const AppMenu: Component = (props) => {
           <Match when={user()}>
             <sl-button prop:slot="trigger">
               <sl-icon slot="suffix" prop:name="list"></sl-icon>
-              {user()!.name}
+              {user()!.email}
             </sl-button>
           </Match>
         </Switch>

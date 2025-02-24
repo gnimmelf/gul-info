@@ -3,7 +3,6 @@ import { ExposeDataSchemaAsProps } from '~/shared/lib/ExposeDataSchemaAsProps';
 
 export const dataSchema = z.object({
   id: z.any(),
-  name: z.string(),
   email: z.string().email(),
 });
 

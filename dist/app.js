@@ -16306,6 +16306,20 @@
     }
   };
 
+  // src/shared/lib/utils.ts
+  var import_es6 = __toESM(require_es6());
+  var import_fast_json_stable_stringify = __toESM(require_fast_json_stable_stringify());
+  var timeout = async (ms = 200, fn) => {
+    return new Promise((resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms));
+  };
+  var deepCopy = (obj) => JSON.parse(JSON.stringify(obj));
+  var toDotPath = (...args) => {
+    return args.flatMap((x3) => x3).map((p4, i9) => typeof p4 === "number" ? `[${p4}]` : i9 === 0 ? p4 : `.${p4}`).join("");
+  };
+  var fromDotPath = (path) => {
+    return path.split(/\.|\[(\d+)\]/).filter(Boolean).map((p4) => p4.match(/^\d+$/) ? Number(p4) : p4);
+  };
+
   // src/domains/infrastructure/database/infrastructure/SurrealDbAdapter.ts
   var SurrealDbAdapter = class {
     config;
@@ -16335,6 +16349,17 @@
         throw err;
       }
     }
+    async resendVerificationEmail(emailVerificationId) {
+      const query = `CREATE jobs CONTENT  {
+      key: "resend_email_verification",
+      value: $auth0_user_id
+    };`;
+      const res = pop(await this.client.query(query, { auth0_user_id: emailVerificationId }), {
+        popCount: 1,
+        ensureArray: false
+      });
+      return res;
+    }
     async authenticate(token, failSilently) {
       let res = false;
       try {
@@ -16352,6 +16377,9 @@
         popCount: 2,
         ensureArray: false
       });
+      if (Array.isArray(res)) {
+        throw new Error("Could not load user data");
+      }
       return stringifyIds(res);
     }
     async getIndexLetterUsages() {
@@ -16445,16 +16473,17 @@
   var pop = (data, options) => {
     let popCount = options?.popCount || 2;
     const ensureArray = options?.ensureArray === void 0 ? true : options?.ensureArray;
-    let res = data;
+    let res = deepCopy(data);
     while (popCount > 0 && Array.isArray(res) && res.length === 1) {
       res = res[0];
       popCount--;
     }
-    return ensureArray && !Array.isArray(res) ? [res] : res;
+    res = ensureArray && !Array.isArray(res) ? [res] : res;
+    console.log("pop", { data, res });
+    return res;
   };
   var stringifyIds = (res) => {
     const parsed = JSON.parse(JSON.stringify(res));
-    console.log({ res, parsed });
     return parsed;
   };
 
@@ -16463,20 +16492,6 @@
     const instance = new SurrealDbAdapter(surrealConfig);
     await instance.initialize();
     return instance;
-  };
-
-  // src/shared/lib/utils.ts
-  var import_es6 = __toESM(require_es6());
-  var import_fast_json_stable_stringify = __toESM(require_fast_json_stable_stringify());
-  var timeout = async (ms = 200, fn) => {
-    return new Promise((resolve) => setTimeout(() => resolve(fn ? fn() : void 0), ms));
-  };
-  var deepCopy = (obj) => JSON.parse(JSON.stringify(obj));
-  var toDotPath = (...args) => {
-    return args.flatMap((x3) => x3).map((p4, i9) => typeof p4 === "number" ? `[${p4}]` : i9 === 0 ? p4 : `.${p4}`).join("");
-  };
-  var fromDotPath = (path) => {
-    return path.split(/\.|\[(\d+)\]/).filter(Boolean).map((p4) => p4.match(/^\d+$/) ? Number(p4) : p4);
   };
 
   // src/domains/infrastructure/configs/infrastructure/ConfigsService.ts
@@ -17565,7 +17580,6 @@
       if (window.location.search.includes("code=") || window.location.search.includes("error=")) {
         try {
           const result = await this.client.handleRedirectCallback();
-          console.log({ result });
         } catch (err) {
           const { error, error_description } = err;
           console.error("Error handling redirect callback:", {
@@ -17591,8 +17605,11 @@
       return await this.client.isAuthenticated();
     }
     async getAuthData() {
-      const res = await this.client.isAuthenticated() ? await this.client.getIdTokenClaims() : void 0;
-      return res;
+      if (!await this.client.isAuthenticated()) {
+        return void 0;
+      }
+      const claims = await this.client.getIdTokenClaims();
+      return claims;
     }
     async getAccessToken() {
       return await this.client.getTokenSilently();
@@ -18202,7 +18219,6 @@
   // src/shared/models/UserViewModel.ts
   var dataSchema5 = z.object({
     id: z.any(),
-    name: z.string(),
     email: z.string().email()
   });
   var UserViewModel = class {
@@ -18226,27 +18242,43 @@
     constructor(db) {
       this.db = db;
     }
+    /**
+     * Autheticate auth service access-token with Db and return db-user
+     * @param token authProvider access token
+     * @returns UserViewModel around db-user data
+     */
     async getUser(token) {
-      await timeout();
       await this.db.authenticate(token, true);
       const data = await this.db.getUserData();
       const model = UserViewModel.from(data);
       return model;
+    }
+    async resendVerificationEmail(emailVerificationId) {
+      try {
+        const res = await this.db.resendVerificationEmail(emailVerificationId);
+        console.log("resendVerificationEmail", { emailVerificationId, res });
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
   // src/solid-js/serviceAdapters/createAccountServiceAdaper.ts
   var createAccountServiceAdaper = (db, auth) => {
     const accountService = new AccountService(db);
-    const [shouldAuthenticate, setShouldAuthenticate] = createSignal(false);
+    const [onResendVerificationEmail, setResendVerificationEmail] = createSignal(
+      /* @__PURE__ */ new Date()
+    );
+    const [onShouldAuthenticate, setShouldAuthenticate] = createSignal(false);
     const [isAuthenticated] = createResource(
-      () => shouldAuthenticate(),
+      () => onShouldAuthenticate(),
       () => auth.isAuthenticated()
     );
     const [authData] = createResource(
       () => isAuthenticated(),
       async () => {
         const data = await auth.getAuthData();
+        console.log("authData", { data });
         return data;
       }
     );
@@ -18256,21 +18288,35 @@
     const [user] = createResource(
       () => {
         if (authData() && !mustVerifyEmail()) {
-          return true;
+          return authData();
         }
         setShouldAuthenticate(true);
+        return false;
       },
       async () => {
         const token = await auth.getAccessToken();
         const user2 = await accountService.getUser(token);
+        console.log({ token, user: user2 });
         return user2;
+      }
+    );
+    const [resendVerificationEmail] = createResource(
+      () => onResendVerificationEmail(),
+      async () => {
+        if (authData() && mustVerifyEmail()) {
+          const { email_verification_id } = authData();
+          console.log({ email_verification_id });
+          await accountService.resendVerificationEmail(email_verification_id);
+        }
       }
     );
     const adapter = checkAdapterReturnType({
       resources: {
-        user
+        user,
+        resendVerificationEmail
       },
       mustVerifyEmail,
+      resendVerificationEmail: () => setResendVerificationEmail(/* @__PURE__ */ new Date()),
       login: auth.login.bind(auth),
       logout: auth.logout.bind(auth)
     });
@@ -18486,7 +18532,7 @@
                 _el$4._$owner = getOwner();
                 _el$5.name = "list";
                 _el$5._$owner = getOwner();
-                insert(_el$4, () => user().name, null);
+                insert(_el$4, () => user().email, null);
                 return _el$4;
               }
             })];
@@ -20223,16 +20269,36 @@
   };
 
   // src/solid-js/ui/pages/PageAccount.tsx
-  var _tmpl$18 = /* @__PURE__ */ template(`<sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
-  var _tmpl$210 = /* @__PURE__ */ template(`<sl-button>Logg inn`, true, false);
-  var _tmpl$35 = /* @__PURE__ */ template(`<sl-button-group><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
+  var _tmpl$18 = /* @__PURE__ */ template(`<div><sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
+  var _tmpl$210 = /* @__PURE__ */ template(`<sl-button>Logg inn / Opprett konto`, true, false);
+  var _tmpl$35 = /* @__PURE__ */ template(`<div><sl-button>Fortsett innlogging</sl-button><sl-button>Send verifiserings-e-post p\xE5 nytt</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
   var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
-  var css11 = addCss({});
+  var css11 = addCss({
+    section: (theme2) => ({
+      marginBottom: theme2.gapMd
+    }),
+    center: (theme2) => ({
+      textAlign: "center"
+    }),
+    controls: (theme2) => ({
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "space-evenly",
+      gap: theme2.gapMd
+    })
+  });
   var PageAccount = (props) => {
     const {
       account
     } = useService();
+    const [disableResend, setDisableResend] = createSignal(false);
+    function resendVerificationEmail() {
+      setDisableResend(true);
+      const sendTime = account().resendVerificationEmail();
+      const timeOut = 5e3 + sendTime.getTime();
+      setTimeout(() => setDisableResend(true), timeOut);
+    }
     const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
     const isLoggedIn = createMemo(() => account()?.resources.user());
     return (() => {
@@ -20243,44 +20309,64 @@
         },
         get children() {
           return [(() => {
-            var _el$2 = _tmpl$18(), _el$3 = _el$2.firstChild, _el$4 = _el$3.nextSibling, _el$5 = _el$4.firstChild, _el$7 = _el$5.nextSibling, _el$6 = _el$7.nextSibling;
-            _el$2.variant = "warning";
-            _el$2._$owner = getOwner();
-            _el$3.name = "exclamation-triangle";
+            var _el$2 = _tmpl$18(), _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.nextSibling, _el$6 = _el$5.firstChild, _el$8 = _el$6.nextSibling, _el$7 = _el$8.nextSibling;
+            _el$3.variant = "warning";
             _el$3._$owner = getOwner();
-            insert(_el$4, mustVerifyEmail, _el$7);
-            createRenderEffect(() => _el$2.open = Boolean(mustVerifyEmail()));
+            _el$4.name = "exclamation-triangle";
+            _el$4._$owner = getOwner();
+            insert(_el$5, mustVerifyEmail, _el$8);
+            createRenderEffect((_p$) => {
+              var _v$ = join(css11.section), _v$2 = Boolean(mustVerifyEmail());
+              _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
+              _v$2 !== _p$.t && (_el$3.open = _p$.t = _v$2);
+              return _p$;
+            }, {
+              e: void 0,
+              t: void 0
+            });
             return _el$2;
           })(), (() => {
-            var _el$8 = _tmpl$44();
-            insert(_el$8, createComponent(Show, {
+            var _el$9 = _tmpl$44();
+            insert(_el$9, createComponent(Show, {
               get when() {
                 return !mustVerifyEmail();
               },
               get children() {
-                var _el$9 = _tmpl$210();
-                addEventListener(_el$9, "click", () => account()?.login());
-                _el$9._$owner = getOwner();
-                return _el$9;
+                var _el$10 = _tmpl$210();
+                addEventListener(_el$10, "click", () => account()?.login());
+                _el$10._$owner = getOwner();
+                return _el$10;
               }
             }), null);
-            insert(_el$8, createComponent(Show, {
+            insert(_el$9, createComponent(Show, {
               get when() {
                 return mustVerifyEmail();
               },
               get children() {
-                var _el$10 = _tmpl$35(), _el$11 = _el$10.firstChild, _el$12 = _el$11.nextSibling;
-                _el$10.label = "Alignment";
-                _el$10._$owner = getOwner();
-                addEventListener(_el$11, "click", () => account()?.login());
-                _el$11.variant = "primary";
-                _el$11._$owner = getOwner();
-                addEventListener(_el$12, "click", () => account()?.logout());
+                var _el$11 = _tmpl$35(), _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$13.nextSibling;
+                addEventListener(_el$12, "click", () => account()?.login());
+                _el$12.variant = "primary";
                 _el$12._$owner = getOwner();
-                return _el$10;
+                addEventListener(_el$13, "click", resendVerificationEmail);
+                _el$13.variant = "default";
+                _el$13._$owner = getOwner();
+                addEventListener(_el$14, "click", () => account()?.logout());
+                _el$14.variant = "danger";
+                _el$14._$owner = getOwner();
+                createRenderEffect((_p$) => {
+                  var _v$3 = css11.controls, _v$4 = disableResend();
+                  _v$3 !== _p$.e && className(_el$11, _p$.e = _v$3);
+                  _v$4 !== _p$.t && (_el$13.disabled = _p$.t = _v$4);
+                  return _p$;
+                }, {
+                  e: void 0,
+                  t: void 0
+                });
+                return _el$11;
               }
             }), null);
-            return _el$8;
+            createRenderEffect(() => className(_el$9, join(css11.section, css11.center)));
+            return _el$9;
           })()];
         }
       }), null);

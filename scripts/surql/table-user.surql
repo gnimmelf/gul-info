@@ -1,41 +1,42 @@
 DEFINE TABLE OVERWRITE users SCHEMAFULL
-  -- Authorized users can select, update, delete and create user records.
-  -- Records that do not match the permissions will not be modified nor returned.
   PERMISSIONS FOR select, update, delete, create
   WHERE
-    -- The access method must match the method that we will define.
-    $access = "auth0"
-    -- The record identifier must match that of the authenticated user.
-    AND id = $auth
+    $access = "auth0_jwt" AND id = $auth.id
 ;
 
--- In this example, we will use the email as the primary identifier for a user.
-DEFINE INDEX email ON users FIELDS email UNIQUE;
+DEFINE FIELD auth0_userId ON users TYPE string;
 DEFINE FIELD email ON users TYPE string ASSERT string::is::email($value);
--- We define some other information present in the token that we want to store.
-DEFINE FIELD name ON users TYPE string;
+// Index / unique
+DEFINE INDEX email ON users FIELDS email UNIQUE;
+DEFINE INDEX auth0_userId ON users FIELDS auth0_userId UNIQUE;
 
--- Define the public key to verify tokens issued by Auth0 for our application.
--- The name of the token should match the custom claim that we configured before.
-DEFINE ACCESS OVERWRITE auth0 ON DATABASE TYPE RECORD
+
+-- IMPORTANT! The name of the access method *must* match the
+-- claims set in the Auth0 PostLoginTrigger.
+DEFINE ACCESS OVERWRITE auth0_jwt ON DATABASE TYPE RECORD
     WITH JWT URL "https://intergate.eu.auth0.com/.well-known/jwks.json"
     AUTHENTICATE {
         IF (
             $token.aud.is_array()
             AND $token.aud CONTAINS "https://surrealdb.com/"
             AND $token.aud CONTAINS "https://intergate.eu.auth0.com/userinfo"
-            -- The email address in the token must be verified as belonging to the user.
             AND $token['https://surrealdb.com/email_verified'] = true
         ) {
-            -- We return the only user that matches the email address claim found in the token.
-            LET $user = SELECT * FROM users WHERE email = $token['https://surrealdb.com/email'];
+            -- Access-token verified
+            LET $userId = $token['https://surrealdb.com/user_id'];
+            LET $email = $token['https://surrealdb.com/email'];
+
+            LET $user = SELECT * FROM users WHERE auth0_userId = $userId;
             IF (!$user) {
-                CREATE user CONTENT {
-                    email: $token['https://surrealdb.com/email'],
-                    name: $token['https://surrealdb.com/name'],
-                }
+                CREATE users CONTENT {
+                    email: $email,
+                    auth0_userId: $userId,
+                };
+            } ELSE {
+                IF ($user.email != $email) THEN UPDATE $user.id SET email = $email; END;
             };
-            RETURN SELECT * FROM users WHERE email = $token['https://surrealdb.com/email'];
+            -- We return the only user that matches the user_id claim found in the token.
+            RETURN SELECT * FROM users WHERE auth0_userId = $userId;
         };
-    }
+    };
 ;

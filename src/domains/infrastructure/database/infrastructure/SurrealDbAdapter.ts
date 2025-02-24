@@ -8,6 +8,7 @@ import { UpdateListingDto } from '~/shared/models/listing/UpdateListingDto';
 import { UserViewModel } from '~/shared/models/UserViewModel';
 import { IndexLetterViewModel } from '~/shared/models/IndexLetterViewModel';
 import { TagViewModel } from '~/shared/models/TagViewModel';
+import { deepCopy } from '~/shared/lib/utils';
 
 export interface SurrealConfig {
   namespace: string;
@@ -54,6 +55,20 @@ export class SurrealDbAdapter implements IDatabase {
     }
   }
 
+  async resendVerificationEmail(emailVerificationId: string) {
+    // TODO! Make resend email verification work. Somehow.
+    // Issue is SurrealQL and security and permissions. It's complicated.
+    const query = `CREATE jobs CONTENT  {
+      key: "resend_email_verification",
+      value: $auth0_user_id
+    };`;
+    const res = pop<boolean>(await this.client.query(query, { auth0_user_id: emailVerificationId }), {
+      popCount: 1,
+      ensureArray: false,
+    });
+    return res;
+  }
+
   async authenticate(token: string, failSilently: boolean) {
     let res = false;
     try {
@@ -72,6 +87,9 @@ export class SurrealDbAdapter implements IDatabase {
       popCount: 2,
       ensureArray: false,
     });
+    if (Array.isArray(res)) {
+      throw new Error('Could not load user data')
+    }
     return stringifyIds(res);
   }
 
@@ -196,12 +214,14 @@ const pop = <T>(data: NestedArray<any>, options?: PopOptions): T => {
   let popCount = options?.popCount || 2;
   const ensureArray = options?.ensureArray === undefined ? true : options?.ensureArray;
 
-  let res = data;
+  let res = deepCopy(data);
   while (popCount > 0 && Array.isArray(res) && res.length === 1) {
     res = res[0];
     popCount--;
   }
-  return ensureArray && !Array.isArray(res) ? ([res] as T) : res;
+  res = ensureArray && !Array.isArray(res) ? ([res] as T) : res;
+  console.log('pop', { data, res });
+  return res;
 };
 
 /**
@@ -214,6 +234,5 @@ const pop = <T>(data: NestedArray<any>, options?: PopOptions): T => {
  */
 const stringifyIds = (res: any) => {
   const parsed = JSON.parse(JSON.stringify(res));
-  console.log({ res, parsed });
   return parsed;
 };

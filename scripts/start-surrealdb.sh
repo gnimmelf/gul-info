@@ -25,17 +25,19 @@ if $USE_TLS; then
 fi
 
 # Start SurrealDB command
+# Note! Start with env `SURREAL_INSECURE_FORWARD_ACCESS_ERRORS=true` to forward error details
 COMMAND="
 surreal start surrealkv://.dev-data \
   --strict \
   --deny-all \
   --allow-scripting \
+  --allow-funcs \
   --allow-guests \
-  --allow-net intergate.eu.auth0.com \
+  --allow-net \
   --user r00t \
   --pass r00t \
   --bind 127.0.0.1:7999 \
-  --log debug \
+  --log info \
 "
 
 # Append TLS arguments if useTls is true

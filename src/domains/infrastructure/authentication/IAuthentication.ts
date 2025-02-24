@@ -6,5 +6,5 @@ export interface IAuthentication {
   isAuthenticated: () => Promise<boolean>;
   getAccessToken: () => Promise<string>;
   initialize?: () => void;
-  getAuthData?: () => Promise<IAuthData>;
+  getAuthData?: () => Promise<IAuthData | undefined>;
 }

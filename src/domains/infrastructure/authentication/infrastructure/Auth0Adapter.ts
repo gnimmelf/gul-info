@@ -38,7 +38,6 @@ export class Auth0Adapter implements IAuthentication {
     ) {
       try {
         const result = await this.client!.handleRedirectCallback();
-        console.log({ result });
       } catch (err: any) {
         const { error, error_description } = err;
         console.error('Error handling redirect callback:', {
@@ -68,11 +67,11 @@ export class Auth0Adapter implements IAuthentication {
   }
 
   async getAuthData() {
-    const res = (await this.client!.isAuthenticated())
-      ? await this.client!.getIdTokenClaims()
-      : undefined;
-
-    return res as IdToken;
+    if (!(await this.client!.isAuthenticated())) {
+      return undefined
+    }
+    const claims = await this.client!.getIdTokenClaims();
+    return claims as IdToken & { user_id: string };
   }
 
   async getAccessToken() {

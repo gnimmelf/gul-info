@@ -10,7 +10,9 @@ export interface IDatabase {
   getIndexLetterUsages: () => Promise<IndexLetterViewModel.SchemaType[]>;
   getTags: () => Promise<TagViewModel.SchemaType[]>;
   getTagUsages: () => Promise<TagViewModel.SchemaType[]>;
-  authenticate: (token: string, isVerified: boolean) => Promise<boolean>;
+  // TODO! Set proper returntype for `resendVerificationToken`
+  resendVerificationEmail: (emailVerificationId: string) => Promise<any>;
+  authenticate: (token: string, failSilently: boolean) => Promise<boolean>;
   getUserData: () => Promise<UserViewModel.SchemaType>;
   getListingsByFilters: (filters?: Filters.SchemaType) => Promise<Listing.SchemaType[]>;
   getListingsByEmail: (email: string) => Promise<Listing.SchemaType[]>;
