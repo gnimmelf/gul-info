@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-// 🔥 Helper function to unwrap Zod wrappers like `default()`, `optional()`, etc.
+// Helper function to unwrap Zod wrappers like `default()`, `optional()`, etc.
 function unwrapZodSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
   while (
     schema instanceof z.ZodOptional ||
@@ -16,17 +16,17 @@ function unwrapZodSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
   return schema;
 }
 
-// 🔹 Check if the schema is a ZodObject (after unwrapping)
+// Check if the schema is a ZodObject (after unwrapping)
 function isZodObject(schema: z.ZodTypeAny): schema is z.AnyZodObject {
   return unwrapZodSchema(schema) instanceof z.ZodObject;
 }
 
-// 🔹 Check if the schema is a ZodArray (after unwrapping)
+// Check if the schema is a ZodArray (after unwrapping)
 function isZodArray(schema: z.ZodTypeAny): schema is z.ZodArray<any> {
   return unwrapZodSchema(schema) instanceof z.ZodArray;
 }
 
-// 🔹 Pick a property from a Zod object (after unwrapping)
+// Pick a property from a Zod object (after unwrapping)
 function pickObject(schema: z.ZodTypeAny, path: string): z.ZodTypeAny {
   schema = unwrapZodSchema(schema);
   if (!isZodObject(schema)) throw new Error('Not a Zod object');
@@ -40,7 +40,7 @@ function pickObject(schema: z.ZodTypeAny, path: string): z.ZodTypeAny {
   return newSchema;
 }
 
-// 🔹 Get the element type from a Zod array (after unwrapping)
+// Get the element type from a Zod array (after unwrapping)
 function pickArray(schema: z.ZodTypeAny): z.ZodTypeAny {
   schema = unwrapZodSchema(schema);
   if (!isZodArray(schema)) throw new Error('Not a Zod Array');
@@ -48,7 +48,7 @@ function pickArray(schema: z.ZodTypeAny): z.ZodTypeAny {
   return schema.element;
 }
 
-// 🔹 Deeply pick a property path from a Zod schema
+// Deeply pick a property path from a Zod schema
 export function zodDeepPick(schema: z.ZodTypeAny, propertyPath: string): z.ZodTypeAny {
   if (propertyPath === '') return schema;
 
