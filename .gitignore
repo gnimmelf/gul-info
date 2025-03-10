@@ -25,6 +25,7 @@ __snippets
 .classpath
 *.launch
 .settings/
+.lens
 
 # Temp
 gitignore

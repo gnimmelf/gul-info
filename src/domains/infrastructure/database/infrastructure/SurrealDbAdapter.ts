@@ -56,13 +56,9 @@ export class SurrealDbAdapter implements IDatabase {
   }
 
   async resendVerificationEmail(emailVerificationId: string) {
-    // TODO! Make resend email verification work. Somehow.
-    // Issue is SurrealQL and security and permissions. It's complicated.
-    const query = `CREATE jobs CONTENT  {
-      key: "resend_email_verification",
-      value: $auth0_user_id
-    };`;
-    const res = pop<boolean>(await this.client.query(query, { auth0_user_id: emailVerificationId }), {
+    console.log({ emailVerificationId });
+    const query = `fn::createJob('resend_verification_email', $value);`;
+    const res = pop<boolean>(await this.client.query(query, { value: emailVerificationId }), {
       popCount: 1,
       ensureArray: false,
     });

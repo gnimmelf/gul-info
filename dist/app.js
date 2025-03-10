@@ -16350,11 +16350,9 @@
       }
     }
     async resendVerificationEmail(emailVerificationId) {
-      const query = `CREATE jobs CONTENT  {
-      key: "resend_email_verification",
-      value: $auth0_user_id
-    };`;
-      const res = pop(await this.client.query(query, { auth0_user_id: emailVerificationId }), {
+      console.log({ emailVerificationId });
+      const query = `fn::createJob('resend_verification_email', $value);`;
+      const res = pop(await this.client.query(query, { value: emailVerificationId }), {
         popCount: 1,
         ensureArray: false
       });
@@ -18282,30 +18280,29 @@
         return data;
       }
     );
-    const mustVerifyEmail = createMemo(
-      () => authData()?.email_verified ? false : authData()?.email
-    );
     const [user] = createResource(
       () => {
-        if (authData() && !mustVerifyEmail()) {
-          return authData();
+        if (!authData()) {
+          setShouldAuthenticate(true);
+          return false;
         }
-        setShouldAuthenticate(true);
-        return false;
+        return authData();
       },
-      async () => {
+      async (authData2) => {
         const token = await auth.getAccessToken();
         const user2 = await accountService.getUser(token);
-        console.log({ token, user: user2 });
+        console.log({ authData: authData2, token, user: user2 });
         return user2;
       }
+    );
+    const mustVerifyEmail = createMemo(
+      () => authData()?.email_verified ? false : authData()?.email
     );
     const [resendVerificationEmail] = createResource(
       () => onResendVerificationEmail(),
       async () => {
         if (authData() && mustVerifyEmail()) {
-          const { email_verification_id } = authData();
-          console.log({ email_verification_id });
+          const email_verification_id = authData().sub;
           await accountService.resendVerificationEmail(email_verification_id);
         }
       }
@@ -20269,10 +20266,10 @@
   };
 
   // src/solid-js/ui/pages/PageAccount.tsx
-  var _tmpl$18 = /* @__PURE__ */ template(`<div><sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><br>Verifiser e-postadressen din der og fortsett deretter innlogging under.`, true, false);
-  var _tmpl$210 = /* @__PURE__ */ template(`<sl-button>Logg inn / Opprett konto`, true, false);
-  var _tmpl$35 = /* @__PURE__ */ template(`<div><sl-button>Fortsett innlogging</sl-button><sl-button>Send verifiserings-e-post p\xE5 nytt</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
-  var _tmpl$44 = /* @__PURE__ */ template(`<div>`);
+  var _tmpl$18 = /* @__PURE__ */ template(`<div><sl-button>Logg inn / Opprett konto`, true, false);
+  var _tmpl$210 = /* @__PURE__ */ template(`<sl-alert>Merk! Du trenger kun opprette konto dersom du vil avertere for din egen virksomhet!`, true, false);
+  var _tmpl$35 = /* @__PURE__ */ template(`<div><sl-alert><sl-icon slot=icon></sl-icon><strong>Vi har sendt en verifiserings-e-post til <!>.</strong><p>Verifiser e-postadressen din der og fortsett deretter innlogging under.</p><sl-button>Send verifiserings-e-post p\xE5 nytt`, true, false);
+  var _tmpl$44 = /* @__PURE__ */ template(`<div><sl-button>Fortsett innlogging</sl-button><sl-button>Avbryt / Log inn med en annen e-post`, true, false);
   var _tmpl$53 = /* @__PURE__ */ template(`<section>`);
   var css11 = addCss({
     section: (theme2) => ({
@@ -20296,8 +20293,8 @@
     function resendVerificationEmail() {
       setDisableResend(true);
       const sendTime = account().resendVerificationEmail();
-      const timeOut = 5e3 + sendTime.getTime();
-      setTimeout(() => setDisableResend(true), timeOut);
+      const timeOut = 3600 * 2 + 100;
+      setTimeout(() => setDisableResend(false), timeOut);
     }
     const mustVerifyEmail = createMemo(() => account()?.mustVerifyEmail());
     const isLoggedIn = createMemo(() => account()?.resources.user());
@@ -20309,64 +20306,18 @@
         },
         get children() {
           return [(() => {
-            var _el$2 = _tmpl$18(), _el$3 = _el$2.firstChild, _el$4 = _el$3.firstChild, _el$5 = _el$4.nextSibling, _el$6 = _el$5.firstChild, _el$8 = _el$6.nextSibling, _el$7 = _el$8.nextSibling;
-            _el$3.variant = "warning";
+            var _el$2 = _tmpl$18(), _el$3 = _el$2.firstChild;
+            addEventListener(_el$3, "click", () => account()?.login());
+            _el$3.variant = "primary";
             _el$3._$owner = getOwner();
-            _el$4.name = "exclamation-triangle";
-            _el$4._$owner = getOwner();
-            insert(_el$5, mustVerifyEmail, _el$8);
-            createRenderEffect((_p$) => {
-              var _v$ = join(css11.section), _v$2 = Boolean(mustVerifyEmail());
-              _v$ !== _p$.e && className(_el$2, _p$.e = _v$);
-              _v$2 !== _p$.t && (_el$3.open = _p$.t = _v$2);
-              return _p$;
-            }, {
-              e: void 0,
-              t: void 0
-            });
+            createRenderEffect(() => className(_el$2, join(css11.section, css11.center)));
             return _el$2;
           })(), (() => {
-            var _el$9 = _tmpl$44();
-            insert(_el$9, createComponent(Show, {
-              get when() {
-                return !mustVerifyEmail();
-              },
-              get children() {
-                var _el$10 = _tmpl$210();
-                addEventListener(_el$10, "click", () => account()?.login());
-                _el$10._$owner = getOwner();
-                return _el$10;
-              }
-            }), null);
-            insert(_el$9, createComponent(Show, {
-              get when() {
-                return mustVerifyEmail();
-              },
-              get children() {
-                var _el$11 = _tmpl$35(), _el$12 = _el$11.firstChild, _el$13 = _el$12.nextSibling, _el$14 = _el$13.nextSibling;
-                addEventListener(_el$12, "click", () => account()?.login());
-                _el$12.variant = "primary";
-                _el$12._$owner = getOwner();
-                addEventListener(_el$13, "click", resendVerificationEmail);
-                _el$13.variant = "default";
-                _el$13._$owner = getOwner();
-                addEventListener(_el$14, "click", () => account()?.logout());
-                _el$14.variant = "danger";
-                _el$14._$owner = getOwner();
-                createRenderEffect((_p$) => {
-                  var _v$3 = css11.controls, _v$4 = disableResend();
-                  _v$3 !== _p$.e && className(_el$11, _p$.e = _v$3);
-                  _v$4 !== _p$.t && (_el$13.disabled = _p$.t = _v$4);
-                  return _p$;
-                }, {
-                  e: void 0,
-                  t: void 0
-                });
-                return _el$11;
-              }
-            }), null);
-            createRenderEffect(() => className(_el$9, join(css11.section, css11.center)));
-            return _el$9;
+            var _el$4 = _tmpl$210();
+            _el$4.variant = "warning";
+            _el$4.open = true;
+            _el$4._$owner = getOwner();
+            return _el$4;
           })()];
         }
       }), null);
@@ -20375,7 +20326,53 @@
           return isLoggedIn();
         },
         get children() {
-          return createComponent(MyListings, {});
+          return [createComponent(Show, {
+            get when() {
+              return mustVerifyEmail();
+            },
+            get children() {
+              return [(() => {
+                var _el$5 = _tmpl$35(), _el$6 = _el$5.firstChild, _el$7 = _el$6.firstChild, _el$8 = _el$7.nextSibling, _el$9 = _el$8.firstChild, _el$11 = _el$9.nextSibling, _el$10 = _el$11.nextSibling, _el$12 = _el$8.nextSibling, _el$13 = _el$12.nextSibling;
+                _el$6.variant = "warning";
+                _el$6._$owner = getOwner();
+                _el$7.name = "exclamation-triangle";
+                _el$7._$owner = getOwner();
+                insert(_el$8, mustVerifyEmail, _el$11);
+                addEventListener(_el$13, "click", resendVerificationEmail);
+                _el$13.variant = "default";
+                _el$13._$owner = getOwner();
+                createRenderEffect((_p$) => {
+                  var _v$ = join(css11.section), _v$2 = Boolean(mustVerifyEmail()), _v$3 = disableResend();
+                  _v$ !== _p$.e && className(_el$5, _p$.e = _v$);
+                  _v$2 !== _p$.t && (_el$6.open = _p$.t = _v$2);
+                  _v$3 !== _p$.a && (_el$13.disabled = _p$.a = _v$3);
+                  return _p$;
+                }, {
+                  e: void 0,
+                  t: void 0,
+                  a: void 0
+                });
+                return _el$5;
+              })(), (() => {
+                var _el$14 = _tmpl$44(), _el$15 = _el$14.firstChild, _el$16 = _el$15.nextSibling;
+                addEventListener(_el$15, "click", () => account()?.login());
+                _el$15.variant = "primary";
+                _el$15._$owner = getOwner();
+                addEventListener(_el$16, "click", () => account()?.logout());
+                _el$16.variant = "danger";
+                _el$16._$owner = getOwner();
+                createRenderEffect(() => className(_el$14, css11.controls));
+                return _el$14;
+              })()];
+            }
+          }), createComponent(Show, {
+            get when() {
+              return !mustVerifyEmail();
+            },
+            get children() {
+              return createComponent(MyListings, {});
+            }
+          })];
         }
       }), null);
       return _el$;

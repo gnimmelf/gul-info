@@ -27,32 +27,32 @@ export const createAccountServiceAdaper = (db: IDatabase, auth: IAuthentication)
     },
   );
 
-  const mustVerifyEmail = createMemo(() =>
-    authData()?.email_verified ? false : authData()?.email,
-  );
-
+  // Starting point - triggered from JSX
   const [user] = createResource(
     () => {
-      if (authData() && !mustVerifyEmail()) {
-        return authData();
+      if (!authData()) {
+        setShouldAuthenticate(true);
+        return false;
       }
-      setShouldAuthenticate(true);
-      return false;
+      return authData();
     },
-    async () => {
+    async (authData) => {
       const token = await auth.getAccessToken();
       const user = await accountService.getUser(token);
-      console.log({ token, user })
+      console.log({ authData, token, user })
       return user;
     },
+  );
+
+  const mustVerifyEmail = createMemo(() =>
+    authData()?.email_verified ? false : authData()?.email,
   );
 
   const [resendVerificationEmail] = createResource(
     () => onResendVerificationEmail(),
     async () => {
       if (authData() && mustVerifyEmail()) {
-        const { email_verification_id } = authData()!;
-        console.log({ email_verification_id });
+        const email_verification_id = authData()!.sub;
         await accountService.resendVerificationEmail(email_verification_id!);
       }
     },

@@ -30,4 +30,4 @@ DEFINE FUNCTION OVERWRITE fn::getManagementToken() -> string {
 
 	}
 	;
-} PERMISSIONS FULL
+} PERMISSIONS NONE;
